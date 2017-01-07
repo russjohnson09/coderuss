@@ -4,6 +4,18 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
 
+if (process.env.SMTP_TRANSPORT) {
+  var transporter = nodemailer.createTransport(process.env.SMTP_TRANSPORT);
+  console.log('using mailgun transport');
+}
+else {
+  var pickupTransport = require('nodemailer-pickup-transport');
+  var transporter = nodemailer.createTransport(
+    pickupTransport({ directory: __dirname + '/../email' }));
+  console.log('using pickupTransport transport');
+
+}
+
 /**
  * GET /login
  * Login page.
@@ -273,13 +285,6 @@ exports.postReset = (req, res, next) => {
         });
     },
     function sendResetPasswordEmail(user, done) {
-      const transporter = nodemailer.createTransport({
-        service: 'SendGrid',
-        auth: {
-          user: process.env.SENDGRID_USER,
-          pass: process.env.SENDGRID_PASSWORD
-        }
-      });
       const mailOptions = {
         to: user.email,
         from: 'hackathon@starter.com',
@@ -347,24 +352,20 @@ exports.postForgot = (req, res, next) => {
       });
     },
     function sendForgotPasswordEmail(token, user, done) {
-      const transporter = nodemailer.createTransport({
-        service: 'SendGrid',
-        auth: {
-          user: process.env.SENDGRID_USER,
-          pass: process.env.SENDGRID_PASSWORD
-        }
-      });
       const mailOptions = {
         to: user.email,
-        from: 'hackathon@starter.com',
+        from: '"coderuss.com" <russ@coderuss.com>',
         subject: 'Reset your password on Hackathon Starter',
         text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
           Please click on the following link, or paste this into your browser to complete the process:\n\n
           http://${req.headers.host}/reset/${token}\n\n
           If you did not request this, please ignore this email and your password will remain unchanged.\n`
       };
-      transporter.sendMail(mailOptions, (err) => {
+      transporter.sendMail(mailOptions, (err,info) => {
+        console.log(err);
+        console.log(info.response);
         req.flash('info', { msg: `An e-mail has been sent to ${user.email} with further instructions.` });
+        
         done(err);
       });
     }

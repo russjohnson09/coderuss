@@ -11,6 +11,8 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const OpenIDStrategy = require('passport-openid').Strategy;
 const OAuthStrategy = require('passport-oauth').OAuthStrategy;
 const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
+var FitbitStrategy = require( 'passport-fitbit-oauth2' ).FitbitOAuth2Strategy;
+
 
 const User = require('../models/User');
 
@@ -426,6 +428,29 @@ passport.use('tumblr', new OAuthStrategy({
   }
 ));
 
+
+/**
+ * fitbit API OAuth.
+ */
+passport.use('fitbit', new FitbitStrategy({
+  clientID: process.env.FITBIT_ID,
+  clientSecret: process.env.FITBIT_SECRET,
+  callbackURL: process.env.FITBIT_REDIRECT_URL,
+    passReqToCallback: true
+
+},
+  (req, accessToken, refreshToken, profile, done) => {
+    console.log(req);
+    User.findById(req.user._id, (err, user) => {
+      if (err) { return done(err); }
+      user.tokens.push({ kind: 'fitbit', accessToken });
+      user.save((err) => {
+        done(err, user);
+      });
+    });
+  }
+));
+
 /**
  * Foursquare API OAuth.
  */
@@ -489,11 +514,11 @@ passport.use(new OpenIDStrategy({
  * Pinterest API OAuth.
  */
 passport.use('pinterest', new OAuth2Strategy({
-  authorizationURL: 'https://api.pinterest.com/oauth/',
-  tokenURL: 'https://api.pinterest.com/v1/oauth/token',
-  clientID: process.env.PINTEREST_ID,
-  clientSecret: process.env.PINTEREST_SECRET,
-  callbackURL: process.env.PINTEREST_REDIRECT_URL,
+  authorizationURL: 'https://www.fitbit.com/oauth2/authorize',
+  tokenURL: 'https://www.fitbit.com/oauth2/token',
+  clientID: process.env.FITBIT_ID,
+  clientSecret: process.env.FITBIT_SECRET,
+  callbackURL: process.env.FITBIT_REDIRECT_URL,
   passReqToCallback: true
 },
   (req, accessToken, refreshToken, profile, done) => {

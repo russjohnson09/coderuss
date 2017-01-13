@@ -105,6 +105,22 @@ exports.getFacebook = (req, res, next) => {
   });
 };
 
+
+/**
+ * GET /api/fitbit
+ * Facebook API example.
+ */
+exports.getFitbit = (req, res, next) => {
+  const token = req.user.tokens.find(token => token.kind === 'fitbit');
+  graph.setAccessToken(token.accessToken);
+    // if (err) { return next(err); }
+    res.render('api/fitbit', {
+      title: 'fitbit API',
+      profile: {},
+      token: token,
+  });
+};
+
 /**
  * GET /api/scraping
  * Web scraping example using Cheerio library.

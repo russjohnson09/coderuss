@@ -151,6 +151,8 @@ app.post('/api/clockwork', apiController.postClockwork);
 app.get('/api/foursquare', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFoursquare);
 app.get('/api/tumblr', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getTumblr);
 app.get('/api/facebook', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFacebook);
+app.get('/api/fitbit', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFitbit);
+
 app.get('/api/github', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getGithub);
 app.get('/api/twitter', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getTwitter);
 app.post('/api/twitter', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postTwitter);
@@ -177,6 +179,14 @@ app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', '
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
   res.redirect(req.session.returnTo || '/');
 });
+
+app.get('/auth/fitbit', passport.authenticate('fitbit', { scope: ['heartrate', 'activity','profile','sleep','weight'], }));
+app.get('/auth/fitbit/callback', passport.authenticate('fitbit', { failureRedirect: '/login' }), (req, res) => {
+  res.redirect(req.session.returnTo || '/');
+});
+
+
+
 app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
   res.redirect(req.session.returnTo || '/');
@@ -209,7 +219,7 @@ app.get('/auth/steam', passport.authorize('openid', { state: 'SOME STATE' }));
 app.get('/auth/steam/callback', passport.authorize('openid', { failureRedirect: '/login' }), (req, res) => {
   res.redirect(req.session.returnTo || '/');
 });
-app.get('/auth/pinterest', passport.authorize('pinterest', { scope: 'read_public write_public' }));
+app.get('/auth/pinterest', passport.authorize('pinterest', { scope: 'profile' }));
 app.get('/auth/pinterest/callback', passport.authorize('pinterest', { failureRedirect: '/login' }), (req, res) => {
   res.redirect('/api/pinterest');
 });

@@ -1,18 +1,69 @@
 var bodyParser = require('body-parser');
 var express = require('express');
+var extend = require('util')._extend;
+
+
+var spawn = require('child_process').spawn;
+// var cmd = 'ls server.js';
+// var cwd = __dirname+'/node-todo';
+
+// cmd = 'ls '+__dirname+'/node-todo';
+cmd = 'npm';
+args = ['start'];
+
+var op = require('openport');
+
+
+op.find(function(err, port) {
+    if(err) { console.log(err); return; }
+  // yea! we have an open port. 
+    todoPort = port;
+    var env = extend(process.env, { PORT: todoPort });    
+    var child = spawn(cmd, args, {
+        cwd: 'node-todo',
+        env: env,
+    }, function (err) {
+        console.log(err);
+    });
+    child.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    child.stderr.on('data', (data) => {
+        console.log(`stderr: ${data}`);
+    });
+
+    child.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+    });
+    child.on('error', function (err) {
+        console.log('dir error', err);
+    });
+});
+
+// return;
+
+// console.log(cmd);
+// exec(cmd, function (error, stdout, stderr) {
+//     console.log(error);
+//     console.log(stdout);
+//     console.log(stderr);
+// });
+
+// console.log(1);
+// return;
 
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var extend = require('util')._extend;
 var envvars = process.env || {};
 
 var params = {};
 try {
     params = require(__dirname + '/params');
 }
-catch(e) {
+catch (e) {
 }
 var envparams = params.env || {};
 
@@ -125,6 +176,7 @@ app.use(express.static(path.join(__dirname, 'public/')));
 var ping = require('./v1/ping.js')({});
 var fileapi = require('./v1/files/main.js')({ winston: winston });
 var ftp = require('./v1/ftp/main.js')({ winston: winston });
+// var todo = require('./node-todo/main.js')({ app: app });
 
 app.use('/api/v1/files', fileapi.router);
 app.use('/api/v1/ping', ping.router);
@@ -168,7 +220,7 @@ var certificate = fs.readFileSync(__dirname + '/certs/localhost.crt', 'utf8');
 var credentials = { key: privateKey, cert: certificate };
 
 var uuid = require('node-uuid');
-    http.
+http.
     createServer(
     function (req, res) {
         var proxyReq = req;
@@ -178,10 +230,25 @@ var uuid = require('node-uuid');
 
         var url = require('url');
         var path = url.parse(proxyReq.url, true).pathname;
-        if (path.indexOf('/private/Downloads') !== -1) {
+        if (path.indexOf('/todos') !== -1) {
+            var target = 'http://0.0.0.0:' + todoPort + path.substr(6);
+            // var target = 'http://localhost:' + todoPort + '/';
+            winston.log('info', 'target:' + target);
+            proxy.web(proxyReq, proxyRes, {
+                target: target,
+                secure: false,
+                ignorePath: true,
+                prependPath: false
+            }, function (err) {
+                winston.log('error', err);
+                proxyRes.writeHead(502);
+                proxyRes.end("There was an error. Please try again");
+            });
+        }
+        else if (path.indexOf('/private/Downloads') !== -1) {
             var www_authenticate = require('www-authenticate');
             var authenticator = www_authenticate.authenticator(FTP_USER, FTP_PASSWORD);
-            
+
             var options = {
                 url: FTP_BASE + path,
                 method: 'GET',

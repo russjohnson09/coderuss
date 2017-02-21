@@ -15,33 +15,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.routefilter/0.2.0/backbone.routefilter.js"></script>
     <script src="/js/ext/backbone-validation.js"></script>
 
-    <!--https://github.com/powmedia/backbone-forms-->
-    <!-- Setup our templates -->
-
-    <!--<script id="UserTemplate" type="text/x-handlebars-template">
-        <div class="container">
-            <h2>User</h2>
-            <form>
-                <div class="form-group">
-                    <label for="username">Username <%= username %>:</label>
-                    <input type="username" class="form-control" id="username">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" class="form-control" id="email" placeholder="Enter email" value="<%= email %>">
-                </div>
-                <div class="form-group">
-                    <label for="pwd">Password:</label>
-                    <input type="password" class="form-control" id="pwd" placeholder="Enter password">
-                </div>
-                <div class="checkbox">
-                    <label><input type="checkbox"> Remember me</label>
-                </div>
-                <button type="submit" class="btn btn-default">Submit</button>
-            </form>
-        </div>
-    </script>-->
-
 
     <script id="UserTemplate" type="text/x-handlebars-template">
         <div class="container">
@@ -62,14 +35,6 @@
                     <input type="name" class="form-control" id="name">
                     <span class="help-block hidden"></span>
                 </div>
-                <!--<div class="form-group">
-                    <label for="pwd">Password:</label>
-                    <input type="password" class="form-control" id="pwd" placeholder="Enter password">
-                    <span class="help-block hidden"></span>
-                </div>-->
-                <!--<div class="checkbox">
-                    <label><input type="checkbox"> Remember me</label>
-                </div>-->
                 <button id="save" type="submit" class="btn btn-default">Submit</button>
             </form>
         </div>
@@ -264,11 +229,9 @@
                 'users(/:id)': 'users',
                 'logout': 'logout'
             },
-            //http://danialk.github.io/blog/2013/06/08/backbone-tips-after-and-before-methods-for-router/
-            // https://github.com/boazsender/backbone.routefilter
             before: function () {
                 console.log('before');
-                // $("#main").html('');
+                $("#main").html('');
             },
             index: function () {
                 console.log('index');
@@ -452,7 +415,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.js"></script>
 <script>
-        new Vue({
+    $(function() {
+ new Vue({
             el: '#app',
             data: {
                 options: [
@@ -491,25 +455,13 @@
             }
         })
 
+    })
+       
 </script>
 
 <body>
     <div id="main">
         <section class="app" id="app">
-            <form>
-                <div class="form-group">
-                    <label for="name" class="col-lg-2 control-label">Name</label>
-                    <div class="col-lg-10">
-                        <input type="text" class="form-control" placeholder="" v-model="model.name">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email" class="col-lg-2 control-label">Email</label>
-                    <div class="col-lg-10">
-                        <input type="text" class="form-control" placeholder="" v-model="model.email">
-                    </div>
-                </div>
-            </form>
         </section>
     </div>
 </body>

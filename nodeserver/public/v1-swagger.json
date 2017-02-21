@@ -9,6 +9,9 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
+    "schemes": [
+        "https"
+    ],
     "host": "coderuss.herokuapp.com",
     "basePath": "/v1",
     "tags": [
@@ -20,9 +23,6 @@
                 "url": "http://google.com"
             }
         }
-    ],
-    "schemes": [
-        "https"
     ],
     "paths": {
         "/ping": {
@@ -39,8 +39,7 @@
                 "produces": [
                     "application/json; charset=utf-8"
                 ],
-                "parameters": [
-                ],
+                "parameters": [],
                 "responses": {
                     "201": {
                         "description": "Successful operation",

@@ -2,7 +2,9 @@
   "name": "code-russ-node",
   "version": "1.0.0",
   "scripts": {
-    "prestart": "spectacle nodeserver/public/v1-swagger.json --target-dir nodeserver/public/docs",
+    "prestart": "npm run spectacle:build",
+    "spectacle:build": "spectacle nodeserver/public/v1-swagger.json --target-dir nodeserver/public/docs",
+    "spectacle:build:d": "spectacle nodeserver/public/v1-swagger.json --target-dir nodeserver/public/docs -d",
     "heroku-postbuild": "bash ./postbuild.sh",
     "start": "node nodeserver/server.js",
     "test": "npm run test:main && npm run report:coveralls",

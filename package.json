@@ -61,6 +61,7 @@
     "node-libs-browser": "^0.5.3",
     "node-uuid": "^1.4.7",
     "nodemailer": "^2.7.0",
+    "nodemailer-pickup-transport": "^0.1.1",
     "path": "^0.12.7",
     "request-digest": "^1.0.7",
     "session-file-store": "^1.0.0",

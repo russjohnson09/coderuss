@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const path = require('path');
 const http = require('http');
 const url = require('url');
 const express = require('express');
@@ -8,6 +9,8 @@ const fs = require('fs');
 const inspect = require('util').inspect;
 const bcrypt = require('bcrypt');
 var router = express.Router();
+const mailer = require(path.join(__dirname,'..','..','utils','mailer'));
+// const mailertransporter = mailer.transporter;
 
 
 module.exports = function (opts) {
@@ -77,6 +80,22 @@ module.exports = function (opts) {
                             }));
                         }
 
+                        var msg = "Your password reset token is: " + reset_password_token.token;
+
+                        var mailOptions = {
+                            from: '"Coderuss" <russ@coderuss.com>',
+                            to: user.username,
+                            subject: 'Password Reset Requested', // Subject line
+                            text: msg, // plaintext body
+                            html: msg, // html body
+                        };
+
+                        mailer.sendMail(mailOptions, function(error, info){
+                            if(error){
+                                return winston.error(error);
+                            }
+                            winston.debug('Message sent: ' + info.response);
+                        });
 
                         return res.status(201).send({
                             'status': 'success',
@@ -90,34 +109,34 @@ module.exports = function (opts) {
         });
     });
 
-    router.post('/me/resetpasswordwithtoken', function (req, res) {
+    // router.post('/me/resetpasswordwithtoken', function (req, res) {
 
-        User.updateOne({ _id: ObjectID(req.user._id) },
-            { $set: set }, function (error, result) {
-                if (error) {
-                    winston.error(error);
-                }
-                winston.debug(result.result);
-                User.findOne({ _id: req.user._id }, function (err, user) {
-                    winston.debug(user);
-                    if (err) {
-                        winston.error(err);
-                        res.status(401);
-                        return res.end(JSON.stringify({
-                            "message": 'Unauthorized',
-                            status: "unauthorized"
-                        }));
-                    }
-                    return res.status(201).send(JSON.stringify({
-                        _id: user._id,
-                        username: user.username,
-                        email: user.email || null,
-                        name: user.name || null
-                    })).end();
-                });
-            }
-        );
-    })
+    //     User.updateOne({ _id: ObjectID(req.user._id) },
+    //         { $set: set }, function (error, result) {
+    //             if (error) {
+    //                 winston.error(error);
+    //             }
+    //             winston.debug(result.result);
+    //             User.findOne({ _id: req.user._id }, function (err, user) {
+    //                 winston.debug(user);
+    //                 if (err) {
+    //                     winston.error(err);
+    //                     res.status(401);
+    //                     return res.end(JSON.stringify({
+    //                         "message": 'Unauthorized',
+    //                         status: "unauthorized"
+    //                     }));
+    //                 }
+    //                 return res.status(201).send(JSON.stringify({
+    //                     _id: user._id,
+    //                     username: user.username,
+    //                     email: user.email || null,
+    //                     name: user.name || null
+    //                 })).end();
+    //             });
+    //         }
+    //     );
+    // });
 
     router.get('/me', function (req, res) {
 

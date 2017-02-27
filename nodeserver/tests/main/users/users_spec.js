@@ -202,8 +202,7 @@ describe(__filename, function () {
         });
 
 
-        it("send password reset link name to testemail123@email.com", function (done) {
-            var name = 'testemail123@email.com';
+        it("send password reset link for current user", function (done) {
             request({
                 method: "POST",
                 headers: {
@@ -211,8 +210,7 @@ describe(__filename, function () {
                     cookie: cookie
                 },
                 uri: usersendpoint + "/me/generatepasswordreset",
-                followRedirect: false,
-                body: JSON.stringify({ name: name })
+                followRedirect: false
             }, function (error, response, body) {
                 logger.debug(body);
 

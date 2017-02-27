@@ -1,22 +1,30 @@
+const crypto = require('crypto');
+const http = require('http');
+const url = require('url');
+const express = require('express');
+const ObjectID = require('mongodb').ObjectID;
+const uuid = require('node-uuid');
+const fs = require('fs');
+const inspect = require('util').inspect;
+const bcrypt = require('bcrypt');
+var router = express.Router();
+
+
 module.exports = function (opts) {
-    var http = require('http');
-    var url = require('url');
-    var express = require('express');
+
     var winston = opts.winston || require('winston');
-    var fs = require('fs');
-    var inspect = require('util').inspect;
+
     var current_files = {};
     var doDelete = true;
-    var ObjectID = require('mongodb').ObjectID;
-    var uuid = require('node-uuid');
+
+
 
     const db = opts.database;
 
     const LOGIN_PATH = '/public/login';
 
-    var router = express.Router();
 
-    var bcrypt = require('bcrypt');
+
 
 
     const User = db.collection('user');
@@ -34,6 +42,82 @@ module.exports = function (opts) {
         }
         next();
     });
+
+    router.post('/me/generatepasswordreset', function (req, res) {
+        User.findOne({ _id: req.user._id }, function (err, user) {
+            if (err) {
+                winston.error(err);
+                res.status(401);
+                return res.end(JSON.stringify({
+                    "message": 'Unauthorized',
+                    status: "unauthorized"
+                }));
+            };
+
+            reset_password_token = {
+                token: crypto.randomBytes(32).toString('hex'),
+                created: Date.now()
+            };
+
+            User.updateOne({ _id: req.user._id },
+                { $set: { reset_password_token: reset_password_token } }, function (error, result) {
+                    if (error) {
+                        winston.error(error);
+                    }
+                    winston.debug(result.result);
+                    User.findOne({ _id: req.user._id }, function (err, user) {
+                        winston.debug(user);
+                        if (err) {
+                            winston.error(err);
+                            res.status(401);
+                            res.setHeader('content-type', 'application/json; charset=utf-8');
+                            return res.end(JSON.stringify({
+                                "message": 'Unauthorized',
+                                status: "unauthorized"
+                            }));
+                        }
+
+
+                        return res.status(201).send({
+                            'status': 'success',
+                            'meta': { 'message': 'Check your email for your password reset link.' }
+                        });
+                    });
+                }
+            );
+
+
+        });
+    });
+
+    router.post('/me/resetpasswordwithtoken', function (req, res) {
+
+        User.updateOne({ _id: ObjectID(req.user._id) },
+            { $set: set }, function (error, result) {
+                if (error) {
+                    winston.error(error);
+                }
+                winston.debug(result.result);
+                User.findOne({ _id: req.user._id }, function (err, user) {
+                    winston.debug(user);
+                    if (err) {
+                        winston.error(err);
+                        res.status(401);
+                        return res.end(JSON.stringify({
+                            "message": 'Unauthorized',
+                            status: "unauthorized"
+                        }));
+                    }
+                    return res.status(201).send(JSON.stringify({
+                        _id: user._id,
+                        username: user.username,
+                        email: user.email || null,
+                        name: user.name || null
+                    })).end();
+                });
+            }
+        );
+    })
 
     router.get('/me', function (req, res) {
 
@@ -58,7 +142,7 @@ module.exports = function (opts) {
 
 
     router.post('/me', function (req, res) {
-        winston.debug(req.headers,{endpoint:'/v2/users/me',tag:'headers'})
+        winston.debug(req.headers, { endpoint: '/v2/users/me', tag: 'headers' })
         winston.debug(req.body, { endpoint: '/v2/users/me' });
         var set = {};
         if (req.body.email !== undefined) {

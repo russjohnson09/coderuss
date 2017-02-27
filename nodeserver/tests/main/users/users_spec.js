@@ -200,6 +200,31 @@ describe(__filename, function () {
                 done();
             });
         });
+
+
+        it("send password reset link name to testemail123@email.com", function (done) {
+            var name = 'testemail123@email.com';
+            request({
+                method: "POST",
+                headers: {
+                    'content-type': 'application/json',
+                    cookie: cookie
+                },
+                uri: usersendpoint + "/me/generatepasswordreset",
+                followRedirect: false,
+                body: JSON.stringify({ name: name })
+            }, function (error, response, body) {
+                logger.debug(body);
+
+                expect(error).to.be.equal(null);
+                expect(response.statusCode, 'response with successful POST status code').to.equal(201);
+                expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+
+                var data = JSON.parse(body);
+
+                done();
+            });
+        });
     })
 
 

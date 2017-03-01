@@ -124,7 +124,7 @@ passport.use(new FacebookStrategy({
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_ID,
   clientSecret: process.env.GITHUB_SECRET,
-  callbackURL: '/auth/github/callback',
+  callbackURL: getBaseUrl() + '/auth/github/callback',
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   if (req.user) {
@@ -448,18 +448,28 @@ passport.use('foursquare', new OAuth2Strategy({
   }
 ));
 
+// https://steamcommunity.com/openid/login?openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.return_to=http%3A%2F%2Fcoderuss.local%3A3000%2Fauth%2Fsteam%2Fcallback&openid.realm=http%3A%2F%2Fcoderuss.local%3A3000%2F
+function getBaseUrl() {
+  var url = process.env.PROTOCOL + '://' + process.env.HOSTNAME + ':' + process.env.PORT;
+  var url = process.env.BASEURL;
+  console.log(url);
+  return url;
+}
+
 /**
  * Steam API OpenID.
  */
 passport.use(new OpenIDStrategy({
   apiKey: process.env.STEAM_KEY,
   providerURL: 'http://steamcommunity.com/openid',
-  returnURL: 'http://localhost:3000/auth/steam/callback',
-  realm: 'http://localhost:3000/',
+  returnURL: getBaseUrl() + '/auth/steam/callback',
+  realm: getBaseUrl() + '/',
   stateless: true
 }, (identifier, done) => {
   const steamId = identifier.match(/\d+$/)[0];
   const profileURL = `http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${process.env.STEAM_KEY}&steamids=${steamId}`;
+
+  console.log(steamId);
 
   User.findOne({ steam: steamId }, (err, existingUser) => {
     if (err) { return done(err); }

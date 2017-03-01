@@ -2,6 +2,7 @@ version: '2'
 volumes:
   node_modules:
   node_bitbucket_node_modules:
+  hackathon_node_modules:
 services:
   web:
     container_name: coderuss
@@ -15,6 +16,7 @@ services:
       - ..:/coderuss
       - node_modules:/coderuss/node_modules
       - node_bitbucket_node_modules:/examples/node-bitbucket/node_modules
+      - hackathon_node_modules:/examples/hackathon-starter-master/node_modules
 
 #on startup
 #mongod &

@@ -5,6 +5,9 @@
     "author": "Fabian Jakobs <fabian.jakobs@web.de>",
     "homepage": "http://github.com/ajaxorg/node-bitbucket.git",
     "main" : "./bitbucket",
+    "scripts": {
+        "start": "node ./bitbucket/index.js"
+    },
     "repository" : {
         "type" : "git",
         "url" : "http://github.com/ajaxorg/node-bitbucket.git"

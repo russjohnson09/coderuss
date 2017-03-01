@@ -15,8 +15,8 @@ services:
     volumes:
       - ..:/coderuss
       - node_modules:/coderuss/node_modules
-      - node_bitbucket_node_modules:/examples/node-bitbucket/node_modules
-      - hackathon_node_modules:/examples/hackathon-starter-master/node_modules
+      - node_bitbucket_node_modules:/coderuss/examples/node-bitbucket/node_modules
+      - hackathon_node_modules:/coderuss/examples/hackathon-starter-master/node_modules
 
 #on startup
 #mongod &

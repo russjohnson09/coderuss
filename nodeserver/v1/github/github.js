@@ -1,13 +1,20 @@
-module.exports = function (opts) {
-    var http = require('http');
-    var url = require('url');
-    var express = require('express');
-    var winston = opts.winston || require('winston');
-    var fs = require('fs');
-    var mongodb = require('mongodb');
-    var uuid = require('node-uuid');
+var fs = require('fs');
+var mongodb = require('mongodb');
+var uuid = require('node-uuid');
+const crypto = require('crypto');
+var http = require('http');
+var url = require('url');
+var express = require('express');
+var bcrypt = require('bcrypt');
 
-    var bcrypt = require('bcrypt');
+const mongoose = require("mongoose"); //http://mongoosejs.com/docs/index.html
+const request = require('request');
+
+module.exports = function (opts) {
+
+    var winston = opts.winston;
+
+
 
     const CODERUSS_USER_AGENT = 'CODERUSS';
 
@@ -18,7 +25,6 @@ module.exports = function (opts) {
     self.router = router;
 
 
-    const mongoose = require("mongoose"); //http://mongoosejs.com/docs/index.html
 
     const Schema = mongoose.Schema;
 
@@ -56,44 +62,6 @@ module.exports = function (opts) {
         database = mongo_db = db;
     });
 
-    //setup session
-    // (function () {
-    //     var sessionMiddleware = expressSession(
-    //         {
-    //             secret: 'secret',
-    //             store: new (connect_mongo(expressSession))({
-    //                 url: MONGO_URI
-    //             })
-    //         });
-    //     app.use(sessionMiddleware);
-    // })();
-
-    //setup views
-    // (function () {
-    //     var hbs = exphbs({
-    //         defaultLayout: 'main',
-    //         helpers: {
-    //             json: function (context) { return JSON.stringify(context, null, '\t'); },
-    //         }
-    //     });
-
-    //     // app.set('view engine', 'pug');
-
-    //     app.engine('handlebars', hbs);
-    //     app.set('view engine', 'handlebars');
-    // })();
-
-    //server listen
-    // (function () {
-    //     var server = require('http').Server(app);
-
-    //     server = server.listen(3000, function () {
-    //         winston.debug(server.address().port);
-    //     });
-
-    // })();
-
-
     function getGithubUser(access_token_github, callback) {
         request.get({
             headers: {
@@ -123,25 +91,6 @@ module.exports = function (opts) {
 
     //setup routes
     (function () {
-        // app.get('/', function (req, res) {
-        //     var sess = req.session
-        //     console.log(sess);
-        //     if (!sess.user) {
-        //         return res.redirect('/v1/link/github');
-        //     }
-        //     if (!sess.user.access_token_github) {
-        //         return res.redirect('/v1/link/github');
-        //     }
-        //     getGithubUser(sess.user.access_token_github, function (error, user) {
-        //         res.render('home', {
-        //             title: 'Hey', message: 'Hello there!', client_id: process.env.GITHUB_ID,
-        //             'github_user': user
-        //         });
-        //         res.status(200);
-        //         // res.end();
-        //     })
-
-        // });
 
         router.get('/github/profile', function (req, res) {
             var sess = req.session;
@@ -158,7 +107,7 @@ module.exports = function (opts) {
                 winston.debug('has code');
                 var code = req.query.code;
 
-                addUpdateGithubUser(code, req.query.state, function (err, user) {
+                addUpdateGithubUser(sess,code, req.query.state, function (err, user) {
                     if (err) {
                         return res.end();
 
@@ -197,7 +146,7 @@ module.exports = function (opts) {
 
 
 
-    function addUpdateGithubUser(code, state, callback) {
+    function addUpdateGithubUser(sess,code, state, callback) {
         request.post({
             headers: {
                 'content-type': 'application/json',
@@ -247,7 +196,7 @@ module.exports = function (opts) {
                         }
                         User.findOne(
                             {
-                                id_github: data.id,
+                                _id: sess.user._id,
                             }, function (err, user) {
                                 if (user) {
                                     winston.debug('user already exists');

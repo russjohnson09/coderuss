@@ -13,3 +13,7 @@ the best way to do this but have ended up using node for
 the api. The frontend is still undecided. Test cases are primarily
 endpoint tests although there will definitely be a need for
 unit tests when a service is not practical or not efficient.
+
+Changelog
+==================
+* fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js

@@ -1,8 +1,12 @@
 version: '2'
 volumes:
   node_modules:
+  node_bitbucket_node_modules:
+  hackathon_node_modules:
+  github_link:
 services:
   web:
+    container_name: coderuss
     ports:
       - "3000:3000"
       - "27017:27017"
@@ -12,6 +16,9 @@ services:
     volumes:
       - ..:/coderuss
       - node_modules:/coderuss/node_modules
+      - node_bitbucket_node_modules:/coderuss/examples/node-bitbucket/node_modules
+      - hackathon_node_modules:/coderuss/examples/hackathon-starter-master/node_modules
+      - github_link:/coderuss/examples/github-link/node_modules
 
 #on startup
 #mongod &

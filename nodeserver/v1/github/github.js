@@ -4,26 +4,18 @@ module.exports = function (opts) {
     var express = require('express');
     var winston = opts.winston || require('winston');
     var fs = require('fs');
-    var ObjectID = require('mongodb').ObjectID;
+    var mongodb = require('mongodb');
     var uuid = require('node-uuid');
 
-    var router = express.Router();
     var bcrypt = require('bcrypt');
 
-    const User = database.collection('user');
-    const express = require('express');
-    const app = express();
-    const connect_mongo = require("connect-mongo");
-    const passport = require('passport');
-    const crypto = require('crypto');
-    const request = require('request');
-    const qs = require('qs');
-    const expressSession = require('express-session');
-    const mongodb = require('mongodb');
-    const exphbs = require('express-handlebars');
-
-
     const CODERUSS_USER_AGENT = 'CODERUSS';
+
+    var self = {};
+
+    var router = express.Router();
+
+    self.router = router;
 
 
     const mongoose = require("mongoose"); //http://mongoosejs.com/docs/index.html
@@ -55,7 +47,7 @@ module.exports = function (opts) {
         db = mongoose.connection;
         db.on("error", console.error.bind(console, "connection error"));
         db.once("open", function (callback) {
-            console.log("Connection succeeded.");
+            winston.debug("Connection succeeded.");
         });
     })()
 
@@ -64,46 +56,42 @@ module.exports = function (opts) {
         database = mongo_db = db;
     });
 
-
-
-
-
     //setup session
-    (function () {
-        var sessionMiddleware = expressSession(
-            {
-                secret: 'secret',
-                store: new (connect_mongo(expressSession))({
-                    url: MONGO_URI
-                })
-            });
-        app.use(sessionMiddleware);
-    })();
+    // (function () {
+    //     var sessionMiddleware = expressSession(
+    //         {
+    //             secret: 'secret',
+    //             store: new (connect_mongo(expressSession))({
+    //                 url: MONGO_URI
+    //             })
+    //         });
+    //     app.use(sessionMiddleware);
+    // })();
 
     //setup views
-    (function () {
-        var hbs = exphbs({
-            defaultLayout: 'main',
-            helpers: {
-                json: function (context) { return JSON.stringify(context, null, '\t'); },
-            }
-        });
+    // (function () {
+    //     var hbs = exphbs({
+    //         defaultLayout: 'main',
+    //         helpers: {
+    //             json: function (context) { return JSON.stringify(context, null, '\t'); },
+    //         }
+    //     });
 
-        // app.set('view engine', 'pug');
+    //     // app.set('view engine', 'pug');
 
-        app.engine('handlebars', hbs);
-        app.set('view engine', 'handlebars');
-    })();
+    //     app.engine('handlebars', hbs);
+    //     app.set('view engine', 'handlebars');
+    // })();
 
     //server listen
-    (function () {
-        var server = require('http').Server(app);
+    // (function () {
+    //     var server = require('http').Server(app);
 
-        server = server.listen(3000, function () {
-            console.log(server.address().port);
-        });
+    //     server = server.listen(3000, function () {
+    //         winston.debug(server.address().port);
+    //     });
 
-    })();
+    // })();
 
 
     function getGithubUser(access_token_github, callback) {
@@ -116,16 +104,16 @@ module.exports = function (opts) {
             },
             url: GITHUB_API_URL + '/user',
         }, function (err, res, body) {
-            console.log(res.statusCode);
-            console.log(body);
+            winston.debug(res.statusCode);
+            winston.debug(body);
 
             if (err) {
-                console.log(err);
+                winston.error(err);
                 return callback(err, null);
             }
             var data = JSON.parse(body);
             if (!data.id) {
-                console.log('could not get user');
+                winston.error('could not get user');
                 return callback('could not get user');
             }
             return callback(null, data);
@@ -135,33 +123,39 @@ module.exports = function (opts) {
 
     //setup routes
     (function () {
-        app.get('/', function (req, res) {
-            var sess = req.session
-            console.log(sess);
-            if (!sess.user) {
-                return res.redirect('/v1/link/github');
-            }
-            if (!sess.user.access_token_github) {
-                return res.redirect('/v1/link/github');
-            }
-            getGithubUser(sess.user.access_token_github, function (error, user) {
-                res.render('home', {
-                    title: 'Hey', message: 'Hello there!', client_id: process.env.GITHUB_ID,
-                    'github_user': user
-                });
-                res.status(200);
-                // res.end();
-            })
+        // app.get('/', function (req, res) {
+        //     var sess = req.session
+        //     console.log(sess);
+        //     if (!sess.user) {
+        //         return res.redirect('/v1/link/github');
+        //     }
+        //     if (!sess.user.access_token_github) {
+        //         return res.redirect('/v1/link/github');
+        //     }
+        //     getGithubUser(sess.user.access_token_github, function (error, user) {
+        //         res.render('home', {
+        //             title: 'Hey', message: 'Hello there!', client_id: process.env.GITHUB_ID,
+        //             'github_user': user
+        //         });
+        //         res.status(200);
+        //         // res.end();
+        //     })
 
+        // });
+
+        router.get('/github/profile', function (req, res) {
+            var sess = req.session;
+            var user = req.user;
+            res.json(user);
         });
 
-        app.get('/v1/link/github', function (req, res) {
+        router.get('/github/link', function (req, res) {
             var sess = req.session;
-            console.log(sess)
-            console.log(req.query);
+            winston.debug(sess)
+            winston.debug(req.query);
             if (req.query.code && req.query.state
                 && sess.github_oauth_state === req.query.state) {
-                console.log('has code');
+                winston.debug('has code');
                 var code = req.query.code;
 
                 addUpdateGithubUser(code, req.query.state, function (err, user) {
@@ -171,13 +165,13 @@ module.exports = function (opts) {
                     }
                     if (user) {
                         sess.user = user;
-                        return res.redirect('/');
+                        return res.redirect('/profile');
                     }
                 })
 
             }
             else if (req.query.code) {
-                res.status(400);
+                res.redirect(400, '/');
                 res.json({ message: "bad request" });
             }
             else {
@@ -217,18 +211,17 @@ module.exports = function (opts) {
                 state: state
             })
         }, function (error, res, body) {
-            // access_token=e72e16c7e42f292c6912e7710c838347ae178b4a&scope=user%2Cgist&token_type=bearer
-            console.log(res.headers);
-            console.log(res.statusCode);
+            winston.debug(res.headers);
+            winston.debug(res.statusCode);
             if (res.statusCode !== 200) {
-                console.log('unexected statusCode ' + res.statusCode);
+                winston.error('unexected statusCode ' + res.statusCode);
             }
             else {
-                console.log(body);
+                winston.debug(body);
                 var data = JSON.parse(body);
                 var access_token_github = data.access_token;
                 if (!access_token_github) {
-                    console.log('failed to get access_token');
+                    winston.error('failed to get access_token');
                 }
                 else {
                     request.get({
@@ -240,16 +233,16 @@ module.exports = function (opts) {
                         },
                         url: GITHUB_API_URL + '/user',
                     }, function (err, res, body) {
-                        console.log(res.statusCode);
-                        console.log(body);
+                        winston.debug(res.statusCode);
+                        winston.debug(body);
 
                         if (err) {
-                            console.log(err);
+                            winston.error(err);
                             return callback();
                         }
                         var data = JSON.parse(body);
                         if (!data.id) {
-                            console.log('could not link github account');
+                            winston.error('could not link github account');
                             return callback();
                         }
                         User.findOne(
@@ -257,7 +250,7 @@ module.exports = function (opts) {
                                 id_github: data.id,
                             }, function (err, user) {
                                 if (user) {
-                                    console.log('user already exists');
+                                    winston.debug('user already exists');
                                     return callback(null, user);
                                 }
                                 else {
@@ -266,11 +259,11 @@ module.exports = function (opts) {
                                     user.id_github = data.id;
                                     user.save(function (err, product, numAffected) {
                                         if (err) {
-                                            console.log(err);
+                                            winston.error(err);
                                             return callback();
 
                                         }
-                                        console.log('user saved/updated', numAffected);
+                                        winston.debug('user saved/updated', numAffected);
                                         return callback(null, user);
 
                                     })
@@ -284,3 +277,6 @@ module.exports = function (opts) {
         })
 
     }
+
+    return self;
+};

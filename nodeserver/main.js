@@ -187,6 +187,7 @@ module.exports = function (opts, callback) {
 
         addVoiceRouter();
         addTodosRouter();
+        addGithubRouter();
         addZorkRouter();
     });
 
@@ -374,7 +375,7 @@ module.exports = function (opts, callback) {
 
     function addVoiceRouter() {
         var voice = require('./v1/voice.js')({
-            db: mongo_db, express: express, winston: winston,
+            db: mongo_db, express: express, winston: mainLogger,
             app: app, nexmo: {
                 api_key: NEXMO_API_KEY, api_secret: NEXMO_API_SECRET,
                 base_url: NEXMO_BASE_URL
@@ -388,13 +389,22 @@ module.exports = function (opts, callback) {
     function addLoginRouter() {
 
         app.use('/v1', require(__dirname + '/v1/login/main.js')({
-            winston: winston,
+            winston: mainLogger,
             database: database,
             passport: passport,
         }).router);
 
 
         app.use("/public", express.static(__dirname + "/public"));
+    }
+
+    function addGithubRouter() {
+
+        app.use('/v1', require('./v1/github/github.js')({
+            winston: mainLogger,
+            db: mongo_db,
+            sessionMiddleware: sessionMiddleware
+        }).router);
     }
 
     function addTodosRouter() {
@@ -470,40 +480,4 @@ function getMainLoggerTransports() {
         winston.info('creating logsene transport');
     }
     return transports;
-}
-
-
-function addAppLoggers(transports) {
-    winston.loggers.add('todos', {
-        console: {
-            level: TODO_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('zork', {
-        console: {
-            level: ZORK_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('proxy-server', {
-        console: {
-            level: PROXY_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('users', {
-        console: {
-            level: USERS_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-
-    winston.loggers.add('alexa', {
-        transports: transports
-    });
 }

@@ -145,6 +145,34 @@ module.exports = function (opts) {
             res.end();
         });
 
+
+    //authorize the application
+    router.post('/oauth/authorize',
+        function (req, res) {
+            res.json({'message': 'hello from oauth'});
+            winston.debug(req.isAuthenticated());
+            if (!req.isAuthenticated()) {
+                return res.redirect('/public/login');
+            }
+            winston.debug(req.user);
+            res.send(JSON.stringify(req.user));
+            res.end();
+        });
+
+    //request access token
+    //open to other domains
+    router.post('/oauth/access_token',
+        function (req, res) {
+            res.json({'message': 'hello from oauth'});
+            winston.debug(req.isAuthenticated());
+            if (!req.isAuthenticated()) {
+                return res.redirect('/public/login');
+            }
+            winston.debug(req.user);
+            res.send(JSON.stringify(req.user));
+            res.end();
+        });
+
     module.router = router;
 
     return module;

@@ -60,6 +60,7 @@
     "multer": "^1.2.0",
     "node-cron": "^1.1.2",
     "node-libs-browser": "^0.5.3",
+    "node-oauth2-server": "^2.4.0",
     "node-uuid": "^1.4.7",
     "nodemailer": "^2.7.0",
     "path": "^0.12.7",

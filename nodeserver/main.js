@@ -379,7 +379,7 @@ module.exports = function (opts, callback) {
             winston: mainLogger,
             app: app
         });
-        app.use('/api/v1/logsene', logsene.router);
+        app.use('/v1/logsene', logsene.router);
     }
 
     function addVoiceRouter() {

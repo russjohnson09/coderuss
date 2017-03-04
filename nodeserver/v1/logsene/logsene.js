@@ -94,62 +94,12 @@ module.exports = function (opts) {
         return obj;
     }
 
-    router.get('/authenticated', function (req, res) {
-        if (req.isAuthenticated()) {
-            res.status(200);
-            res.setHeader('content-type', 'application/json; charset=utf-8');
-            res.send(JSON.stringify({
-                'status': 'success',
-                'meta': { 'message': 'Success' }
-            }));
-        }
-        else {
-            res.status(401);
-            res.setHeader('content-type', 'application/json; charset=utf-8');
-            res.send(JSON.stringify({
-                'status': 'unauthorized',
-                'message': 'This is not an authenticated user'
-            }));
-        }
-    });
-
-    router.get('/isadmin', function (req, res) {
-        if (req.isAuthenticated() && req.user.username == process.env.MAIN_ADMIN_USERNAME) {
-            res.status(200);
-            res.setHeader('content-type', 'application/json; charset=utf-8');
-            res.send(JSON.stringify({
-                'status': 'success',
-                'meta': { 'message': 'Success' }
-            }));
-        }
-        else {
-            res.status(401);
-            res.setHeader('content-type', 'application/json; charset=utf-8');
-            res.send(JSON.stringify({
-                'status': 'unauthorized',
-                'message': 'This is not an authenticated user'
-            }));
-        }
-    });
-
-    function getStatusResponse() {
-        return {
-            'status': 'success',
-            'server': {
-                port: app.get('port'),
-                started: app.get('serverstarted')
-            },
-            'meta': { 'message': 'Success' }
-        };
-    }
-
 
     router.get('/errors', function (req, res) {
-        var result = getStatusResponse();
         res.setHeader('content-type', 'application/json; charset=utf-8');
 
-        body = JSON.stringify(getElasticSearchToday());
-        console.log(body);
+        body = JSON.stringify(getElasticSearchErrors());
+        winston.info(body);
         if (req.user && req.user.logsene_token) {
             r.post({
                 headers: {

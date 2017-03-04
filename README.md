@@ -13,3 +13,8 @@ the best way to do this but have ended up using node for
 the api. The frontend is still undecided. Test cases are primarily
 endpoint tests although there will definitely be a need for
 unit tests when a service is not practical or not efficient.
+
+
+Changlog
+=============
+* Added oauth token linking to github accounts. 2017-03

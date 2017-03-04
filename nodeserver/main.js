@@ -185,6 +185,8 @@ module.exports = function (opts, callback) {
             passport: passport,
         }).router);
 
+        addLogseneRouter();
+
         addVoiceRouter();
         addTodosRouter();
         addZorkRouter();
@@ -196,8 +198,8 @@ module.exports = function (opts, callback) {
 
     function setupProxy() {
         var ping = require('./v1/ping.js')({ app: app });
-        var fileapi = require('./v1/files/main.js')({ winston: winston });
-        var ftp = require('./v1/ftp/main.js')({ winston: winston });
+        var fileapi = require('./v1/files/main.js')({ winston: mainLogger });
+        var ftp = require('./v1/ftp/main.js')({ winston: mainLogger });
 
         app.use('/api/v1/files', fileapi.router);
 
@@ -371,10 +373,17 @@ module.exports = function (opts, callback) {
     }
 
 
+    function addLogseneRouter() {
+        var logsene = require('./v1/logsene/logsene')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/api/v1/logsene', logsene.router);
+    }
 
     function addVoiceRouter() {
         var voice = require('./v1/voice.js')({
-            db: mongo_db, express: express, winston: winston,
+            db: mongo_db, express: express, winston: mainLogger,
             app: app, nexmo: {
                 api_key: NEXMO_API_KEY, api_secret: NEXMO_API_SECRET,
                 base_url: NEXMO_BASE_URL
@@ -388,7 +397,7 @@ module.exports = function (opts, callback) {
     function addLoginRouter() {
 
         app.use('/v1', require(__dirname + '/v1/login/main.js')({
-            winston: winston,
+            winston: mainLogger,
             database: database,
             passport: passport,
         }).router);

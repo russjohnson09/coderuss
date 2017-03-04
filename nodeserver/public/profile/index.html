@@ -26,6 +26,24 @@
     <script>
         $(function () {
 
+            $.ajax({
+                type: 'GET',
+                url: '/v1/github/user',
+                dataType: 'text',
+                success: function (data) {
+                    console.log('success');
+                    console.log(data);
+                },
+                error: function (xhr, status, error) {
+                    console.log('error');
+
+                    console.log(status);
+                    console.log(error);
+                },
+                done: function () {
+                    console.log('done');
+                }
+            });
 
             var app = new Vue({
                 el: '#app',
@@ -142,6 +160,8 @@
                         </div>
                     </div>
                     <button type="submit" class="btn btn-info" @click="submit">Submit</button>
+
+                    <a href="/v1/github/link">Link github account</a>
 
                 </form>
             </section>

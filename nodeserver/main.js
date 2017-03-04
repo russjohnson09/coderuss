@@ -189,6 +189,7 @@ module.exports = function (opts, callback) {
 
         addVoiceRouter();
         addTodosRouter();
+        addGithubRouter();
         addZorkRouter();
     });
 
@@ -406,6 +407,15 @@ module.exports = function (opts, callback) {
         app.use("/public", express.static(__dirname + "/public"));
     }
 
+    function addGithubRouter() {
+
+        app.use('/v1', require('./v1/github/github.js')({
+            winston: mainLogger,
+            db: mongo_db,
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
+
     function addTodosRouter() {
         const todos = mongo_db.collection('todos');
         app.use("/v1/todos/public", express.static(__dirname + "/v1/todos/public"));
@@ -479,40 +489,4 @@ function getMainLoggerTransports() {
         winston.info('creating logsene transport');
     }
     return transports;
-}
-
-
-function addAppLoggers(transports) {
-    winston.loggers.add('todos', {
-        console: {
-            level: TODO_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('zork', {
-        console: {
-            level: ZORK_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('proxy-server', {
-        console: {
-            level: PROXY_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-    winston.loggers.add('users', {
-        console: {
-            level: USERS_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-
-    winston.loggers.add('alexa', {
-        transports: transports
-    });
 }

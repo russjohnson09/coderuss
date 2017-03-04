@@ -51,7 +51,8 @@ module.exports = function (opts) {
                 _id: user._id,
                 username: user.username,
                 email: user.email || null,
-                name: user.name || null
+                name: user.name || null,
+                logsene_token: user.logsene_token || null
             })).end();
         });
     });
@@ -67,10 +68,13 @@ module.exports = function (opts) {
         if (req.body.name !== undefined) {
             set.name = req.body.name;
         }
+        if (req.body.logsene_token !== undefined) {
+            set.logsene_token = req.body.logsene_token;
+        }
         if (!set.name && !set.email) {
             res.status(400);
             return res.end(JSON.stringify({
-                "message": 'Bad Request',
+                "message": 'Name or email are required fields',
                 status: "Bad Request"
             }));
             return;

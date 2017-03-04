@@ -185,6 +185,8 @@ module.exports = function (opts, callback) {
             passport: passport,
         }).router);
 
+        addLogseneRouter();
+
         addVoiceRouter();
         addTodosRouter();
         addGithubRouter();
@@ -197,8 +199,8 @@ module.exports = function (opts, callback) {
 
     function setupProxy() {
         var ping = require('./v1/ping.js')({ app: app });
-        var fileapi = require('./v1/files/main.js')({ winston: winston });
-        var ftp = require('./v1/ftp/main.js')({ winston: winston });
+        var fileapi = require('./v1/files/main.js')({ winston: mainLogger });
+        var ftp = require('./v1/ftp/main.js')({ winston: mainLogger });
 
         app.use('/api/v1/files', fileapi.router);
 
@@ -372,6 +374,13 @@ module.exports = function (opts, callback) {
     }
 
 
+    function addLogseneRouter() {
+        var logsene = require('./v1/logsene/logsene')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/v1/logsene', logsene.router);
+    }
 
     function addVoiceRouter() {
         var voice = require('./v1/voice.js')({

@@ -17,4 +17,5 @@ unit tests when a service is not practical or not efficient.
 
 Changlog
 =============
-* Added oauth token linking to github accounts. 2017-03
+* Added oauth token linking to github accounts. 2017-03 #69
+* fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js

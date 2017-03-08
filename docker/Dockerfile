@@ -62,8 +62,9 @@ RUN npm install -g mocha
 
 ADD data/db /data/db
 ADD lib/systemd/system/mongod.service /lib/systemd/system/mongod.service
-ADD startup.sh /startup.sh
 
 ADD root/bashrc /root/.bashrc
+
+ADD scripts /scripts
 
 

@@ -4,6 +4,8 @@ const low = require('lowdb');
 const fs = require('fs');
 const path = require('path');
 var winston = require('winston');
+const passport = require('passport');
+
 winston.transports.Logsene = require('winston-logsene');
 
 const cp = require('child_process');
@@ -115,7 +117,6 @@ module.exports = function (opts, callback) {
         });
     app.use(sessionMiddleware);
 
-    var passport = require('passport');
 
     app.use(passport.initialize());
     app.use(passport.session());

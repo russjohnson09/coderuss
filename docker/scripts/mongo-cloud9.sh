@@ -4,4 +4,4 @@ mkdir data
 
 echo 'mongod --bind_ip=$IP --dbpath=data --nojournal --rest "$@"' > mongod
 
-chmod a+x mongod
+chmod a+x mongodls

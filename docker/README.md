@@ -21,3 +21,14 @@ docker run -it --rm -v /c/Users/Username:/mnt coderuss /bin/bash
 
 # Markdown help
 * http://www.markdowntutorial.com/lesson/3/
+
+# Example Requests/Responses
+```json
+{
+  "helloworld": 1,
+  "submodel": {
+      "testing": 1234,
+      
+  }
+}
+```

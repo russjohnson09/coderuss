@@ -2,13 +2,16 @@ var request = require('request');
 var expect = require("chai").expect;
 var http = require('http');
 
-describe("todos endpoints", function () {
+describe("todos endpoints", function() {
 
-  var baseurl = "http://localhost:3000";
+  this.timeout(0);
+
+  const PORT = process.env.PORT || 3000;
+  baseurl = "http://localhost:" + PORT;
   var loginurl = baseurl + '/v1/login';
   var notificationurl = baseurl + '/v1/todos/sendNotification';
 
-  it("successfully login with admin12345:admin12345", function (done) {
+  it("successfully login with admin12345:admin12345", function(done) {
     request({
       method: "POST",
       headers: {
@@ -19,7 +22,7 @@ describe("todos endpoints", function () {
         "password": "admin12345"
       }), //sets header to application/json and parses body as json
       uri: loginurl
-    }, function (error, response, body) {
+    }, function(error, response, body) {
       console.log(response.headers);
       expect(error).to.be.equal(null);
       expect(response.statusCode).to.equal(201);
@@ -30,7 +33,7 @@ describe("todos endpoints", function () {
     });
   });
 
-  it("successfully login with cookieAdmin123456:cookieAdmin123456", function (done) {
+  it("successfully login with cookieAdmin123456:cookieAdmin123456", function(done) {
     request({
       method: "POST",
       headers: {
@@ -41,7 +44,7 @@ describe("todos endpoints", function () {
         "password": "cookieAdmin123456"
       }), //sets header to application/json and parses body as json
       uri: loginurl
-    }, function (error, response, body) {
+    }, function(error, response, body) {
       console.log(response.headers);
       expect(error).to.be.equal(null);
       expect(response.statusCode).to.equal(201);
@@ -52,13 +55,12 @@ describe("todos endpoints", function () {
     });
   });
 
-  socketurl = 'http://localhost:3000/v1/todos';
+  socketurl = baseurl + '/v1/todos';
 
-  it("successfully receive connected info event", function (done) {
+  it("successfully receive connected info event", function(done) {
     var socket = require('socket.io-client')(socketurl);
-    socket.on('connect', function () {
-    });
-    socket.on('info', function (data) {
+    socket.on('connect', function() {});
+    socket.on('info', function(data) {
       console.log(data);
       var data = JSON.parse(data);
       expect(data.data).to.be.equal('connected');
@@ -67,16 +69,18 @@ describe("todos endpoints", function () {
     });
   });
 
-  it('notification send', function (done) {
+  it('notification send', function(done) {
     request({
       method: "POST",
-      body: JSON.stringify({ "text": "test" }),
+      body: JSON.stringify({
+        "text": "test"
+      }),
       headers: {
         'content-type': 'application/json',
         Cookie: cookie
       },
       uri: notificationurl
-    }, function (error, response, body) {
+    }, function(error, response, body) {
       console.log(body);
       expect(error).to.be.equal(null);
       expect(response.statusCode).to.equal(201);
@@ -86,7 +90,7 @@ describe("todos endpoints", function () {
   });
 
 
-  it("receive notifications for your own events but not other users", function (done) {
+  it("receive notifications for your own events but not other users", function(done) {
 
     var socket = require('socket.io-client')(socketurl, {
       extraHeaders: {
@@ -96,43 +100,46 @@ describe("todos endpoints", function () {
 
     var socketAnon = require('socket.io-client')(socketurl);
 
-    socketAnon.on('connect', function () {
+    socketAnon.on('connect', function() {
       request({
         method: "POST",
-        body: JSON.stringify({ "text": "anon" }),
+        body: JSON.stringify({
+          "text": "anon"
+        }),
         headers: {
           'content-type': 'application/json',
         },
         uri: notificationurl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         // console.log(response.headers);
         // done();
       });
     });
 
-    socket.on('connect', function () {
+    socket.on('connect', function() {
       console.log('connect');
     });
-    socket.on('info', function (data) {
+    socket.on('info', function(data) {
       console.log(data);
       request({
         method: "POST",
-        body: JSON.stringify({ "text": "test" }),
+        body: JSON.stringify({
+          "text": "test"
+        }),
         headers: {
           'content-type': 'application/json',
           Cookie: cookie
         },
         uri: notificationurl
-      }, function (error, response, body) {
-      });
+      }, function(error, response, body) {});
     });
 
-    socket.on('connected', function () {
+    socket.on('connected', function() {
       console.log('connected');
     });
 
     var count = 0;
-    socket.on('notification', function (data) {
+    socket.on('notification', function(data) {
       var data = JSON.parse(data);
       expect(data.data.text).to.be.equal('test');
       socket.close();
@@ -142,9 +149,9 @@ describe("todos endpoints", function () {
       }
     });
 
-    socketAnon.on('notification', function (data) {
+    socketAnon.on('notification', function(data) {
       var data = JSON.parse(data);
-      expect(data.data.text,'Anonymous user receives anon message').to.be.equal('anon');
+      expect(data.data.text, 'Anonymous user receives anon message').to.be.equal('anon');
       socketAnon.close();
       count++;
       if (count == 2) {
@@ -154,11 +161,3 @@ describe("todos endpoints", function () {
 
   });
 });
-
-
-
-
-
-
-
-

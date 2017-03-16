@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
 
-var baseurl = "http://localhost:3000";
+var baseurl = "http://localhost:" + process.env.PORT || 3000;
 
 const publicurl = baseurl + "/public";
 

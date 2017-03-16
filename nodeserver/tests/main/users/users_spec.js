@@ -3,8 +3,9 @@ var expect = require("chai").expect;
 
 var fs = require('fs');
 
-const port = 3000;
-const baseurl = "http://localhost:" + port;
+const PORT = process.env.PORT || 3000;
+baseurl = "http://localhost:" + PORT;
+
 
 const TESTLOGGER_CONSOLE_LEVEL = process.env.TESTLOGGER_CONSOLE_LEVEL ? process.env.TESTLOGGER_CONSOLE_LEVEL : 'error';
 
@@ -23,9 +24,9 @@ winston.loggers.add('testlogger', {
 const logger = winston.loggers.get('testlogger')
 
 
-describe(__filename, function () {
+describe(__filename, function() {
 
-    it("/v1/users/me returns 401 when not logged in", function (done) {
+    it("/v1/users/me returns 401 when not logged in", function(done) {
         request({
             method: "GET",
             headers: {
@@ -33,9 +34,8 @@ describe(__filename, function () {
             },
             uri: usersendpoint + "/me",
             followRedirect: false,
-            headers: {
-            }
-        }, function (error, response, body) {
+            headers: {}
+        }, function(error, response, body) {
             logger.debug(body);
 
             expect(error).to.be.equal(null);
@@ -51,7 +51,7 @@ describe(__filename, function () {
         });
     });
 
-    it("successfully login with testuser1234:testuser1234", function (done) {
+    it("successfully login with testuser1234:testuser1234", function(done) {
         request({
             method: "POST",
             json: {
@@ -59,7 +59,7 @@ describe(__filename, function () {
                 "password": "testuser1234"
             },
             uri: loginurl
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             expect(error).to.be.equal(null);
             expect(response.statusCode).to.equal(201);
             expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
@@ -69,7 +69,7 @@ describe(__filename, function () {
         });
     });
 
-    it("successfully get testuser1234 using /v1/users/me", function (done) {
+    it("successfully get testuser1234 using /v1/users/me", function(done) {
         request({
             method: "GET",
             headers: {
@@ -80,7 +80,7 @@ describe(__filename, function () {
             headers: {
                 cookie: cookie
             }
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             logger.debug(body);
 
             expect(error).to.be.equal(null);
@@ -100,8 +100,8 @@ describe(__filename, function () {
     });
 
 
-    describe("/v1/users/me POST updates user", function () {
-        it("update email to testemail@email.com", function (done) {
+    describe("/v1/users/me POST updates user", function() {
+        it("update email to testemail@email.com", function(done) {
             var email = 'testemail@email.com';
             request({
                 method: "POST",
@@ -111,8 +111,10 @@ describe(__filename, function () {
                 },
                 uri: usersendpoint + "/me",
                 followRedirect: false,
-                body: JSON.stringify({ email: email })
-            }, function (error, response, body) {
+                body: JSON.stringify({
+                    email: email
+                })
+            }, function(error, response, body) {
                 logger.debug(body);
 
                 expect(error).to.be.equal(null);
@@ -139,7 +141,7 @@ describe(__filename, function () {
          * get back might not be what you expect if someone is updating this 
          * record at the same time as you. This should be rare for this endpoint.
          */
-        it("update email to testemail123@email.com", function (done) {
+        it("update email to testemail123@email.com", function(done) {
             var email = 'testemail123@email.com';
             request({
                 method: "POST",
@@ -149,8 +151,10 @@ describe(__filename, function () {
                 },
                 uri: usersendpoint + "/me",
                 followRedirect: false,
-                body: JSON.stringify({ email: email })
-            }, function (error, response, body) {
+                body: JSON.stringify({
+                    email: email
+                })
+            }, function(error, response, body) {
                 logger.debug(body);
 
                 expect(error).to.be.equal(null);
@@ -170,7 +174,7 @@ describe(__filename, function () {
             });
         });
 
-        it("update name to testemail123@email.com", function (done) {
+        it("update name to testemail123@email.com", function(done) {
             var name = 'testemail123@email.com';
             request({
                 method: "POST",
@@ -180,8 +184,10 @@ describe(__filename, function () {
                 },
                 uri: usersendpoint + "/me",
                 followRedirect: false,
-                body: JSON.stringify({ name: name })
-            }, function (error, response, body) {
+                body: JSON.stringify({
+                    name: name
+                })
+            }, function(error, response, body) {
                 logger.debug(body);
 
                 expect(error).to.be.equal(null);
@@ -205,4 +211,3 @@ describe(__filename, function () {
 
 
 });
-

@@ -17,6 +17,8 @@ unit tests when a service is not practical or not efficient.
 
 Changlog
 =============
+* added /loaderio-01ba2f54062d5b6f29e74d68ba0264b0 load testing
+* log all requests to api
 * Added logsene token to user profile and /v1/logsene/errors GET (fixes #67)
 * Added oauth token linking to github accounts. 2017-03 #69
 * fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js

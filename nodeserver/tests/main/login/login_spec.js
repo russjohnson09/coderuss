@@ -3,12 +3,14 @@ var expect = require("chai").expect;
 
 
 
-describe("login endpoints >>", function () {
+describe("login endpoints >>", function() {
 
-  var baseurl = "http://localhost:3000";
+  const PORT = process.env.PORT || 3000;
+  baseurl = "http://localhost:" + PORT;
+  
   var loginurl = baseurl + '/v1/login';
-  describe('/v1/login', function () {
-    it("successfully login with admin:admin", function (done) {
+  describe('/v1/login', function() {
+    it("successfully login with admin:admin", function(done) {
       request({
         method: "POST",
         json: {
@@ -16,7 +18,7 @@ describe("login endpoints >>", function () {
           "password": "admin"
         },
         uri: loginurl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(201);
         expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
@@ -28,8 +30,8 @@ describe("login endpoints >>", function () {
   });
 
   var uri = baseurl + '/v1/profile';
-  describe(uri, function () {
-    it("use cookie to view profile", function (done) {
+  describe(uri, function() {
+    it("use cookie to view profile", function(done) {
       request({
         method: "GET",
         uri: uri,
@@ -37,7 +39,7 @@ describe("login endpoints >>", function () {
         headers: {
           Cookie: cookie
         }
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(body);
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(200);
@@ -49,8 +51,8 @@ describe("login endpoints >>", function () {
   });
 
 
-  describe('/v1/login', function () {
-    it("fail to login as admin:admin2 bad password", function (done) {
+  describe('/v1/login', function() {
+    it("fail to login as admin:admin2 bad password", function(done) {
       request({
         method: "POST",
         json: {
@@ -58,7 +60,7 @@ describe("login endpoints >>", function () {
           "password": "admin2"
         },
         uri: loginurl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(401);
         expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
@@ -68,4 +70,3 @@ describe("login endpoints >>", function () {
   });
 
 });
-

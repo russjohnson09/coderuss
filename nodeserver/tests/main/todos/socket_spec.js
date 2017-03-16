@@ -1,19 +1,25 @@
-var baseurl = "http://localhost:3000";
+const PORT = process.env.PORT || 3000;
+baseurl = "http://localhost:" + PORT;
+
 var loginurl = baseurl + '/v1/login';
 var notificationurl = baseurl + '/v1/todos/sendNotification';
-socketurl = 'http://localhost:3000/v1/todos';
+socketurl = baseurl + '/v1/todos';
 
 var ioClient = require('socket.io-client');
 var request = require('request');
 var expect = require("chai").expect;
 
-describe('native node socket test', function () {
-    it("socket connection test", function (done) {
+describe('native node socket test', function() {
+      this.timeout(0);
+
+    it("socket connection test", function(done) {
         const http = require('http');
 
         // Create an HTTP server
         var srv = http.createServer((req, res) => {
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.writeHead(200, {
+                'Content-Type': 'text/plain'
+            });
             res.end('okay');
         });
         srv.on('upgrade', (req, socket, head) => {

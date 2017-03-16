@@ -3,13 +3,15 @@ var expect = require("chai").expect;
 
 
 
-describe("todos endpoints", function () {
+describe("todos endpoints", function() {
 
-  var baseurl = "http://localhost:3000";
+  this.timeout(0);
+  const PORT = process.env.PORT || 3000;
+  baseurl = "http://localhost:" + PORT;
   var loginurl = baseurl + '/v1/login';
 
-  describe('/v1/login', function () {
-    it("successfully login with admin:admin", function (done) {
+  describe('/v1/login', function() {
+    it("successfully login with admin:admin", function(done) {
       request({
         method: "POST",
         headers: {
@@ -20,7 +22,7 @@ describe("todos endpoints", function () {
           "password": "admin12345"
         }), //sets header to application/json and parses body as json
         uri: loginurl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(response.headers);
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(201);
@@ -32,8 +34,8 @@ describe("todos endpoints", function () {
     });
   });
 
-  describe('/v1/todos', function () {
-    it("can view own todo", function (done) {
+  describe('/v1/todos', function() {
+    it("can view own todo", function(done) {
       //I want the raw response for most test cases.
       request({
         method: "GET",
@@ -42,7 +44,7 @@ describe("todos endpoints", function () {
           Cookie: cookie
         },
         uri: todourl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(body);
         expect(error).to.be.equal(null);
         //empty response
@@ -57,18 +59,20 @@ describe("todos endpoints", function () {
 
 
   var todourl = baseurl + '/v1/todos';
-  describe('/v1/todos', function () {
-    it("successfully create todo with user", function (done) {
+  describe('/v1/todos', function() {
+    it("successfully create todo with user", function(done) {
       //I want the raw response for most test cases.
       request({
         method: "POST",
-        body: JSON.stringify({ "text": "test" }),
+        body: JSON.stringify({
+          "text": "test"
+        }),
         headers: {
           'content-type': 'application/json',
           Cookie: cookie
         },
         uri: todourl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(body);
         expect(error).to.be.equal(null);
         //empty response
@@ -83,8 +87,8 @@ describe("todos endpoints", function () {
     });
   });
 
-  describe('/v1/todos', function () {
-    it("can view own todo", function (done) {
+  describe('/v1/todos', function() {
+    it("can view own todo", function(done) {
       //I want the raw response for most test cases.
       request({
         method: "GET",
@@ -93,21 +97,21 @@ describe("todos endpoints", function () {
           Cookie: cookie
         },
         uri: todourl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(body);
         expect(error).to.be.equal(null);
         //empty response
         expect(response.statusCode).to.equal(200);
         expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
         var data = JSON.parse(body);
-        expect(data.length).to.be.equal(todolength+1);
+        expect(data.length).to.be.equal(todolength + 1);
         done();
       });
     });
   });
 
-  describe('/v1/login', function () {
-    it("successfully login with userhasnotodos:userhasnotodos", function (done) {
+  describe('/v1/login', function() {
+    it("successfully login with userhasnotodos:userhasnotodos", function(done) {
       request({
         method: "POST",
         headers: {
@@ -118,7 +122,7 @@ describe("todos endpoints", function () {
           "password": "userhasnotodos"
         }), //sets header to application/json and parses body as json
         uri: loginurl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(response.headers);
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(201);
@@ -130,8 +134,8 @@ describe("todos endpoints", function () {
     });
   });
 
-  describe('/v1/todos', function () {
-    it("cannot view other todos", function (done) {
+  describe('/v1/todos', function() {
+    it("cannot view other todos", function(done) {
       //I want the raw response for most test cases.
       request({
         method: "GET",
@@ -140,7 +144,7 @@ describe("todos endpoints", function () {
           Cookie: cookie2
         },
         uri: todourl
-      }, function (error, response, body) {
+      }, function(error, response, body) {
         console.log(body);
         expect(error).to.be.equal(null);
         //empty response
@@ -156,4 +160,3 @@ describe("todos endpoints", function () {
 
 
 });
-

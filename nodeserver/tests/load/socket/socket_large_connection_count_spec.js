@@ -1,7 +1,7 @@
-var baseurl = "http://localhost:3000";
+var baseurl = "http://localhost:" + process.env.PORT || 3000;
 var loginurl = baseurl + '/v1/login';
 var notificationurl = baseurl + '/v1/todos/sendNotification';
-socketurl = 'http://localhost:3000/v1/todos';
+socketurl = baseurl + '/v1/todos';
 
 var ioClient = require('socket.io-client');
 var request = require('request');

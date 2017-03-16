@@ -1,9 +1,11 @@
 var request = require('request');
 var expect = require("chai").expect;
 
-var helper = require(__dirname + '/../../../utils/helper.js')({});
+var helper = require(__dirname + '/../../../utils/helper.js')({port:process.env.PORT || 3000});
 var test_globals = {};
 
+const PORT =  process.env.PORT || 3000;
+baseurl = "http://localhost:" + PORT;
 
 describe("Files", function () {
 

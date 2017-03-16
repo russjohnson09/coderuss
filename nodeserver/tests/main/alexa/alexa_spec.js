@@ -2,10 +2,12 @@ var request = require('request');
 var expect = require("chai").expect;
 const path = require('path');
 
-baseurl = "http://localhost:" + 3000;
+const PORT =  process.env.PORT || 3000;
+baseurl = "http://localhost:" + PORT;
+
 alexaurl = baseurl + '/v1/alexa';
 
-
+console.log(alexaurl);
 
 
 

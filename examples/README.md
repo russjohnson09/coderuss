@@ -1,1 +1,0 @@
-https://github.com/alexa/skill-sample-nodejs-howto

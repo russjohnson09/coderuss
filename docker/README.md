@@ -1,3 +1,10 @@
+# Local setup
+As the number of node packages increases the need to create a swap space becomes necessary.
+http://stackoverflow.com/questions/26193654/node-js-catch-enomem-error-thrown-after-spawn
+* ./docker/scripts/swapspace.sh
+* ./docker/scripts/dependencies.sh
+* ./docker/scripts/mongo-cloud9.sh
+
 # Build docker-compose
 * docker-compose build
 * docker-compose up -d

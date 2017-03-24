@@ -1,46 +1,97 @@
+require('dotenv').config();
+
 const low = require('lowdb');
 const fs = require('fs');
 const path = require('path');
 var winston = require('winston');
+const passport = require('passport');
+
 winston.transports.Logsene = require('winston-logsene');
 
 const cp = require('child_process');
 const spawn = cp.spawn;
 
 var root = path.normalize('..');
+var bodyParser = require('body-parser');
+var express = require('express');
 
+const www_authenticate = require('www-authenticate');
+
+
+var extend = require('util')._extend;
+
+const USERS_LOG_LEVEL = process.env.USERS_LOG_LEVEL || 'error';
+
+const ZORK_LOG_LEVEL = process.env.ZORK_LOG_LEVEL || 'error';
+
+const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'warn';
+const ACCESS_LOG_LEVEL = process.env.ACCESS_LOG_LEVEL || 'error';
+const TODO_LOG_LEVEL = process.env.TODO_LOG_LEVEL || 'error';
+const PROXY_LOG_LEVEL = process.env.PROXY_LOG_LEVEL || 'error';
+const ALEX_CONSOLE_LOG_LEVEL = process.env.ALEX_CONSOLE_LOG_LEVEL || 'debug';
+
+const NEXMO_API_KEY = process.env.NEXMO_API_KEY || '123';
+const NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || '123';
+const NEXMO_BASE_URL = process.env.NEXMO_BASE_URL || 'http://localhost:3100';
+const VOICE_API_BASE_URL = process.env.VOICE_API_BASE_URL || 'http://localhost:3000/api/v1/voice';
+const PAPERTRAIL_LEVEL = process.env.PAPERTRAIL_LEVEL || 'warn';
+
+const FTP_BASE = process.env.FTP_BASE || 'http://localhost';
+const FTP_PASSWORD = process.env.FTP_PASSWORD || 'guest';
+const FTP_USER = process.env.FTP_USER || 'guest';
+const FTP_AUTHENTICATOR = www_authenticate.authenticator(FTP_USER, FTP_PASSWORD);
+
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'DEV';
+
+const MONGO_URI = process.env.MONGO_URI;
+
+const PROTOCOL = process.env.PROTOCOL || 'http';
+const HOST = process.env.HOST || 'localhost';
+const CRON_TIMER_SECONDS = process.env.CRON_TIMER_SECONDS || 300;
+const MONGO_CONNECTION = MONGO_URI;
+
+const alexa = require(__dirname + '/v1/alexa');
+
+
+const exceptionHandlers = [
+    new winston.transports.File({
+        filename: path.join(__dirname, 'exceptions.log'),
+        maxsize: 5242880, //5MB
+        maxFiles: 5,
+        colorize: false
+    }),
+    new winston.transports.Console({
+        colorize: true,
+        json: true
+    })
+];
+
+function createAlexaApp(app) {
+    alexa(app);
+}
 
 module.exports = function (opts, callback) {
     var module = {};
-    var bodyParser = require('body-parser');
-    var express = require('express');
 
-    var extend = require('util')._extend;
-    var envvars = process.env || {};
-
-    var params = {};
-    try {
-        params = require(__dirname + '/params');
-    }
-    catch (e) {
-    }
-    var envparams = params.env || {};
-
-    envvars = extend(envvars, params.env);
-
-    require('dotenv').config();
-    process.env.NODE_ENV = process.env.NODE_ENV || 'DEV';
-
-
-    const MONGO_URI = envvars.MONGO_URI;
     const PORT = process.env.PORT || 0;
 
     const PROXIED_PORT = process.env.PROXIED_PORT || 0;
 
     var app = express();
+    if (process.env.LOGSENE_TOKEN) {
+        app.set('logsene_token', process.env.LOGSENE_TOKEN)
+    }
 
+    app.set('serverstarted', Date.now());
 
-    app.use("/tryit", express.static(__dirname + "/swagger-ui-master/dist"));
+    createAlexaApp(app);
+
+    app.use("/tryit",
+        express.static(
+            path.join(__dirname, "/swagger-ui-master/dist")
+        )
+    );
 
 
     var server = require('http').Server(app);
@@ -66,47 +117,16 @@ module.exports = function (opts, callback) {
         });
     app.use(sessionMiddleware);
 
-    var passport = require('passport');
 
     app.use(passport.initialize());
     app.use(passport.session());
-
-    const USERS_LOG_LEVEL = process.env.USERS_LOG_LEVEL || 'error';
-
-    const ZORK_LOG_LEVEL = process.env.ZORK_LOG_LEVEL || 'error';
-
-    const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'error';
-    const ACCESS_LOG_LEVEL = process.env.ACCESS_LOG_LEVEL || 'error';
-    const TODO_LOG_LEVEL = process.env.TODO_LOG_LEVEL || 'error';
-    const PROXY_LOG_LEVEL = process.env.PROXY_LOG_LEVEL || 'error';
-    const NEXMO_API_KEY = envvars.NEXMO_API_KEY || '123';
-    const NEXMO_API_SECRET = envvars.NEXMO_API_SECRET || '123';
-    const NEXMO_BASE_URL = envvars.NEXMO_BASE_URL || 'http://localhost:3100';
-    const VOICE_API_BASE_URL = envvars.VOICE_API_BASE_URL || 'http://localhost:3000/api/v1/voice';
-    const PAPERTRAIL_LEVEL = envvars.PAPERTRAIL_LEVEL || 'warn';
-    const FTP_BASE = envvars.FTP_BASE || 'http://localhost';
-    const FTP_HOST = envvars.FTP_HOST || 'http://localhost';
-    const FTP_PASSWORD = envvars.FTP_PASSWORD || 'http://localhost';
-    const FTP_USER = envvars.FTP_USER || 'http://localhost';
 
 
     winston.info(root, { 'root': root });
 
     winston.info(__dirname + '/../.apt/usr/games/frotz');
 
-    // https://www.gnu.org/software/gettext/manual/html_node/The-TERM-variable.html
-    //set TERM=xterm for heroku
-    if (fs.existsSync(__dirname + '/../.apt/usr/games/frotz')) {
-        var val = __dirname + '/../.apt/usr/games/frotz';
-    }
-    else if (fs.existsSync('/usr/games/frotz')) {
-        var val = '/usr/games/frotz';
-    }
-    else {
-        var val = 'frotz';
-    }
-
-    const frotzcmd = val;
+    const frotzcmd = getFrotzCmd();
     winston.info(frotzcmd, { 'frotz': frotzcmd });
     var args = [__dirname + "/v1/zork/Zork/DATA/ZORK1.DAT", '-i', '-p', '-q']
 
@@ -122,50 +142,11 @@ module.exports = function (opts, callback) {
     });
 
 
-    var transports = [
-        new winston.transports.File({
-            level: ACCESS_LOG_LEVEL,
-            filename: path.join(__dirname, 'access.log'),
-            maxsize: 5242880, //5MB
-            maxFiles: 5,
-            colorize: false
-        }),
-        new winston.transports.Console({
-            level: CONSOLE_LOG_LEVEL,
-            colorize: true,
-            // json: true
-        })
-    ];
-
-    var exceptionHandlers = [
-        new winston.transports.File({
-            filename: path.join(__dirname, 'exceptions.log'),
-            maxsize: 5242880, //5MB
-            maxFiles: 5,
-            colorize: false
-        }),
-        new winston.transports.Console({
-            colorize: true,
-            json: true
-        })
-    ];
 
 
 
-    if (process.env.LOGSENE_TOKEN) {
-        transports.push(new (winston.transports.Logsene)({
-            token: process.env.LOGSENE_TOKEN,
-            ssl: 'true',
-            type: 'coderuss_' + process.env.NODE_ENV ? process.env.NODE_ENV : 'DEV'
-        }))
-        exceptionHandlers.push(new (winston.transports.Logsene)({
-            token: process.env.LOGSENE_TOKEN,
-            ssl: 'true',
-            type: 'coderuss_' + process.env.NODE_ENV
-        }))
-        winston.info('creating logsene transport');
-    }
 
+    var transports = getMainLoggerTransports();
     var mainLogger = new winston.Logger({
         transports: transports,
         exceptionHandlers: exceptionHandlers,
@@ -183,77 +164,14 @@ module.exports = function (opts, callback) {
 
     app.use(morgan('combined', { stream: mainLogger.stream }));
 
-    if (process.env.PAPERTRAIL_ENABLED) {
-        winston.loggers.add('todos', {
-            console: {
-                level: 'debug',
-                colorize: true
-            },
-            papertrail: {
-                host: 'logs5.papertrailapp.com',
-                port: 26785,
-                program: 'nodeserver',
-                level: PAPERTRAIL_LEVEL,
-            }
-        });
 
-        winston.loggers.add('proxy-server', {
-            console: {
-                level: 'debug',
-                colorize: true
-            },
-            papertrail: {
-                host: 'logs5.papertrailapp.com',
-                port: 26785,
-                program: 'nodeserver',
-                level: PAPERTRAIL_LEVEL,
-            }
-        });
-    }
-    else {
-        winston.loggers.add('todos', {
-            console: {
-                level: TODO_LOG_LEVEL,
-                colorize: true
-            },
-        });
-
-        winston.loggers.add('zork', {
-            console: {
-                level: ZORK_LOG_LEVEL,
-                colorize: true
-            },
-        });
-
-        winston.loggers.add('proxy-server', {
-            console: {
-                level: PROXY_LOG_LEVEL,
-                colorize: true
-            },
-        });
-    }
-
-    winston.loggers.add('users', {
-        console: {
-            level: USERS_LOG_LEVEL,
-            colorize: true
-        },
-    });
-
-
-    var proxyLogger = winston.loggers.get('proxy-server');
+    var proxyLogger = mainLogger;
 
     winston.info("console_log_level:" + CONSOLE_LOG_LEVEL);
 
 
-
-    const PROTOCOL = envvars.PROTOCOL || 'http';
-    const HOST = envvars.HOST || 'localhost';
-    const CRON_TIMER_SECONDS = envvars.CRON_TIMER_SECONDS || 300;
-
     const MongoClient = require('mongodb').MongoClient;
 
-    const MONGO_CONNECTION = envvars.MONGO_CONNECTION;
 
 
     var main_application;
@@ -263,72 +181,27 @@ module.exports = function (opts, callback) {
         addLoginRouter();
 
         app.use('/v1/users', require(__dirname + '/v1/users/main')({
-            winston: winston.loggers.get('users'),
+            winston: mainLogger,
             database: database,
             passport: passport,
         }).router);
+
+        addLogseneRouter();
 
         addVoiceRouter();
         addTodosRouter();
+        addGithubRouter();
         addZorkRouter();
     });
-
-    function addLoginRouter() {
-
-        app.use('/v1', require(__dirname + '/v1/login/main.js')({
-            winston: winston,
-            database: database,
-            passport: passport,
-        }).router);
-
-
-        app.use("/public", express.static(__dirname + "/public"));
-    }
-
-    function addTodosRouter() {
-        const todos = mongo_db.collection('todos');
-        app.use("/v1/todos/public", express.static(__dirname + "/v1/todos/public"));
-
-        app.use('/v1/todos', require('./v1/todos/main.js')({
-            winston: winston.loggers.get('todos'),
-            db: mongo_db,
-            io: todosnsp,
-            sessionMiddleware: sessionMiddleware
-        }).router);
-    }
-
-    function addZorkRouter() {
-
-        app.use('/v1/zork', require(__dirname + '/v1/zork/main')({
-            winston: winston.loggers.get('zork'),
-            db: mongo_db,
-            frotzcmd: frotzcmd,
-            io: io.of('/v1/zork'),
-            sessionMiddleware: sessionMiddleware
-        }).router);
-    }
-
-    function addVoiceRouter() {
-        var voice = require('./v1/voice.js')({
-            db: mongo_db, express: express, winston: winston,
-            app: app, nexmo: {
-                api_key: NEXMO_API_KEY, api_secret: NEXMO_API_SECRET,
-                base_url: NEXMO_BASE_URL
-            },
-            base_url: VOICE_API_BASE_URL,
-            main_application: main_application
-        });
-        app.use('/api/v1/voice', voice.router);
-    }
 
     app.use(express.static(path.join(__dirname, 'public/')));
 
 
 
     function setupProxy() {
-        var ping = require('./v1/ping.js')({});
-        var fileapi = require('./v1/files/main.js')({ winston: winston });
-        var ftp = require('./v1/ftp/main.js')({ winston: winston });
+        var ping = require('./v1/ping.js')({ app: app });
+        var fileapi = require('./v1/files/main.js')({ winston: mainLogger });
+        var ftp = require('./v1/ftp/main.js')({ winston: mainLogger });
 
         app.use('/api/v1/files', fileapi.router);
 
@@ -365,13 +238,6 @@ module.exports = function (opts, callback) {
         var http = require('http');
         var httpProxy = require('http-proxy');
         var proxy = httpProxy.createProxyServer();
-
-        // var proxyServer = http.createServer(function (req, res) {
-        //   proxy.web(req, res);
-        // });
-
-        // Listen to the `upgrade` event and proxy the
-        // WebSocket requests as well.
 
         request_body_array = [];
 
@@ -415,8 +281,6 @@ module.exports = function (opts, callback) {
                             proxyRes.writeHead(response.statusCode);
                             return proxyRes.end(response.body)
                         }
-                        var www_authenticate = require('www-authenticate');
-                        var authenticator = www_authenticate.authenticator(FTP_USER, FTP_PASSWORD);
 
                         var options = {
                             url: FTP_BASE + path,
@@ -435,8 +299,8 @@ module.exports = function (opts, callback) {
                                     return;
                                 }
                                 if (res.statusCode === 401) {
-                                    authenticator.get_challenge(res);
-                                    authenticator.authenticate_request_options(options);
+                                    FTP_AUTHENTICATOR.get_challenge(res);
+                                    FTP_AUTHENTICATOR.authenticate_request_options(options);
                                     req.headers['authorization'] = options.headers['authorization'];
                                 }
 
@@ -456,14 +320,13 @@ module.exports = function (opts, callback) {
                                     proxyRes.writeHead(502);
                                     proxyRes.end("There was an error. Please try again");
                                 });
+
                             }
                         );
                     });
 
                 }
                 else {
-                    // var target = "http://localhost:" + app.get('port');
-                    // winston.log('debug', 'target:' + target);
                     proxy.web(proxyReq, proxyRes, {
                         target: {
                             host: 'localhost',
@@ -475,6 +338,12 @@ module.exports = function (opts, callback) {
                         proxyRes.writeHead(502);
                         proxyRes.end("There was an error. Please try again");
                     });
+                    proxy.on('proxyRes', function (proxyRes, req, res) {
+                        if (proxyRes.statusCode >= 400) {
+                            // mainLogger.warn(req.url + ' ' + proxyRes.statusCode);
+                        }
+                    });
+
                 }
             }
             ).listen(PORT, function () {
@@ -506,4 +375,119 @@ module.exports = function (opts, callback) {
     }
 
 
+    function addLogseneRouter() {
+        var logsene = require('./v1/logsene/logsene')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/v1/logsene', logsene.router);
+    }
+
+    function addVoiceRouter() {
+        var voice = require('./v1/voice.js')({
+            db: mongo_db, express: express, winston: mainLogger,
+            app: app, nexmo: {
+                api_key: NEXMO_API_KEY, api_secret: NEXMO_API_SECRET,
+                base_url: NEXMO_BASE_URL
+            },
+            base_url: VOICE_API_BASE_URL,
+            main_application: main_application
+        });
+        app.use('/api/v1/voice', voice.router);
+    }
+
+    function addLoginRouter() {
+
+        app.use('/v1', require(__dirname + '/v1/login/main.js')({
+            winston: mainLogger,
+            database: database,
+            passport: passport,
+        }).router);
+
+
+        app.use("/public", express.static(__dirname + "/public"));
+    }
+
+    function addGithubRouter() {
+
+        app.use('/v1', require('./v1/github/github.js')({
+            winston: mainLogger,
+            db: mongo_db,
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
+
+    function addTodosRouter() {
+        const todos = mongo_db.collection('todos');
+        app.use("/v1/todos/public", express.static(__dirname + "/v1/todos/public"));
+
+        app.use('/v1/todos', require('./v1/todos/main.js')({
+            winston: mainLogger,
+            db: mongo_db,
+            io: todosnsp,
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
+
+
+
+    function addZorkRouter() {
+
+        app.use('/v1/zork', require(__dirname + '/v1/zork/main')({
+            winston: mainLogger,
+            db: mongo_db,
+            frotzcmd: frotzcmd,
+            io: io.of('/v1/zork'),
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
+
+}
+
+// https://www.gnu.org/software/gettext/manual/html_node/The-TERM-variable.html
+//set TERM=xterm for heroku
+function getFrotzCmd() {
+
+    if (fs.existsSync(__dirname + '/../.apt/usr/games/frotz')) {
+        var val = __dirname + '/../.apt/usr/games/frotz';
+    }
+    else if (fs.existsSync('/usr/games/frotz')) {
+        var val = '/usr/games/frotz';
+    }
+    else {
+        var val = 'frotz';
+    }
+    return val;
+}
+
+function getMainLoggerTransports() {
+    var transports = [
+        new winston.transports.File({
+            level: ACCESS_LOG_LEVEL,
+            filename: path.join(__dirname, 'access.log'),
+            maxsize: 5242880, //5MB
+            maxFiles: 5,
+            colorize: false
+        }),
+        new winston.transports.Console({
+            level: CONSOLE_LOG_LEVEL,
+            colorize: true,
+            // json: true
+        })
+    ];
+
+    if (process.env.LOGSENE_TOKEN) {
+        transports.push(new (winston.transports.Logsene)({
+            token: process.env.LOGSENE_TOKEN,
+            ssl: 'true',
+            type: 'coderuss'
+        }))
+        exceptionHandlers.push(new (winston.transports.Logsene)({
+            token: process.env.LOGSENE_TOKEN,
+            ssl: 'true',
+            type: 'coderuss'
+        }))
+        winston.info('creating logsene transport');
+    }
+    return transports;
 }

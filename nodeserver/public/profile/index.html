@@ -26,6 +26,43 @@
     <script>
         $(function () {
 
+            $.ajax({
+                type: 'GET',
+                url: '/v1/logsene/errors',
+                dataType: 'text',
+                success: function (data) {
+                    console.log('success');
+                    console.log(data);
+                },
+                error: function (xhr, status, error) {
+                    console.log('error');
+
+                    console.log(status);
+                    console.log(error);
+                },
+                done: function () {
+                    console.log('done');
+                }
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: '/v1/github/user',
+                dataType: 'text',
+                success: function (data) {
+                    console.log('success');
+                    console.log(data);
+                },
+                error: function (xhr, status, error) {
+                    console.log('error');
+
+                    console.log(status);
+                    console.log(error);
+                },
+                done: function () {
+                    console.log('done');
+                }
+            });
 
             var app = new Vue({
                 el: '#app',
@@ -53,7 +90,8 @@
                         console.log('submit');
                         var data = {
                             name: this.model.name,
-                            email: this.model.email
+                            email: this.model.email,
+                            logsene_token: this.model.logsene_token
                         };
                         console.log(data);
                         $.ajax({
@@ -77,10 +115,6 @@
                             }
                         })
                         return;
-                        console.log(JSON.stringify(this.model));
-                        console.log(this.model.name);
-                        return;
-                        this.rows.push({ 'select': 1, 'name': '', 'check': false, subrows: [{ answer: '' }] });
                     },
                 }
             });
@@ -141,7 +175,15 @@
                             <input type="text" class="form-control" placeholder="" v-model="model.email">
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="logsene_token" class="col-lg-2 control-label">Logsene Token</label>
+                        <div class="col-lg-10">
+                            <input type="text" class="form-control" placeholder="" v-model="model.logsene_token">
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-info" @click="submit">Submit</button>
+
+                    <a href="/v1/github/link">Link github account</a>
 
                 </form>
             </section>

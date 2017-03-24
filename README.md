@@ -13,3 +13,10 @@ the best way to do this but have ended up using node for
 the api. The frontend is still undecided. Test cases are primarily
 endpoint tests although there will definitely be a need for
 unit tests when a service is not practical or not efficient.
+
+
+Changlog
+=============
+* Added logsene token to user profile and /v1/logsene/errors GET (fixes #67)
+* Added oauth token linking to github accounts. 2017-03 #69
+* fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js

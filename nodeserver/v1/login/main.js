@@ -12,6 +12,8 @@ module.exports = function(opts) {
     const crypto = require('crypto');
 
     const nodemailer = require('nodemailer');
+    const pickupTransport = require('nodemailer-pickup-transport');
+
     const uuid = require('node-uuid');
 
 
@@ -112,7 +114,7 @@ module.exports = function(opts) {
 
     function doPasswordReset(username) {
         var token = getToken();
-        
+
         // winston.warn('password_reset');
 
         User.findOne({
@@ -125,17 +127,23 @@ module.exports = function(opts) {
             if (!user) {
                 return;
             }
-            var password_reset = {
-                token: token,
-                created: Date.now()
-            }
+            // var password_reset = {
+            //     password_reset_token: token,
+            //     password_reset_created: Date.now()
+            // }
             User.updateOne({
                 _id: user._id
             }, {
                 $set: {
-                    'password_reset': password_reset
+                    // password_reset
+                    password_reset_token: token,
+                    password_reset_created: Date.now()
                 }
-            }, function(error, result) {});
+            }, function(error, result) {
+                if (error) {
+                    winston.error(error);
+                }
+            });
 
 
             var fs = require('fs');
@@ -149,26 +157,34 @@ module.exports = function(opts) {
             if (process.env.SMTP_TRANSPORT) {
                 var transporter = nodemailer.createTransport(process.env.SMTP_TRANSPORT);
             }
+            else {
+                var transporter = nodemailer.createTransport(
+                    pickupTransport({
+                        directory: __dirname + '/../../email'
+                    }));
+            }
 
             var mailOptions = {
                 from: '"Coderuss" <russ@coderuss.com>', // sender address
                 to: user.username, // list of receivers
                 subject: 'Password reset', // Subject line
-                text: 'Password reset' + JSON.stringify(password_reset), // plaintext body
-                html: 'Password reset' + JSON.stringify(password_reset),
+                text: 'Password reset' + JSON.stringify(token), // plaintext body
+                html: 'Password reset' + JSON.stringify(token),
                 headers: {
                     "message-id": uuid.v1()
                 }
             };
 
+            winston.info(mailOptions);
+            winston.info(transporter);
             // send mail with defined transport object
             transporter.sendMail(mailOptions, function(error, info) {
                 if (error) {
-                    return console.log(error);
+                    return winston.error(error);
                 }
-                console.log('Message sent: ' + info.response);
+                winston.info(info);
             });
-            
+
 
         });
 
@@ -184,6 +200,41 @@ module.exports = function(opts) {
             status: 'success',
             message: "Reset link sent to user\'s email"
         }).end();
+    })
+
+
+    router.post('/passwordreset/:token', function(req, res) {
+        
+        winston.info(req.params);
+
+        User.findOne({
+            password_reset_token: req.params.token
+        }, function(err, u) {
+            if (!u) {
+                res.status(404);
+                return res.json({
+                    'status': 'not found'
+                }).end();
+            }
+            hashPassword(req.body.password, function(err, hash) {
+                User.updateOne({
+                    _id: u._id
+                }, {
+                    $set: {
+                        password_reset_token: null,
+                        password: hash
+                    }
+                }, function(error, result) {
+                    res.status(201);
+                    res.json({
+                        status: 'success',
+                        message: "Password reset"
+                    }).end();
+                })
+
+            });
+        });
+
     })
 
     //http://passportjs.org/docs/authenticate

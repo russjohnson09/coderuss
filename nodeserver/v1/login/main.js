@@ -213,9 +213,11 @@ module.exports = function(opts) {
             if (!u) {
                 res.status(404);
                 return res.json({
-                    'status': 'not found'
+                    'status': 'not found',
+                    'message': 'Token not found'
                 }).end();
             }
+            winston.error(req.body.password);
             hashPassword(req.body.password, function(err, hash) {
                 User.updateOne({
                     _id: u._id
@@ -228,7 +230,13 @@ module.exports = function(opts) {
                     res.status(201);
                     res.json({
                         status: 'success',
-                        message: "Password reset"
+                        message: "Password reset",
+                        result: {
+                            result: result.result,
+                            upsertedId: result.upsertedId,
+                            matchedCount: result.matchedCount,
+                            upsertedCount: result.upsertedCount
+                        }
                     }).end();
                 })
 
@@ -251,12 +259,11 @@ module.exports = function(opts) {
                     if (err) {
                         return next(err);
                     }
-                    res.setHeader('Content-Type', 'application/json; charset=utf-8');
                     res.status(201);
-                    return res.send(JSON.stringify({
-                        "message": 'Success',
-                        status: "success"
-                    }));
+                    return res.json({
+                        "message": "Success",
+                        "status": "success"
+                    }).end();
                 });
                 return;
             }
@@ -265,7 +272,7 @@ module.exports = function(opts) {
                 res.status(401);
                 return res.end(JSON.stringify({
                     "message": 'Unauthorized',
-                    status: "unauthorized"
+                    "status": "unauthorized"
                 }));
             }
             if (!user) {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "istanbul:start": "istanbul cover nodeserver/server.js &",
-    "kill:node": "kill $(ps | grep node | awk '{print $1}')",
+    "kill:node": "killall node",
     "prestart": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs",
     "heroku-postbuild": "bash ./postbuild.sh",
     "start": "node nodeserver/server.js",

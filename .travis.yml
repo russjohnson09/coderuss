@@ -24,6 +24,7 @@ script:
   - sleep 3 && npm run test
   - npm run kill:node
   - sleep 3
+  - npm run report:coveralls
 cache:
   directories:
     - node_modules

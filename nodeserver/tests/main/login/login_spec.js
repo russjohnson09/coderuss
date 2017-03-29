@@ -234,6 +234,7 @@ describe("login endpoints", function() {
       });
 
 
+      // return; //uncomment to test second part manually;
       it('use token to reset password', function(done) {
         ///passwordreset/:token
         password = 'Password!1234367'
@@ -356,7 +357,7 @@ describe("login endpoints", function() {
           "password": password
         };
 
-        console.log(requestBody);
+        // console.log(requestBody);
 
         request({
           method: "POST",

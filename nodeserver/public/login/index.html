@@ -1,58 +1,108 @@
 <!doctype html>
-<html lang="en" data-framework="backbonejs">
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html ng-app="login">
 
 <head>
+	<!-- META -->
 	<meta charset="utf-8">
-	<title>Sign In</title>
-	<link rel="stylesheet" href="css/main.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- Optimize mobile viewport -->
+
+	<title>Node/Angular Todo App</title>
+
+	<!-- SCROLLS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<!-- load bootstrap -->
+	<style>
+		html {
+			overflow-y: scroll;
+		}
+		
+		body {
+			padding-top: 50px;
+		}
+		
+		#todo-list {
+			margin-bottom: 30px;
+		}
+		
+		#todo-form {
+			margin-bottom: 50px;
+		}
+	</style>
+
+	<!-- SPELLS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+	<!-- load angular -->
+	<script src="login.js"></script>
+
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<!--<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">-->
+
+
 </head>
 
-<!--http://jsfiddle.net/thedersen/udXL5/-->
-<body>
-	<section class="login">
-		<form class="form-horizontal" role="form">
-			<div class="form-group">
-				<label for="username" class="col-lg-2 control-label">Username</label>
-				<div class="col-lg-10">
-					<input type="text" class="form-control" id="username" name="username" />
-					<span class="help-block hidden"></span>
-				</div>
+<body ng-controller="mainController">
+	<div class="login">
+
+
+		<div id="login-form" class="row">
+			<div class="col-sm-8 col-sm-offset-2 text-center">
+				<form>
+					<div class="form-group">
+
+						<lablel>Username</lablel>
+						<input name="username" type="text" class="form-control input-lg text-center" ng-model="formData.username">
+					</div>
+
+					<div class="form-group">
+
+						<lablel>Password</lablel>
+						<input name="password" type="password" class="form-control input-lg text-center" ng-model="formData.password">
+					</div>
+
+					<!-- createToDo() WILL CREATE NEW TODOS -->
+					<button type="submit" class="btn btn-primary btn-lg" ng-click="login()">Login</button>
+					<button type="submit" class="btn btn-primary btn-lg" ng-click="reqestpasswordreset()">Request Password Reset</button>
+
+				</form>
 			</div>
-			<div class="form-group">
-				<label for="password" class="col-lg-2 control-label">Password</label>
-				<div class="col-lg-10">
-					<input type="password" class="form-control" id="password" name="password" />
-					<span class="help-block hidden"></span>
+		</div>
+
+		<!--<div class="text-center" ng-bind="message"></div>-->
+<!--		<div class="alert alert-warning alert-dismissible fade show" role="alert">-->
+<!--  <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+<!--    <span aria-hidden="true">&times;</span>-->
+<!--  </button>-->
+<!--  <strong>Holy guacamole!</strong> You should check in on some of those fields below.-->
+<!--</div>-->
+
+		<div class="col-sm-8 col-sm-offset-2 text-center">
+
+			<div ng-repeat="alert in alerts">
+				<!--<div>-->
+				<!--	{{alert.msg}}-->
+				<!--</div>-->
+				<!--TODO fade in using fade class-->
+				<div class="alert alert-success alert-dismissible show" role="alert">
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close" close="closeAlert($index)">
+					    <span aria-hidden="true">&times;</span>
+					  </button>
+					<span>{{alert.msg}}</span>
 				</div>
+
+				<!--<div class="alert alert-success alert-dismissable" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>-->
+				<!--<alert type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>-->
 			</div>
-			<div class="form-group">
-				<div class="col-lg-offset-2 col-lg-10">
-					<button type="submit" id="signUpButton" class="btn btn-success">Sign Up</button>
-				</div>
-			</div>
-		</form>
-	</section>
-	<footer class="info">
-		<p></p>
-	</footer>
+
+		</div>
 
 
+	</div>
 
-	<!--<script src="node_modules/todomvc-common/base.js"></script>-->
-	<script src="node_modules/jquery/dist/jquery.js"></script>
-	<script src="node_modules/underscore/underscore.js"></script>
-	<script src="node_modules/backbone/backbone.js"></script>
-	<script src="node_modules/backbone.localstorage/backbone.localStorage.js"></script>
-
-	<script src="js/ext/backbone-validation.js"></script>
-	<!--<script src="js/ext/underscore.js"></script>-->
-
-	<script src="js/models/signup.js"></script>
-
-	<script src="js/views/signup-view.js"></script>
-	<script src="js/routers/router.js"></script>
-
-	<script src="js/app.js"></script>
 </body>
 
 </html>

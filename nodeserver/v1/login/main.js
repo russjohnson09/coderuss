@@ -10,17 +10,39 @@ module.exports = function(opts) {
     var bcrypt = require('bcrypt');
 
     const crypto = require('crypto');
+    const async = require('async');
+    const ejs = require('ejs');
+
 
     const nodemailer = require('nodemailer');
     const pickupTransport = require('nodemailer-pickup-transport');
 
     const uuid = require('node-uuid');
 
+    const transporter = getTransporter();
+
+    function getTransporter() {
+        if (process.env.SMTP_TRANSPORT) {
+            return nodemailer.createTransport(process.env.SMTP_TRANSPORT);
+        }
+        else {
+            return nodemailer.createTransport(
+                pickupTransport({
+                    directory: __dirname + '/../../email'
+                }));
+        }
+    }
+
 
     var database = opts.database;
     var passport = opts.passport;
 
     const User = database.collection('user');
+    const CODERUSS_FROM_ADDRESS = process.env.CODERUSS_FROM_ADDRESS || '"foo" <foo@example.com>';
+    const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
+
+
+    winston.info('from address: ' + CODERUSS_FROM_ADDRESS);
 
     const LocalStrategy = require('passport-local').Strategy;
 
@@ -112,7 +134,12 @@ module.exports = function(opts) {
         return crypto.randomBytes(64).toString('hex');
     }
 
+    function getResetUrl(token) {
+        return CODERUSS_BASE_URL + '/passwordreset?token=' + token;
+    }
+
     function doPasswordReset(username) {
+        winston.info('password reset for user: '+username);
         var token = getToken();
 
         // winston.warn('password_reset');
@@ -127,15 +154,10 @@ module.exports = function(opts) {
             if (!user) {
                 return;
             }
-            // var password_reset = {
-            //     password_reset_token: token,
-            //     password_reset_created: Date.now()
-            // }
             User.updateOne({
                 _id: user._id
             }, {
                 $set: {
-                    // password_reset
                     password_reset_token: token,
                     password_reset_created: Date.now()
                 }
@@ -145,46 +167,55 @@ module.exports = function(opts) {
                 }
             });
 
+            var text, html;
 
-            var fs = require('fs');
-            if (fs.existsSync(__dirname + '/../params.js')) {
-                process.env = require(__dirname + '/../params.js').env;
-            }
-
-
-
-
-            if (process.env.SMTP_TRANSPORT) {
-                var transporter = nodemailer.createTransport(process.env.SMTP_TRANSPORT);
-            }
-            else {
-                var transporter = nodemailer.createTransport(
-                    pickupTransport({
-                        directory: __dirname + '/../../email'
-                    }));
-            }
-
-            var mailOptions = {
-                from: '"Coderuss" <russ@coderuss.com>', // sender address
-                to: user.username, // list of receivers
-                subject: 'Password reset', // Subject line
-                text: 'Password reset' + JSON.stringify(token), // plaintext body
-                html: 'Password reset' + JSON.stringify(token),
-                headers: {
-                    "message-id": uuid.v1()
-                }
+            var data = {
+                user: user,
+                token: token,
+                reset_url: getResetUrl(token)
             };
 
-            winston.info(mailOptions);
-            winston.info(transporter);
-            // send mail with defined transport object
-            transporter.sendMail(mailOptions, function(error, info) {
-                if (error) {
-                    return winston.error(error);
+            async.parallel([
+                function(callback) {
+                    winston.info('html generate');
+                    // return callback();
+                    // var filename = path.join('.');
+                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                        html = str;
+                        winston.info(html);
+                        callback();
+                    });
+                },
+                function(callback) {
+                    winston.info('text generate');
+                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                        text = str;
+                        winston.info(text);
+                        callback();
+                    });
                 }
-                winston.info(info);
-            });
 
+            ], function(err, results) {
+                winston.info('send email')
+                // winston.info(results);
+                var mailOptions = {
+                    from: CODERUSS_FROM_ADDRESS,
+                    to: user.username, // list of receivers
+                    subject: 'Password reset', // Subject line
+                    text: text, // plaintext body
+                    html: html,
+                    headers: {
+                        "message-id": uuid.v1()
+                    }
+                };
+
+                transporter.sendMail(mailOptions, function(error, info) {
+                    if (error) {
+                        return winston.error(error);
+                    }
+                    winston.info(info);
+                });
+            });
 
         });
 
@@ -204,7 +235,7 @@ module.exports = function(opts) {
 
 
     router.post('/passwordreset/:token', function(req, res) {
-        
+
         winston.info(req.params);
 
         User.findOne({
@@ -217,7 +248,6 @@ module.exports = function(opts) {
                     'message': 'Token not found'
                 }).end();
             }
-            winston.error(req.body.password);
             hashPassword(req.body.password, function(err, hash) {
                 User.updateOne({
                     _id: u._id

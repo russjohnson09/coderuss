@@ -1,0 +1,108 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html ng-app="login">
+
+<head>
+	<!-- META -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- Optimize mobile viewport -->
+
+	<title>Node/Angular Todo App</title>
+
+	<!-- SCROLLS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<!-- load bootstrap -->
+	<style>
+		html {
+			overflow-y: scroll;
+		}
+		
+		body {
+			padding-top: 50px;
+		}
+		
+		#todo-list {
+			margin-bottom: 30px;
+		}
+		
+		#todo-form {
+			margin-bottom: 50px;
+		}
+	</style>
+
+	<!-- SPELLS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+	<!-- load angular -->
+	<script src="login.js"></script>
+
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<!--<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">-->
+
+
+</head>
+
+<body ng-controller="mainController">
+	<div class="login">
+
+
+		<div id="login-form" class="row">
+			<div class="col-sm-8 col-sm-offset-2 text-center">
+				<form>
+					<div class="form-group">
+
+						<lablel>Username</lablel>
+						<input name="username" type="text" class="form-control input-lg text-center" ng-model="formData.username">
+					</div>
+
+					<div class="form-group">
+
+						<lablel>Password</lablel>
+						<input name="password" type="password" class="form-control input-lg text-center" ng-model="formData.password">
+					</div>
+
+					<!-- createToDo() WILL CREATE NEW TODOS -->
+					<button type="submit" class="btn btn-primary btn-lg" ng-click="login()">Login</button>
+					<button type="submit" class="btn btn-primary btn-lg" ng-click="reqestpasswordreset()">Request Password Reset</button>
+
+				</form>
+			</div>
+		</div>
+
+		<!--<div class="text-center" ng-bind="message"></div>-->
+<!--		<div class="alert alert-warning alert-dismissible fade show" role="alert">-->
+<!--  <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+<!--    <span aria-hidden="true">&times;</span>-->
+<!--  </button>-->
+<!--  <strong>Holy guacamole!</strong> You should check in on some of those fields below.-->
+<!--</div>-->
+
+		<div class="col-sm-8 col-sm-offset-2 text-center">
+
+			<div ng-repeat="alert in alerts">
+				<!--<div>-->
+				<!--	{{alert.msg}}-->
+				<!--</div>-->
+				<!--TODO fade in using fade class-->
+				<div class="alert alert-success alert-dismissible show" role="alert">
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close" close="closeAlert($index)">
+					    <span aria-hidden="true">&times;</span>
+					  </button>
+					<span>{{alert.msg}}</span>
+				</div>
+
+				<!--<div class="alert alert-success alert-dismissable" type="alert.type" close="closeAlert($index)">{{alert.msg}}</div>-->
+				<!--<alert type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>-->
+			</div>
+
+		</div>
+
+
+	</div>
+
+</body>
+
+</html>

@@ -22,7 +22,7 @@ services:
 script:
   - npm run istanbul:start &
   - sleep 3 && npm run test
-  - npm run kill:node
+  - fuser 3000/tcp -k
   - sleep 3
   - npm run report:coveralls
 cache:

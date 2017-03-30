@@ -137,8 +137,7 @@ describe("login endpoints", function() {
           expect(body.message).to.be.a('string');
           expect(body.status).to.be.a('string');
           expect(body.status).to.be.equal('success');
-
-
+          
           passwordresetuser.cookie = response.headers['set-cookie'];
 
           done();

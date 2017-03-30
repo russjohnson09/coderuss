@@ -23,7 +23,7 @@ winston.loggers.add('testlogger', {
 const logger = winston.loggers.get('testlogger')
 
 
-describe(__filename, function () {
+describe(path.basename(__filename), function () {
 
     it("/v1/users/me returns 401 when not logged in", function (done) {
         request({

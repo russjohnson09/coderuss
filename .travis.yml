@@ -20,8 +20,8 @@ env:
 services:
   - mongodb
 script:
-  - npm run test:main:istanbul
-  - npm run report:coveralls
+  - npm run test:travis
+  - npm run report:coveralls || true
 cache:
   directories:
     - node_modules

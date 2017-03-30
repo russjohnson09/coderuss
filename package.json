@@ -2,6 +2,7 @@
   "name": "code-russ-node",
   "version": "1.0.0",
   "scripts": {
+    "test:travis": "istanbul cover nodeserver/tests/travis_run.js",
     "istanbul:start": "istanbul cover nodeserver/server.js",
     "kill:node": "killall node",
     "prestart": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs",

@@ -23,8 +23,7 @@ script:
   - npm run istanbul:start &
   - sleep 3 && npm run test
   - fuser 3000/tcp -k
-  - sleep 3
-  - npm run report:coveralls
+  - sleep 20 && npm run report:coveralls
 cache:
   directories:
     - node_modules

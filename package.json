@@ -15,7 +15,7 @@
     "convert": "jscoverage nodeserver/main.js nodeserver-cov/main.js --exclude .env",
     "coveralls": "coveralls",
     "report:coveralls": "cat ./coverage/lcov.info | coveralls",
-    "test:main:istanbul": "istanbul cover _mocha ./nodeserver/tests/main/**/*.js",
+    "test:main:istanbul": "istanbul cover ./nodeserver/tests/run.js",
     "test:login": "mocha ./nodeserver/tests/main/**/login*_spec.js",
     "wdio:config": "wdio config",
     "wdio:test": "wdio wdiotests/wdio.conf.js",

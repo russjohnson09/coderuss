@@ -20,10 +20,8 @@ env:
 services:
   - mongodb
 script:
-  - npm run istanbul:start &
-  - sleep 3 && npm run test
-  - fuser 3000/tcp -k
-  - sleep 20 && npm run report:coveralls
+  - npm run test:main:istanbul
+  - npm run report:coveralls
 cache:
   directories:
     - node_modules

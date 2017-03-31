@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 var winston = require('winston');
 const passport = require('passport');
+const NODE_ENV = process.env.NODE_ENV || 'dev';
+const LOGSENE_LOG_TYPE = 'coderuss_'+NODE_ENV;
 
 winston.transports.Logsene = require('winston-logsene');
 
@@ -158,6 +160,7 @@ module.exports = function (opts, callback) {
     mainLogger.info('setting up morgan logging to winston');
     mainLogger.stream = {
         write: function (message, encoding) {
+            console.log(message);
             mainLogger.log('debug', message);
         }
     };
@@ -167,7 +170,7 @@ module.exports = function (opts, callback) {
 
     var proxyLogger = mainLogger;
 
-    winston.info("console_log_level:" + CONSOLE_LOG_LEVEL);
+    mainLogger.info("console_log_level:" + CONSOLE_LOG_LEVEL);
 
 
     const MongoClient = require('mongodb').MongoClient;
@@ -476,16 +479,17 @@ function getMainLoggerTransports() {
         })
     ];
 
+    winston.info(LOGSENE_LOG_TYPE);
     if (process.env.LOGSENE_TOKEN) {
         transports.push(new (winston.transports.Logsene)({
             token: process.env.LOGSENE_TOKEN,
             ssl: 'true',
-            type: 'coderuss'
+            type: LOGSENE_LOG_TYPE
         }))
         exceptionHandlers.push(new (winston.transports.Logsene)({
             token: process.env.LOGSENE_TOKEN,
             ssl: 'true',
-            type: 'coderuss'
+            type: LOGSENE_LOG_TYPE
         }))
         winston.info('creating logsene transport');
     }

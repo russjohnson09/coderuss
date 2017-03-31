@@ -2,16 +2,21 @@ var expect = require('chai').expect;
 
 var baseurl = "http://localhost:3000";
 
-const publicurl = baseurl + "/public";
+const publicurl = baseurl;
 
-describe('login page', function() {
-    it('should be able to login', function () {
+describe('login', function() {
+    it('open login page', function() {
         browser.url(publicurl+'/login');
+        // expect(browser.getUrl()).to.be.equal(publicurl+'/url'+1);
+        browser.screenshot();
+    })
+    it('should be able to login', function () {
         // filtering property commands
         $('input[name=\'username\']').setValue('admin123456');
         $('input[name=\'password\']').setValue('admin123456');
 
-        $('button').click();
+        console.log('clicking button');
+        browser.click('button.coderuss-login');
 
         browser.waitForVisible('form#create-todo');
 

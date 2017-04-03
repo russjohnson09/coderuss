@@ -160,8 +160,7 @@ module.exports = function (opts, callback) {
     mainLogger.info('setting up morgan logging to winston');
     mainLogger.stream = {
         write: function (message, encoding) {
-            console.log(message);
-            mainLogger.log('debug', message);
+            mainLogger.info(message);
         }
     };
 

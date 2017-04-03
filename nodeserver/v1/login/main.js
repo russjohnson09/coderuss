@@ -38,6 +38,8 @@ module.exports = function(opts) {
     var passport = opts.passport;
 
     const User = database.collection('user');
+    const OauthClient = database.collection('oauth_client');
+
     const CODERUSS_FROM_ADDRESS = process.env.CODERUSS_FROM_ADDRESS || '"foo" <foo@example.com>';
     const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 
@@ -139,7 +141,7 @@ module.exports = function(opts) {
     }
 
     function doPasswordReset(username) {
-        winston.info('password reset for user: '+username);
+        winston.info('password reset for user: ' + username);
         var token = getToken();
 
         // winston.warn('password_reset');
@@ -180,7 +182,7 @@ module.exports = function(opts) {
                     winston.info('html generate');
                     // return callback();
                     // var filename = path.join('.');
-                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                    ejs.renderFile(__dirname + '/password_reset.ejs', data, {}, function(err, str) {
                         html = str;
                         winston.info(html);
                         callback();
@@ -188,7 +190,7 @@ module.exports = function(opts) {
                 },
                 function(callback) {
                     winston.info('text generate');
-                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                    ejs.renderFile(__dirname + '/password_reset.ejs', data, {}, function(err, str) {
                         text = str;
                         winston.info(text);
                         callback();
@@ -197,7 +199,7 @@ module.exports = function(opts) {
 
             ], function(err, results) {
                 winston.info('send email')
-                // winston.info(results);
+                    // winston.info(results);
                 var mailOptions = {
                     from: CODERUSS_FROM_ADDRESS,
                     to: user.username, // list of receivers
@@ -220,6 +222,28 @@ module.exports = function(opts) {
         });
 
     }
+
+
+    router.post('/oauthclient', function(req, res) {
+        OauthClient.insertOne({
+                client_secret: getToken(),
+            },
+            function(error, result) {
+                OauthClient.findOne({
+                    _id: result.insertedId
+                }, function(err, oauth_client) {
+
+                    winston.info(oauth_client);
+                    res.status(201);
+                    res.json({
+                        id: oauth_client._id,
+                        client_secret: oauth_client.client_secret
+                    }).end();
+                });
+
+
+            })
+    });
 
 
     router.post('/reqestpasswordreset', function(req, res) {

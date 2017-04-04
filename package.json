@@ -100,6 +100,7 @@
     "karma-chrome-launcher": "^2.0.0",
     "karma-jasmine": "^1.1.0",
     "mocha-lcov-reporter": "^1.2.0",
+    "moniker": "^0.1.2",
     "tap": "^10.2.1",
     "unit.js": "^2.0.0",
     "wdio-mocha-framework": "^0.5.8",

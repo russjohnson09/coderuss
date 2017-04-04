@@ -224,26 +224,78 @@ module.exports = function(opts) {
     }
 
 
-    router.post('/oauthclient', function(req, res) {
+    router.post('/oauthclients', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+
+        var userId = req.user._id;
+
         OauthClient.insertOne({
                 client_secret: getToken(),
+                user_id: userId
             },
             function(error, result) {
                 OauthClient.findOne({
                     _id: result.insertedId
-                }, function(err, oauth_client) {
-
-                    winston.info(oauth_client);
+                }, function(err, oauthClient) {
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+                    winston.info(oauthClient);
                     res.status(201);
-                    res.json({
-                        id: oauth_client._id,
-                        client_secret: oauth_client.client_secret
-                    }).end();
+                    res.json(
+                        oauthClient
+                    //     {
+                    //     _id: oauthClient._id,
+                    //     client_secret: oauthClient.client_secret,
+                    //     user_id: oauthClient.user_id
+                    // }
+                    ).end();
                 });
 
 
             })
     });
+
+
+
+    router.get('/oauthclients', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+        var userId = req.user._id;
+        OauthClient.find({
+            user_id: userId
+        }).toArray((function(err, results) {
+            if (err) {
+                winston.error(err);
+            }
+            res.setHeader('content-type', 'application/json; charset=utf-8');
+
+            res.json(results);
+        }));
+    });
+
+
+    function response500(res) {
+        res.status(500);
+        return res.json({
+            "message": 'error',
+            "status": "error"
+        });
+    }
 
 
     router.post('/reqestpasswordreset', function(req, res) {

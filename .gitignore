@@ -28,3 +28,4 @@ nodeserver/public/docs
 !.env.example
 
 /docker/scripts/data
+!.gitignore

@@ -19,7 +19,7 @@
     "test:main:istanbul": "istanbul cover ./nodeserver/tests/run.js",
     "test:login": "mocha ./nodeserver/tests/main/**/login*_spec.js",
     "wdio:config": "wdio config",
-    "wdio:test": "wdio wdiotests/wdio.conf.js",
+    "wdio:test": "wdio wdiotests/phantomjs.wdio.conf.js",
     "test:wdio:phantomjs": "wdio wdiotests/phantomjs.wdio.conf.js",
     "test:main:w": "mocha -w ./nodeserver/tests/main/**/*.js --reporter spec",
     "which:frotz": "which frotz",

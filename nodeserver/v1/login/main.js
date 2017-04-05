@@ -224,9 +224,53 @@ module.exports = function(opts) {
     }
 
 
+    router.get('/oauth/authorize', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+
+        if (!req.query) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        //|| !req.query.redirect_uri
+        if (!req.query.client_id) { // || !req.query.state) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        
+        winston.info(req.query.client_id);
+
+        OauthClient.findOne({
+            _id: ObjectID(req.query.client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+            winston.info(oauthClient);
+            res.status(201);
+            res.json(
+                oauthClient
+            ).end();
+        });
+
+
+    })
+
+
     router.post('/oauthclients', function(req, res) {
         if (!req.isAuthenticated()) {
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.status(401);
             return res.json({
                 "message": 'Unauthorized',
@@ -252,11 +296,11 @@ module.exports = function(opts) {
                     res.status(201);
                     res.json(
                         oauthClient
-                    //     {
-                    //     _id: oauthClient._id,
-                    //     client_secret: oauthClient.client_secret,
-                    //     user_id: oauthClient.user_id
-                    // }
+                        //     {
+                        //     _id: oauthClient._id,
+                        //     client_secret: oauthClient.client_secret,
+                        //     user_id: oauthClient.user_id
+                        // }
                     ).end();
                 });
 

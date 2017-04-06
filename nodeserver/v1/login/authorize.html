@@ -1,0 +1,61 @@
+<!doctype html>
+<html ng-app="oauth-authorize">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"><!-- Optimize mobile viewport -->
+
+	<title>oauth-authorize</title>
+
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"><!-- load bootstrap -->
+	<style>
+		html 					{ overflow-y:scroll; }
+		body 					{ padding-top:50px; }
+		#todo-list 				{ margin-bottom:30px; }
+		#todo-form 	 			{ margin-bottom:50px; }
+	</style>
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script><!-- load angular -->
+
+</head>
+
+<body ng-controller="mainController">
+	<div class="container">
+		<h1 class="oauth-authorize">Authorize App</h1>
+		<a target="_self" class='redirect-link' href="{{redirect_link}}">{{redirect_link}}</a>
+	</div>
+
+</body>
+</html>
+
+<script>
+
+var app = angular.module('oauth-authorize', []);
+
+
+app.config(['$locationProvider', function($locationProvider) {
+    $locationProvider.html5Mode({
+        enabled: true
+    });
+}]);
+
+app.controller('mainController', function($rootScope, $scope, $location, $http) {
+
+    queryparams = $location.search();
+
+
+    $http.post('/v1/oauth/authorize', queryparams).then(function successCallback(res) {
+            console.log('success');
+            console.log(res);
+            console.log(res.status);
+            console.log(res.data);
+            $scope.redirect_link = queryparams.redirect_uri + '?code=' + res.data.code 
+            + '&state=' + queryparams.state;
+        },
+        function errorCallback(res) {
+            console.log(res.status);
+            console.log(res.data);
+
+            // window.location = '/login';
+        });
+});
+</script>

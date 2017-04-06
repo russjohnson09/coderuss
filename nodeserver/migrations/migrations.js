@@ -59,6 +59,7 @@ module.exports = function(opts, callback) {
         }
         else {
             winston.info('no migrations to run');
+            callback();
         }
     });
 

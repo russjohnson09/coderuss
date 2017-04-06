@@ -61,11 +61,11 @@ describe(path.basename('oauth_client_spec'), function() {
 
     // return;
     describe('get code from client', function() {
-        it('/v1/oauth/authorize', function() {
+        it('/v1/oauth/authorize with client_id, redirect_uri, and state', function() {
             var client_id = encodeURI(oauthClient._id);
             expect(client_id).not.to.be.undefined;
 
-            var url = BASE_URL + '/v1/oauth/authorize?client_id=' + client_id + '&redirect_uri=' + BASE_URL;
+            var url = BASE_URL + '/v1/oauth/authorize?state=1&client_id=' + client_id + '&redirect_uri=' + BASE_URL;
             expect(url).to.be.a('string');
             console.log(url);
             browser.url(url);

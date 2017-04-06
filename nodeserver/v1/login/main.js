@@ -224,6 +224,96 @@ module.exports = function(opts) {
     }
 
 
+    router.post('/oauth/authorize', function(req, res) {
+
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                status: "unauthorized"
+            });
+        }
+
+        winston.info('oauth');
+        if (!req.body) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        //|| !req.query.redirect_uri
+        if (!req.body.client_id) { // || !req.query.state) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        var client_id = req.body.client_id;
+
+        winston.info(client_id);
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            winston.info(oauthClient);
+
+            if (!oauthClient) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized',
+                    status: "unauthorized"
+                });
+            }
+
+            var code = getToken();
+
+            User.findOne({
+                _id: ObjectID(req.user._id)
+            }, function(err, user) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+
+                User.updateOne({
+                    _id: user._id
+                }, {
+                    $set: {
+                        code: code
+                    }
+                }, function(error, result) {
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+                    res.status(201);
+
+                    winston.info(result.matchedCount, {
+                        'type': 'user.code update'
+                    });
+
+                    return res.json({
+                        code: code,
+                        meta: {
+                            "message": 'Success',
+                            "status": "success"
+                        }
+                    });
+                });
+            });
+
+        });
+    });
+
+
+
     router.get('/oauth/authorize', function(req, res) {
         if (!req.isAuthenticated()) {
             res.status(401);
@@ -248,23 +338,12 @@ module.exports = function(opts) {
                 status: "bad request"
             });
         }
-        
+
         winston.info(req.query.client_id);
 
-        OauthClient.findOne({
-            _id: ObjectID(req.query.client_id)
-        }, function(err, oauthClient) {
-            if (err) {
-                winston.error(err);
-                return response500(res);
-            }
-            winston.info(oauthClient);
-            res.status(201);
-            res.json(
-                oauthClient
-            ).end();
+        res.sendFile('authorize.html', {
+            root: __dirname
         });
-
 
     })
 

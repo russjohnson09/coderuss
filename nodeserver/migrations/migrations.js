@@ -19,7 +19,7 @@ module.exports = function(opts, callback) {
 
 
 
-    var add_coderuss_oauth_client = 'add coderuss oauth client';
+    var add_coderuss_oauth_client = '2017-04-06 add coderuss oauth client';
 
     // Migration.deleteOne({
     //     name: add_coderuss_oauth_client
@@ -47,7 +47,8 @@ module.exports = function(opts, callback) {
                 }
                 else {
                     Migration.insertOne({
-                        name: add_coderuss_oauth_client
+                        name: add_coderuss_oauth_client,
+                        created: Date.now()
                     }, function(err, result) {
                         winston.info(result.result);
                         return callback();
@@ -69,34 +70,25 @@ module.exports = function(opts, callback) {
         var coderussClient = {
             _id: ObjectID(process.env.CODERUSS_CLIENT_ID),
             client_secret: process.env.CODERUSS_CLIENT_SECRET,
-            redirect_uri: process.env.BASE_URL
+            redirect_uri: process.env.BASE_URL,
+            created: Date.now()
         };
-
-        // Migration.deleteOne({
-        //     _id: coderussClient._id
-        // }, function(err, result) {
-        //     if (err) {
-        //         winston.error(err);
-        //     }
-        //     else {
-        //         winston.info(result.result);
-        //     }
-        // });
 
         OauthClient.findOne({
             _id: coderussClient._id
         }, function(err, result) {
             if (result) {
+                winston.info('updating coderuss client');
+
                 OauthClient.updateOne({
-                    _id: coderussClient
+                    _id: coderussClient._id
                 }, {
                     $set: coderussClient
                 }, callback);
             }
             else {
-                OauthClient.insertOne({
-
-                }, callback);
+                winston.info('inserting coderuss client');
+                OauthClient.insertOne(coderussClient, callback);
             }
         });
 

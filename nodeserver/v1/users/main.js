@@ -1,4 +1,4 @@
-module.exports = function (opts) {
+module.exports = function(opts) {
     var http = require('http');
     var url = require('url');
     var express = require('express');
@@ -21,23 +21,33 @@ module.exports = function (opts) {
 
     const User = db.collection('user');
 
-    router.use(function (req, res, next) {
+    //authorization=token 2a3e269cb969fd914fc183328d879b06e1d00aed1126928123bd0e93936961acbf88f021ddbfc9ab686b9853d42893b944a684b2c202d121551abb5bb06c3008
+    router.use(function(req, res, next) {
         winston.debug(req.body);
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-        if (!req.isAuthenticated()) {
-            res.status(401);
-            return res.end(JSON.stringify({
-                "message": 'Unauthorized',
-                status: "unauthorized"
-            }));
+        winston.info(req.headers);
+
+        if (req.isAuthenticated()) {
+            return next();
         }
-        next();
+
+        if (req.headers && req.headers.authorization) {
+            
+        }
+
+        res.status(401);
+        return res.end(JSON.stringify({
+            "message": 'Unauthorized',
+            status: "unauthorized"
+        }));
     });
 
-    router.get('/me', function (req, res) {
+    router.get('/me', function(req, res) {
 
-        User.findOne({ _id: req.user._id }, function (err, user) {
+        User.findOne({
+            _id: req.user._id
+        }, function(err, user) {
             winston.debug(user);
             if (err) {
                 winston.error(err);
@@ -58,9 +68,14 @@ module.exports = function (opts) {
     });
 
 
-    router.post('/me', function (req, res) {
-        winston.debug(req.headers,{endpoint:'/v2/users/me',tag:'headers'})
-        winston.debug(req.body, { endpoint: '/v2/users/me' });
+    router.post('/me', function(req, res) {
+        winston.debug(req.headers, {
+            endpoint: '/v2/users/me',
+            tag: 'headers'
+        })
+        winston.debug(req.body, {
+            endpoint: '/v2/users/me'
+        });
         var set = {};
         if (req.body.email !== undefined) {
             set.email = req.body.email;
@@ -79,31 +94,35 @@ module.exports = function (opts) {
             }));
             return;
         }
-        User.updateOne({ _id: ObjectID(req.user._id) },
-            { $set: set }, function (error, result) {
-                if (error) {
-                    winston.error(error);
-                }
-                winston.debug(result.result);
-                User.findOne({ _id: req.user._id }, function (err, user) {
-                    winston.debug(user);
-                    if (err) {
-                        winston.error(err);
-                        res.status(401);
-                        return res.end(JSON.stringify({
-                            "message": 'Unauthorized',
-                            status: "unauthorized"
-                        }));
-                    }
-                    return res.status(201).send(JSON.stringify({
-                        _id: user._id,
-                        username: user.username,
-                        email: user.email || null,
-                        name: user.name || null
-                    })).end();
-                });
+        User.updateOne({
+            _id: ObjectID(req.user._id)
+        }, {
+            $set: set
+        }, function(error, result) {
+            if (error) {
+                winston.error(error);
             }
-        );
+            winston.debug(result.result);
+            User.findOne({
+                _id: req.user._id
+            }, function(err, user) {
+                winston.debug(user);
+                if (err) {
+                    winston.error(err);
+                    res.status(401);
+                    return res.end(JSON.stringify({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    }));
+                }
+                return res.status(201).send(JSON.stringify({
+                    _id: user._id,
+                    username: user.username,
+                    email: user.email || null,
+                    name: user.name || null
+                })).end();
+            });
+        });
 
     });
 

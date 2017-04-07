@@ -40,6 +40,9 @@ module.exports = function(opts) {
     const User = database.collection('user');
     const OauthClient = database.collection('oauth_client');
 
+    const OauthToken = database.collection('oauth_token');
+
+
     const CODERUSS_FROM_ADDRESS = process.env.CODERUSS_FROM_ADDRESS || '"foo" <foo@example.com>';
     const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 
@@ -222,95 +225,6 @@ module.exports = function(opts) {
         });
 
     }
-
-
-    router.post('/oauth/authorize', function(req, res) {
-
-        if (!req.isAuthenticated()) {
-            res.status(401);
-            return res.json({
-                "message": 'Unauthorized',
-                status: "unauthorized"
-            });
-        }
-
-        winston.info('oauth');
-        if (!req.body) {
-            res.status(400);
-            return res.json({
-                "message": 'Bad Request',
-                status: "bad request"
-            });
-        }
-        //|| !req.query.redirect_uri
-        if (!req.body.client_id) { // || !req.query.state) {
-            res.status(400);
-            return res.json({
-                "message": 'Bad Request',
-                status: "bad request"
-            });
-        }
-        var client_id = req.body.client_id;
-
-        winston.info(client_id);
-
-        OauthClient.findOne({
-            _id: ObjectID(client_id)
-        }, function(err, oauthClient) {
-            if (err) {
-                winston.error(err);
-                return response500(res);
-            }
-
-            winston.info(oauthClient);
-
-            if (!oauthClient) {
-                res.status(401);
-                return res.json({
-                    "message": 'Unauthorized',
-                    status: "unauthorized"
-                });
-            }
-
-            var code = getToken();
-
-            User.findOne({
-                _id: ObjectID(req.user._id)
-            }, function(err, user) {
-                if (err) {
-                    winston.error(err);
-                    return response500(res);
-                }
-
-                User.updateOne({
-                    _id: user._id
-                }, {
-                    $set: {
-                        code: code
-                    }
-                }, function(error, result) {
-                    if (err) {
-                        winston.error(err);
-                        return response500(res);
-                    }
-                    res.status(201);
-
-                    winston.info(result.matchedCount, {
-                        'type': 'user.code update'
-                    });
-
-                    return res.json({
-                        code: code,
-                        meta: {
-                            "message": 'Success',
-                            "status": "success"
-                        }
-                    });
-                });
-            });
-
-        });
-    });
 
 
 
@@ -536,35 +450,186 @@ module.exports = function(opts) {
 
 
     //authorize the application
-    router.post('/oauth/authorize',
-        function(req, res) {
-            res.json({
-                'message': 'hello from oauth'
-            });
-            winston.debug(req.isAuthenticated());
-            if (!req.isAuthenticated()) {
-                return res.redirect('/public/login');
-            }
-            winston.debug(req.user);
-            res.send(JSON.stringify(req.user));
-            res.end();
-        });
+    // router.post('/oauth/authorize',
+    //     function(req, res) {
+    //         res.json({
+    //             'message': 'hello from oauth'
+    //         });
+    //         winston.debug(req.isAuthenticated());
+    //         if (!req.isAuthenticated()) {
+    //             return res.redirect('/public/login');
+    //         }
+    //         winston.debug(req.user);
+    //         res.send(JSON.stringify(req.user));
+    //         res.end();
+    //     });
 
     //request access token
     //open to other domains
     router.post('/oauth/access_token',
         function(req, res) {
-            res.json({
-                'message': 'hello from oauth'
-            });
-            winston.debug(req.isAuthenticated());
-            if (!req.isAuthenticated()) {
-                return res.redirect('/public/login');
+            winston.info('oauth');
+
+            winston.info(req.body);
+
+            var client_id = req.body.client_id
+            var client_secret = req.body.client_secret;
+            var code = req.body.code;
+
+            winston.info(client_id);
+            winston.info(client_secret);
+            winston.info(code);
+
+            if (!client_id || !client_secret || !code) {
+                res.status(400);
+                return res.json({
+                    "message": 'client_id, client_secret, and code are required',
+                    status: "badrequest"
+                });
             }
-            winston.debug(req.user);
-            res.send(JSON.stringify(req.user));
-            res.end();
+
+
+            OauthClient.findOne({
+                _id: ObjectID(client_id)
+            }, function(err, oauthClient) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+
+                if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                    res.status(401);
+                    return res.json({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    });
+                    return;
+                }
+
+                OauthToken.findOne({
+                    code: code,
+                    client_id: OauthClient._id
+                }, function(err, oauthToken) {
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+
+                    if (!OauthToken) {
+                        winston.info('oauthtoken not found')
+                        res.status(401);
+                        return res.json({
+                            "message": 'Unauthorized',
+                            status: "unauthorized"
+                        });
+                        return;
+                    }
+
+                    var access_token = getToken();
+
+                    OauthToken.updateOne({
+                        _id: OauthToken._id
+                    }, {
+                        $set: {
+                            access_token: access_token
+                        }
+                    }, function(err, result) {
+                        res.status(201);
+
+                        return res.json({
+                            'access_token': access_token,
+                            'scope': OauthToken.scope,
+                            'token_type': OauthToken.token_type
+                        })
+                    })
+                });
+
+            });
         });
+
+
+    router.post('/oauth/authorize', function(req, res) {
+        winston.info('oauth');
+
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                status: "unauthorized"
+            });
+        }
+
+        if (!req.body) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        //|| !req.query.redirect_uri
+        if (!req.body.client_id) { // || !req.query.state) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        var client_id = req.body.client_id;
+
+        winston.info(client_id);
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            // winston.info(oauthClient);
+
+            if (!oauthClient) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized',
+                    status: "unauthorized"
+                });
+            }
+
+            var code = getToken();
+
+            OauthToken.insertOne({
+                code: code,
+                // access_token: 'admin_token',
+                user_id: ObjectID(req.user._id),
+                client_id: ObjectID(client_id),
+                scope: 'default',
+                token_type: 'bearer',
+                created: Date.now()
+            }, function(err, result) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+                else {
+                    winston.info(result.result, {
+                        'type': 'oauth token updated'
+                    })
+                    res.status(201);
+                    return res.json({
+                        code: code,
+                        meta: {
+                            "message": 'Success',
+                            "status": "success"
+                        }
+                    });
+                }
+            });
+        });
+
+
+    });
+
 
     module.router = router;
 

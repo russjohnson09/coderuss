@@ -97,7 +97,7 @@ module.exports = function(opts) {
             var sess = req.session;
             var user = req.user;
             if (!user.access_token_github) {
-                return res.redirect('/github/link');
+                return ExpressRes.redirect('/github/link');
             }
             request.get({
                 headers: {
@@ -223,7 +223,7 @@ module.exports = function(opts) {
         }, function(error, res, body) {
             winston.debug(res.headers);
             winston.debug(res.statusCode);
-            if (res.statusCode !== 200) {
+            if (res.statusCode.toString().substr(0,1) != '2') {
                 winston.error('unexected statusCode ' + res.statusCode);
             }
             else {
@@ -232,6 +232,7 @@ module.exports = function(opts) {
                 var access_token = data.access_token;
                 if (!access_token) {
                     winston.error('failed to get access_token');
+                    return callback();
                 }
                 else {
                     request.get({

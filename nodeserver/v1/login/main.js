@@ -475,10 +475,9 @@ module.exports = function(opts) {
             var client_id = req.body.client_id
             var client_secret = req.body.client_secret;
             var code = req.body.code;
+            
+            winston.info(req.headers);
 
-            winston.info(client_id);
-            winston.info(client_secret);
-            winston.info(code);
 
             if (!client_id || !client_secret || !code) {
                 res.status(400);
@@ -508,14 +507,14 @@ module.exports = function(opts) {
 
                 OauthToken.findOne({
                     code: code,
-                    client_id: OauthClient._id
+                    client_id: oauthClient._id
                 }, function(err, oauthToken) {
                     if (err) {
                         winston.error(err);
                         return response500(res);
                     }
 
-                    if (!OauthToken) {
+                    if (!oauthToken) {
                         winston.info('oauthtoken not found')
                         res.status(401);
                         return res.json({
@@ -528,14 +527,21 @@ module.exports = function(opts) {
                     var access_token = getToken();
 
                     OauthToken.updateOne({
-                        _id: OauthToken._id
+                        _id: oauthToken._id
                     }, {
                         $set: {
                             access_token: access_token
                         }
                     }, function(err, result) {
-                        res.status(201);
 
+                        if (err) {
+                            winston.error(err);
+                            return response500(res);
+                        }
+
+                        winston.info(result.result);
+                        
+                        res.status(201);
                         return res.json({
                             'access_token': access_token,
                             'scope': OauthToken.scope,

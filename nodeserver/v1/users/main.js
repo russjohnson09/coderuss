@@ -20,6 +20,8 @@ module.exports = function(opts) {
 
 
     const User = db.collection('user');
+    const OauthToken = db.collection('oauth_token');
+
 
     //authorization=token 2a3e269cb969fd914fc183328d879b06e1d00aed1126928123bd0e93936961acbf88f021ddbfc9ab686b9853d42893b944a684b2c202d121551abb5bb06c3008
     router.use(function(req, res, next) {
@@ -33,14 +35,46 @@ module.exports = function(opts) {
         }
 
         if (req.headers && req.headers.authorization) {
-            
+            var access_token = req.headers.authorization.substr(6)
+            OauthToken.findOne({
+                access_token: access_token,
+            }, function(err, oauthToken) {
+
+                if (oauthToken && oauthToken.user_id) {
+                    User.findOne({
+                        _id: oauthToken.user_id
+                    }, function(err, user) {
+                        if (user) {
+                            req.user = user;
+                            return next();
+                        }
+                        else {
+                            res.status(401);
+                            return res.end(JSON.stringify({
+                                "message": 'Unauthorized',
+                                status: "unauthorized"
+                            }));
+                        }
+                    })
+                }
+                else {
+                    res.status(401);
+                    return res.end(JSON.stringify({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    }));
+                }
+
+            });
+        }
+        else {
+            res.status(401);
+            return res.end(JSON.stringify({
+                "message": 'Unauthorized',
+                status: "unauthorized"
+            }));
         }
 
-        res.status(401);
-        return res.end(JSON.stringify({
-            "message": 'Unauthorized',
-            status: "unauthorized"
-        }));
     });
 
     router.get('/me', function(req, res) {

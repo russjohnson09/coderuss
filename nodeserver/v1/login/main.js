@@ -466,6 +466,11 @@ module.exports = function(opts) {
 
     //request access token
     //open to other domains
+    // https://dev.fitbit.com/docs/oauth2/#refreshing-tokens
+    
+    // x-forwarded-for=72.21.217.168, x-forwarded-proto=https, 
+    // accept-encoding=gzip,deflate, user-agent=Apache-HttpClient/4.5.x (Java/1.8.0_112), 
+    // host=0d4bd21a.ngrok.io, content-length=426, content-type=application/x-www-form-urlencoded, connection=close
     router.post('/oauth/access_token',
         function(req, res) {
             winston.info('oauth');
@@ -525,12 +530,16 @@ module.exports = function(opts) {
                     }
 
                     var access_token = getToken();
+                    var refresh_token = getToken();
+                    var expires_in = 3600;
 
                     OauthToken.updateOne({
                         _id: oauthToken._id
                     }, {
                         $set: {
-                            access_token: access_token
+                            'access_token': access_token,
+                            'refresh_token': refresh_token,
+                            'expires_at': Date.now() + (3600 * 1000)
                         }
                     }, function(err, result) {
 
@@ -541,12 +550,18 @@ module.exports = function(opts) {
 
                         winston.info(result.result);
                         
-                        res.status(201);
-                        return res.json({
+                        var response = {
                             'access_token': access_token,
-                            'scope': OauthToken.scope,
-                            'token_type': OauthToken.token_type
-                        })
+                            'scope': oauthToken.scope,
+                            'token_type': oauthToken.token_type,
+                            'refresh_token': refresh_token,
+                            'expires_in': expires_in
+                        };
+                        
+                        console.log(response);
+                        
+                        res.status(200);
+                        return res.json(response);
                     })
                 });
 

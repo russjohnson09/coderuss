@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const expect = require('chai').expect;
 
 const request = require('request');
@@ -6,6 +9,8 @@ const winston = require('winston');
 const moniker = require('moniker');
 
 const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'info';
+
+const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID;
 
 winston.loggers.add('testlogger', {
   transports: [
@@ -80,6 +85,11 @@ describe(path.basename(__dirname), function() {
         logger.info(JSON.stringify(body, null, '    '));
         expect(response.statusCode).to.be.equal(201);
 
+        oauthClient = body;
+
+        expect(oauthClient._id).to.be.a('string');
+        expect(oauthClient.client_secret).to.be.a('string');
+
         done();
       });
     });
@@ -110,24 +120,19 @@ describe(path.basename(__dirname), function() {
 
   });
 
-  return;
-  describe('get access_token from code to be used to authorize', function() {
 
-    it('/login/oauth/access_token POST', function(done) {
-
+  describe('oauth2 get code', function() {
+    it('/v1/oauth/authorize POST', function(done) {
       var requestBody = {
-        client_id: 'client_id',
-        client_secret: 'client_secret',
-        code: '1'
+        client_id: oauthClient._id
       };
-
       request.post({
         followRedirect: false,
-        url: BASE_URL + '/login/oauth/access_token',
+        url: BASE_URL + '/v1/oauth/authorize',
         body: JSON.stringify(requestBody),
         headers: {
           'content-type': 'application/json',
-          // 'Authorization': 'token ' + token
+          Cookie: cookie //is an authenticated user
         }
       }, function(error, response, body) {
         expect(error).to.be.null;
@@ -135,6 +140,66 @@ describe(path.basename(__dirname), function() {
         body = JSON.parse(body);
         logger.info(JSON.stringify(body, null, '    '));
         expect(response.statusCode).to.be.equal(201);
+        
+        expect(body.code).to.be.a('string');
+        
+        code = body.code;
+
+        done();
+      });
+    });
+
+  });
+
+
+  //   info: oauth
+  // info:  grant_type=authorization_code, code=6bc196c56ce011cd29858a3466e32ea3bedc44862cf7488096bf2940802df7fea01c812fc6a8bd9aa8a8d0d01493ad3f42783df0bb62885567bb5bc6fa81c35f, redirect_uri=https://pitangui.amazon.com/api/skill/link/M2NWQJVXYCCF8Q, client_id=58eb73f4317cbc0898341ec7, client_secret=fbe8d8bc37e12d0f46ccb27b601ea866cca4e1865caeb0fdd9c5f698b4adba65a3920fabc70899bcea4e990f379febc4b60ced36eb1b2bdf706f8a7ddec117b5
+  // info:  x-forwarded-for=72.21.217.74, x-forwarded-proto=https, accept-encoding=gzip,deflate, user-agent=Apache-HttpClient/4.5.x (Java/1.8.0_112), host=0d4bd21a.ngrok.io, content-length=426, content-type=application/x-www-form-urlencoded, connection=close
+  // info:  ok=1, nModified=1, n=1
+  // { access_token: 'eb8ca631b2b9df8253368d0d8926878eebd2a0f32ee4a000f03bf80421bebf0a475b9aadc359af258b2cb17f23d668b58f1da9300b815f20e678f5a5d92be72c',
+  //   scope: 'default',
+  //   token_type: 'bearer',
+  //   refresh_token: '56466a6e1563a78ac6eb674ac9af357b3fc9e26f889ecf87c976f8cd3ecbf44fd94438890312c3bde42c420a5fd0ea1f680546d8095874eb3147deed678686e0',
+  //   expires_in: 3600 }
+  // info: ::ffff:127.0.0.1 - - [11/Apr/2017:00:12:42 +0000] "POST /v1/oauth/access_token HTTP/1.1" 200 - "-" "Apache-HttpClient/4.5.x (Java/1.8.0_112)"
+  // AMAZON_CLIENT_ID
+
+  describe('get access_token from code to be used to authorize', function() {
+
+    it('/v1/oauth/access_token POST', function(done) {
+
+      // var requestBody = {
+      //   grant_type: 'authorization_code',
+      //   code: '6bc196c56ce011cd29858a3466e32ea3bedc44862cf7488096bf2940802df7fea01c812fc6a8bd9aa8a8d0d01493ad3f42783df0bb62885567bb5bc6fa81c35f',
+      //   // redirect_uri: 'https://pitangui.amazon.com/api/skill/link/M2NWQJVXYCCF8Q',
+      //   client_id: '58eb73f4317cbc0898341ec7',
+      //   client_secret: 'fbe8d8bc37e12d0f46ccb27b601ea866cca4e1865caeb0fdd9c5f698b4adba65a3920fabc70899bcea4e990f379febc4b60ced36eb1b2bdf706f8a7ddec117b5'
+      // };
+      
+      var requestBody = {
+        grant_type: 'authorization_code',
+        code: code,
+        // redirect_uri: 'https://pitangui.amazon.com/api/skill/link/M2NWQJVXYCCF8Q',
+        client_id: oauthClient._id,
+        client_secret: oauthClient.client_secret
+      };
+
+      request.post({
+        followRedirect: false,
+        url: BASE_URL + '/v1/oauth/access_token',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'content-type': 'application/json',
+          // 'Authorization': 'token ' + token
+        }
+      }, function(error, response, body) {
+
+        expect(error).to.be.null;
+        logger.info(body);
+        console.log(body);
+        body = JSON.parse(body);
+        logger.info(JSON.stringify(body, null, '    '));
+        expect(response.statusCode).to.be.equal(200);
 
         expect(body.access_token).not.to.be.undefined;
         expect(body.access_token).not.to.be.null;
@@ -143,10 +208,14 @@ describe(path.basename(__dirname), function() {
         done();
       });
     });
+  });
+  
+  
+  describe('refresh oauth2 token', function() {
+    
   })
 
-
-  describe("basic authorization", function() {
+  describe("authorization using oauth2 token", function() {
 
     it('/v1/users/me GET Authorization: token', function(done) {
 

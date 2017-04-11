@@ -17,7 +17,7 @@ const cheerio = require('cheerio');
 
 
 // https://github.com/tejashah88/alexa-app-example/blob/master/index.js
-module.exports = function (app) {
+module.exports = function(app) {
 
 
     // ALWAYS setup the alexa app and attach it to express before anything else.
@@ -42,28 +42,48 @@ module.exports = function (app) {
     // from here on you can setup any other express routes or middlewares as normal
     app.set("view engine", "ejs");
 
-    alexaApp.launch(function (request, response) {
+    alexaApp.launch(function(request, response) {
         response.say("You launched the app!");
     });
 
-    alexaApp.dictionary = { "names": ["matt", "joe", "bob", "bill", "mary", "jane", "dawn"] };
+    alexaApp.dictionary = {
+        "names": ["matt", "joe", "bob", "bill", "mary", "jane", "dawn"]
+    };
 
     alexaApp.intent("nameIntent", {
-        "slots": { "NAME": "LITERAL" },
-        "utterances": [
-            "my {name is|name's} {names|NAME}", "set my name to {names|NAME}"
-        ]
-    },
-        function (request, response) {
+            "slots": {
+                "NAME": "LITERAL"
+            },
+            "utterances": [
+                "my {name is|name's} {names|NAME}", "set my name to {names|NAME}"
+            ]
+        },
+        function(request, response) {
             response.say("Success!");
         }
     );
 
     function getAlexaReadableTime(serverstarted) {
-    return moment(serverstarted).tz(tz).format('MMMM Do, h mm a z');
+        return moment(serverstarted).tz(tz).format('MMMM Do, h mm a z');
+    }
+
+    var getAccessToken = function(alexaRequest) {
+        if (!alexaRequest || !alexaRequest.sessionObject ||
+            !alexaRequest.sessionObject.details ||
+            !alexaRequest.sessionObject.details.accessToken) {
+            return null;
+        }
+        return alexaRequest.sessionObject.accessToken;
     }
 
     function doStatusIntent(resolve, reject, alexaRequest, alexaResponse) {
+
+        var accessToken = getAccessToken(alexaRequest);
+        
+        console.log('accessToken');
+        console.log(accessToken);
+
+
         var port = app.get('port');
         var serverport;
         var count = 0;
@@ -71,19 +91,25 @@ module.exports = function (app) {
         var serverstarted;
         var lastBuildStatus;
         var ar = alexaResponse;
-        var logcount;
+        var logcount,user;
+        var msg = '';
 
         function readResponse() {
             count++;
             if (count == expectedCount) {
                 console.log(serverstarted);
-                var humanReadableTime = getAlexaReadableTime(serverstarted); 
-                var msg = 'This server was deployed on ' + humanReadableTime +
-                '. The status of the most recent build for this repository\'s master branch is ' + lastBuildStatus;
-                if (logcount) {
-                    msg += ". Your application has logged " + logcount 
-                    + " events today."
+                var humanReadableTime = getAlexaReadableTime(serverstarted);
+                if (user) {
+                    msg += 'Hello ' + user.username + ' .';
                 }
+                
+                msg = ' This server was deployed on ' + humanReadableTime +
+                    '. The status of the most recent build for this repository\'s master branch is ' + lastBuildStatus;
+                if (logcount) {
+                    msg += ". Your application has logged " + logcount +
+                        " events today."
+                }
+
                 console.log(msg);
                 console.log(lastBuildStatus);
                 alexaResponse.say(msg);
@@ -92,9 +118,26 @@ module.exports = function (app) {
             }
         }
 
+        if (accessToken) {
+            expectedCount++;
+            r.get({
+                url: 'http://0.0.0.0:' + port + '/users/me',
+                headers: {
+                    'content-type': 'application/json',
+                    'Authorization': 'token ' + accessToken
+                }
+            }, function(error, response, body) {
+                console.log(body);
+                if (response.statusCode < 400) {
+                    user = body;
+                }
+                readResponse();
+            })
+        }
+
         r.get({
             url: travis_master_branch
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             lastBuildStatus = JSON.parse(body).branch.state;
             console.log(lastBuildStatus);
             readResponse();
@@ -106,7 +149,7 @@ module.exports = function (app) {
                 'content-type': 'application/json'
             },
             url: 'http://0.0.0.0:' + port + '/v1/ping/detailed',
-        }, function (error, response, body) {
+        }, function(error, response, body) {
             if (error) {
                 console.log(error);
                 alexaResponse.say("I'm sorry but there was an error processing your request.");
@@ -128,8 +171,8 @@ module.exports = function (app) {
     }
 
     alexaApp.intent("statusIntent",
-        function (alexaRequest, alexaResponse) {
-            return new Promise(function (resolve, reject) {
+        function(alexaRequest, alexaResponse) {
+            return new Promise(function(resolve, reject) {
                 doStatusIntent(resolve, reject, alexaRequest, alexaResponse);
             });;
         }

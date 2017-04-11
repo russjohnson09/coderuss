@@ -140,9 +140,9 @@ describe(path.basename(__dirname), function() {
         body = JSON.parse(body);
         logger.info(JSON.stringify(body, null, '    '));
         expect(response.statusCode).to.be.equal(201);
-        
+
         expect(body.code).to.be.a('string');
-        
+
         code = body.code;
 
         done();
@@ -175,7 +175,7 @@ describe(path.basename(__dirname), function() {
       //   client_id: '58eb73f4317cbc0898341ec7',
       //   client_secret: 'fbe8d8bc37e12d0f46ccb27b601ea866cca4e1865caeb0fdd9c5f698b4adba65a3920fabc70899bcea4e990f379febc4b60ced36eb1b2bdf706f8a7ddec117b5'
       // };
-      
+
       var requestBody = {
         grant_type: 'authorization_code',
         code: code,
@@ -205,14 +205,93 @@ describe(path.basename(__dirname), function() {
         expect(body.access_token).not.to.be.null;
 
         access_token = body.access_token;
+        refresh_token = body.refresh_token;
+
         done();
       });
     });
   });
-  
-  
+
+  describe('code cannot be used more than once', function() {
+    it('/v1/oauth/access_token POST', function(done) {
+
+      // var requestBody = {
+      //   grant_type: 'authorization_code',
+      //   code: '6bc196c56ce011cd29858a3466e32ea3bedc44862cf7488096bf2940802df7fea01c812fc6a8bd9aa8a8d0d01493ad3f42783df0bb62885567bb5bc6fa81c35f',
+      //   // redirect_uri: 'https://pitangui.amazon.com/api/skill/link/M2NWQJVXYCCF8Q',
+      //   client_id: '58eb73f4317cbc0898341ec7',
+      //   client_secret: 'fbe8d8bc37e12d0f46ccb27b601ea866cca4e1865caeb0fdd9c5f698b4adba65a3920fabc70899bcea4e990f379febc4b60ced36eb1b2bdf706f8a7ddec117b5'
+      // };
+
+      var requestBody = {
+        grant_type: 'authorization_code',
+        code: code,
+        // redirect_uri: 'https://pitangui.amazon.com/api/skill/link/M2NWQJVXYCCF8Q',
+        client_id: oauthClient._id,
+        client_secret: oauthClient.client_secret
+      };
+
+      request.post({
+        followRedirect: false,
+        url: BASE_URL + '/v1/oauth/access_token',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'content-type': 'application/json',
+          // 'Authorization': 'token ' + token
+        }
+      }, function(error, response, body) {
+
+        expect(error).to.be.null;
+        logger.info(body);
+        console.log(body);
+        body = JSON.parse(body);
+        logger.info(JSON.stringify(body, null, '    '));
+        expect(response.statusCode, 'code has been used and is now invalid').to.be.equal(401);
+
+        done();
+      });
+    });
+
+  })
+
+
   describe('refresh oauth2 token', function() {
-    
+    it('/v1/oauth/access_token POST', function(done) {
+
+      var requestBody = {
+        grant_type: 'refresh_token',
+        refresh_token: refresh_token,
+        client_id: oauthClient._id,
+        client_secret: oauthClient.client_secret
+      };
+
+      request.post({
+        followRedirect: false,
+        url: BASE_URL + '/v1/oauth/access_token',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'content-type': 'application/json',
+        }
+      }, function(error, response, body) {
+
+        expect(error).to.be.null;
+        logger.info(body);
+        console.log(body);
+        body = JSON.parse(body);
+        logger.info(JSON.stringify(body, null, '    '));
+        expect(response.statusCode).to.be.equal(200);
+
+        expect(body.access_token).not.to.be.undefined;
+        expect(body.access_token).not.to.be.null;
+
+        expect(body.access_token, 'access_token is refreshed (new)').not.to.be.equal(access_token);
+        expect(body.refresh_token, 'refresh_token has not been changed').to.be.equal(refresh_token);
+        access_token = body.access_token;
+
+        done();
+      });
+    });
+
   })
 
   describe("authorization using oauth2 token", function() {

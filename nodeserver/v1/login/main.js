@@ -467,41 +467,84 @@ module.exports = function(opts) {
     //request access token
     //open to other domains
     // https://dev.fitbit.com/docs/oauth2/#refreshing-tokens
-    
+
     // x-forwarded-for=72.21.217.168, x-forwarded-proto=https, 
     // accept-encoding=gzip,deflate, user-agent=Apache-HttpClient/4.5.x (Java/1.8.0_112), 
     // host=0d4bd21a.ngrok.io, content-length=426, content-type=application/x-www-form-urlencoded, connection=close
+
+    //     POST https://api.fitbit.com/oauth2/token
+    // Authorization: Basic Y2xpZW50X2lkOmNsaWVudCBzZWNyZXQ=
+    // Content-Type: application/x-www-form-urlencoded
+    // grant_type=refresh_token&refresh_token=abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456
     router.post('/oauth/access_token',
         function(req, res) {
             winston.info('oauth');
 
             winston.info(req.body);
 
-            var client_id = req.body.client_id
-            var client_secret = req.body.client_secret;
-            var code = req.body.code;
-            
             winston.info(req.headers);
 
-
-            if (!client_id || !client_secret || !code) {
+            if (!req.body || !req.body.grant_type) {
                 res.status(400);
                 return res.json({
-                    "message": 'client_id, client_secret, and code are required',
+                    "message": 'grant_type is required',
                     status: "badrequest"
                 });
             }
 
+            var grant_type = req.body.grant_type;
 
-            OauthClient.findOne({
-                _id: ObjectID(client_id)
-            }, function(err, oauthClient) {
+            if (grant_type === 'authorization_code') {
+                doGrantTypeAuthorizationCode(req, res);
+            }
+            else if (grant_type === 'refresh_token') {
+                doGrantTypeRefreshToken(req, res);
+            }
+            else {
+                res.status(400);
+                return res.json({
+                    "message": 'grant_type must be one of authorization_code, refresh_token',
+                    status: "badrequest"
+                });
+            }
+        });
+
+
+
+    var doGrantTypeRefreshToken = function(req, res) {
+
+        var client_id = req.body.client_id
+        var client_secret = req.body.client_secret;
+        var refresh_token = req.body.refresh_token;
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized client_id or client_secret could be wrong',
+                    status: "unauthorized"
+                });
+                return;
+            }
+
+            OauthToken.findOne({
+                refresh_token: refresh_token,
+                client_id: oauthClient._id
+            }, function(err, oauthToken) {
                 if (err) {
                     winston.error(err);
                     return response500(res);
                 }
 
-                if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                if (!oauthToken) {
+                    winston.info('oauthtoken not found')
                     res.status(401);
                     return res.json({
                         "message": 'Unauthorized',
@@ -510,63 +553,121 @@ module.exports = function(opts) {
                     return;
                 }
 
-                OauthToken.findOne({
-                    code: code,
-                    client_id: oauthClient._id
-                }, function(err, oauthToken) {
+                var access_token = getToken();
+                var expires_in = 3600;
+
+                OauthToken.updateOne({
+                    _id: oauthToken._id
+                }, {
+                    $set: {
+                        'access_token': access_token,
+                        'expires_at': Date.now() + (3600 * 1000)
+                    }
+                }, function(err, result) {
+
                     if (err) {
                         winston.error(err);
                         return response500(res);
                     }
 
-                    if (!oauthToken) {
-                        winston.info('oauthtoken not found')
-                        res.status(401);
-                        return res.json({
-                            "message": 'Unauthorized',
-                            status: "unauthorized"
-                        });
-                        return;
-                    }
+                    winston.info(result.result);
 
-                    var access_token = getToken();
-                    var refresh_token = getToken();
-                    var expires_in = 3600;
+                    var response = {
+                        'access_token': access_token,
+                        'scope': oauthToken.scope,
+                        'token_type': oauthToken.token_type,
+                        'refresh_token': oauthToken.refresh_token,
+                        'expires_in': expires_in
+                    };
 
-                    OauthToken.updateOne({
-                        _id: oauthToken._id
-                    }, {
-                        $set: {
-                            'access_token': access_token,
-                            'refresh_token': refresh_token,
-                            'expires_at': Date.now() + (3600 * 1000)
-                        }
-                    }, function(err, result) {
-
-                        if (err) {
-                            winston.error(err);
-                            return response500(res);
-                        }
-
-                        winston.info(result.result);
-                        
-                        var response = {
-                            'access_token': access_token,
-                            'scope': oauthToken.scope,
-                            'token_type': oauthToken.token_type,
-                            'refresh_token': refresh_token,
-                            'expires_in': expires_in
-                        };
-                        
-                        console.log(response);
-                        
-                        res.status(200);
-                        return res.json(response);
-                    })
-                });
-
+                    res.status(200);
+                    return res.json(response);
+                })
             });
         });
+    }
+
+
+    var doGrantTypeAuthorizationCode = function(req, res) {
+
+        var client_id = req.body.client_id
+        var client_secret = req.body.client_secret;
+        var code = req.body.code;
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized client_id or client_secret could be wrong',
+                    status: "unauthorized"
+                });
+                return;
+            }
+
+            OauthToken.findOne({
+                code: code,
+                client_id: oauthClient._id
+            }, function(err, oauthToken) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+
+                if (!oauthToken) {
+                    winston.info('oauthtoken not found')
+                    res.status(401);
+                    return res.json({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    });
+                    return;
+                }
+
+                var access_token = getToken();
+                var refresh_token = getToken();
+                var expires_in = 3600;
+
+                OauthToken.updateOne({
+                    _id: oauthToken._id
+                }, {
+                    $set: {
+                        'access_token': access_token,
+                        'refresh_token': refresh_token,
+                        'expires_at': Date.now() + (3600 * 1000),
+                        'code': null
+                    }
+                }, function(err, result) {
+
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+
+                    winston.info(result.result);
+
+                    var response = {
+                        'access_token': access_token,
+                        'scope': oauthToken.scope,
+                        'token_type': oauthToken.token_type,
+                        'refresh_token': refresh_token,
+                        'expires_in': expires_in
+                    };
+
+                    console.log(response);
+
+                    res.status(200);
+                    return res.json(response);
+                })
+            });
+        });
+    }
 
 
     router.post('/oauth/authorize', function(req, res) {

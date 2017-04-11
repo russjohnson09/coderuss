@@ -59,7 +59,6 @@ describe(path.basename('oauth_client_spec'), function() {
         })
     });
 
-    // return;
     describe('get code from client', function() {
         it('/v1/oauth/authorize with client_id, redirect_uri, and state', function() {
             var client_id = encodeURI(oauthClient._id);

@@ -10,7 +10,8 @@ exports.config = {
     // directory is where your package.json resides, so `wdio` will be called from there.
     //
     specs: [
-        './wdiotests/**/*_spec.js'
+        './wdiotests/**/oauth_client_spec.js',
+        './wdiotests/**/login_spec.js'
     ],
     // Patterns to exclude.
     exclude: [
@@ -175,8 +176,10 @@ exports.config = {
     // },
     //
     // Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-    // afterTest: function (test) {
-    // },
+    afterTest: function (test) {
+        // console.log(test);
+        // browser.saveScreenshot(__dirname+'/screenshots/'+Date.now());//'./screenshots');
+    },
     //
     // Hook that gets executed after the suite has ended
     // afterSuite: function (suite) {

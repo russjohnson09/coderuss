@@ -7,7 +7,6 @@ provision/php-cli.ini
 provision/php.ini
 provision/.vagrant/machines/default/virtualbox/action_set_name
 provision/.vagrant/
-screenshots/
 /deploy.sh
 environments/prod/
 node_modules
@@ -28,3 +27,4 @@ nodeserver/public/docs
 !.env.example
 
 /docker/scripts/data
+!.gitignore

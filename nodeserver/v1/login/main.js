@@ -38,6 +38,11 @@ module.exports = function(opts) {
     var passport = opts.passport;
 
     const User = database.collection('user');
+    const OauthClient = database.collection('oauth_client');
+
+    const OauthToken = database.collection('oauth_token');
+
+
     const CODERUSS_FROM_ADDRESS = process.env.CODERUSS_FROM_ADDRESS || '"foo" <foo@example.com>';
     const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 
@@ -139,7 +144,7 @@ module.exports = function(opts) {
     }
 
     function doPasswordReset(username) {
-        winston.info('password reset for user: '+username);
+        winston.info('password reset for user: ' + username);
         var token = getToken();
 
         // winston.warn('password_reset');
@@ -180,7 +185,7 @@ module.exports = function(opts) {
                     winston.info('html generate');
                     // return callback();
                     // var filename = path.join('.');
-                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                    ejs.renderFile(__dirname + '/password_reset.ejs', data, {}, function(err, str) {
                         html = str;
                         winston.info(html);
                         callback();
@@ -188,7 +193,7 @@ module.exports = function(opts) {
                 },
                 function(callback) {
                     winston.info('text generate');
-                    ejs.renderFile(__dirname+'/password_reset.ejs', data, {}, function(err, str) {
+                    ejs.renderFile(__dirname + '/password_reset.ejs', data, {}, function(err, str) {
                         text = str;
                         winston.info(text);
                         callback();
@@ -197,7 +202,7 @@ module.exports = function(opts) {
 
             ], function(err, results) {
                 winston.info('send email')
-                // winston.info(results);
+                    // winston.info(results);
                 var mailOptions = {
                     from: CODERUSS_FROM_ADDRESS,
                     to: user.username, // list of receivers
@@ -219,6 +224,114 @@ module.exports = function(opts) {
 
         });
 
+    }
+
+
+
+    router.get('/oauth/authorize', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+
+        if (!req.query) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        //|| !req.query.redirect_uri
+        if (!req.query.client_id) { // || !req.query.state) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+
+        winston.info(req.query.client_id);
+
+        res.sendFile('authorize.html', {
+            root: __dirname
+        });
+
+    })
+
+
+    router.post('/oauthclients', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+
+        var userId = req.user._id;
+
+        OauthClient.insertOne({
+                client_secret: getToken(),
+                user_id: userId
+            },
+            function(error, result) {
+                OauthClient.findOne({
+                    _id: result.insertedId
+                }, function(err, oauthClient) {
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+                    winston.info(oauthClient);
+                    res.status(201);
+                    res.json(
+                        oauthClient
+                        //     {
+                        //     _id: oauthClient._id,
+                        //     client_secret: oauthClient.client_secret,
+                        //     user_id: oauthClient.user_id
+                        // }
+                    ).end();
+                });
+
+
+            })
+    });
+
+
+
+    router.get('/oauthclients', function(req, res) {
+        if (!req.isAuthenticated()) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                "status": "unauthorized"
+            });
+        }
+        var userId = req.user._id;
+        OauthClient.find({
+            user_id: userId
+        }).toArray((function(err, results) {
+            if (err) {
+                winston.error(err);
+            }
+            res.setHeader('content-type', 'application/json; charset=utf-8');
+
+            res.json(results);
+        }));
+    });
+
+
+    function response500(res) {
+        res.status(500);
+        return res.json({
+            "message": 'error',
+            "status": "error"
+        });
     }
 
 
@@ -337,35 +450,308 @@ module.exports = function(opts) {
 
 
     //authorize the application
-    router.post('/oauth/authorize',
-        function(req, res) {
-            res.json({
-                'message': 'hello from oauth'
-            });
-            winston.debug(req.isAuthenticated());
-            if (!req.isAuthenticated()) {
-                return res.redirect('/public/login');
-            }
-            winston.debug(req.user);
-            res.send(JSON.stringify(req.user));
-            res.end();
-        });
+    // router.post('/oauth/authorize',
+    //     function(req, res) {
+    //         res.json({
+    //             'message': 'hello from oauth'
+    //         });
+    //         winston.debug(req.isAuthenticated());
+    //         if (!req.isAuthenticated()) {
+    //             return res.redirect('/public/login');
+    //         }
+    //         winston.debug(req.user);
+    //         res.send(JSON.stringify(req.user));
+    //         res.end();
+    //     });
 
     //request access token
     //open to other domains
+    // https://dev.fitbit.com/docs/oauth2/#refreshing-tokens
+
+    // x-forwarded-for=72.21.217.168, x-forwarded-proto=https, 
+    // accept-encoding=gzip,deflate, user-agent=Apache-HttpClient/4.5.x (Java/1.8.0_112), 
+    // host=0d4bd21a.ngrok.io, content-length=426, content-type=application/x-www-form-urlencoded, connection=close
+
+    //     POST https://api.fitbit.com/oauth2/token
+    // Authorization: Basic Y2xpZW50X2lkOmNsaWVudCBzZWNyZXQ=
+    // Content-Type: application/x-www-form-urlencoded
+    // grant_type=refresh_token&refresh_token=abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456
     router.post('/oauth/access_token',
         function(req, res) {
-            res.json({
-                'message': 'hello from oauth'
-            });
-            winston.debug(req.isAuthenticated());
-            if (!req.isAuthenticated()) {
-                return res.redirect('/public/login');
+            winston.info('oauth');
+
+            winston.info(req.body);
+
+            winston.info(req.headers);
+
+            if (!req.body || !req.body.grant_type) {
+                res.status(400);
+                return res.json({
+                    "message": 'grant_type is required',
+                    status: "badrequest"
+                });
             }
-            winston.debug(req.user);
-            res.send(JSON.stringify(req.user));
-            res.end();
+
+            var grant_type = req.body.grant_type;
+
+            if (grant_type === 'authorization_code') {
+                doGrantTypeAuthorizationCode(req, res);
+            }
+            else if (grant_type === 'refresh_token') {
+                doGrantTypeRefreshToken(req, res);
+            }
+            else {
+                res.status(400);
+                return res.json({
+                    "message": 'grant_type must be one of authorization_code, refresh_token',
+                    status: "badrequest"
+                });
+            }
         });
+
+
+
+    var doGrantTypeRefreshToken = function(req, res) {
+
+        var client_id = req.body.client_id
+        var client_secret = req.body.client_secret;
+        var refresh_token = req.body.refresh_token;
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized client_id or client_secret could be wrong',
+                    status: "unauthorized"
+                });
+                return;
+            }
+
+            OauthToken.findOne({
+                refresh_token: refresh_token,
+                client_id: oauthClient._id
+            }, function(err, oauthToken) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+
+                if (!oauthToken) {
+                    winston.info('oauthtoken not found')
+                    res.status(401);
+                    return res.json({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    });
+                    return;
+                }
+
+                var access_token = getToken();
+                var expires_in = 3600;
+
+                OauthToken.updateOne({
+                    _id: oauthToken._id
+                }, {
+                    $set: {
+                        'access_token': access_token,
+                        'expires_at': Date.now() + (3600 * 1000)
+                    }
+                }, function(err, result) {
+
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+
+                    winston.info(result.result);
+
+                    var response = {
+                        'access_token': access_token,
+                        'scope': oauthToken.scope,
+                        'token_type': oauthToken.token_type,
+                        'refresh_token': oauthToken.refresh_token,
+                        'expires_in': expires_in
+                    };
+
+                    res.status(200);
+                    return res.json(response);
+                })
+            });
+        });
+    }
+
+
+    var doGrantTypeAuthorizationCode = function(req, res) {
+
+        var client_id = req.body.client_id
+        var client_secret = req.body.client_secret;
+        var code = req.body.code;
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            if (!oauthClient || (oauthClient.client_secret != client_secret)) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized client_id or client_secret could be wrong',
+                    status: "unauthorized"
+                });
+                return;
+            }
+
+            OauthToken.findOne({
+                code: code,
+                client_id: oauthClient._id
+            }, function(err, oauthToken) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+
+                if (!oauthToken) {
+                    winston.info('oauthtoken not found')
+                    res.status(401);
+                    return res.json({
+                        "message": 'Unauthorized',
+                        status: "unauthorized"
+                    });
+                    return;
+                }
+
+                var access_token = getToken();
+                var refresh_token = getToken();
+                var expires_in = 3600;
+
+                OauthToken.updateOne({
+                    _id: oauthToken._id
+                }, {
+                    $set: {
+                        'access_token': access_token,
+                        'refresh_token': refresh_token,
+                        'expires_at': Date.now() + (3600 * 1000),
+                        'code': null
+                    }
+                }, function(err, result) {
+
+                    if (err) {
+                        winston.error(err);
+                        return response500(res);
+                    }
+
+                    winston.info(result.result);
+
+                    var response = {
+                        'access_token': access_token,
+                        'scope': oauthToken.scope,
+                        'token_type': oauthToken.token_type,
+                        'refresh_token': refresh_token,
+                        'expires_in': expires_in
+                    };
+
+                    console.log(response);
+
+                    res.status(200);
+                    return res.json(response);
+                })
+            });
+        });
+    }
+
+
+    router.post('/oauth/authorize', function(req, res) {
+        winston.info('oauth');
+
+        if (!req.isAuthenticated()) {
+            res.status(401);
+            return res.json({
+                "message": 'Unauthorized',
+                status: "unauthorized"
+            });
+        }
+
+        if (!req.body) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        //|| !req.query.redirect_uri
+        if (!req.body.client_id) { // || !req.query.state) {
+            res.status(400);
+            return res.json({
+                "message": 'Bad Request',
+                status: "bad request"
+            });
+        }
+        var client_id = req.body.client_id;
+
+        winston.info(client_id);
+
+        OauthClient.findOne({
+            _id: ObjectID(client_id)
+        }, function(err, oauthClient) {
+            if (err) {
+                winston.error(err);
+                return response500(res);
+            }
+
+            // winston.info(oauthClient);
+
+            if (!oauthClient) {
+                res.status(401);
+                return res.json({
+                    "message": 'Unauthorized',
+                    status: "unauthorized"
+                });
+            }
+
+            var code = getToken();
+
+            OauthToken.insertOne({
+                code: code,
+                // access_token: 'admin_token',
+                user_id: ObjectID(req.user._id),
+                client_id: ObjectID(client_id),
+                scope: 'default',
+                token_type: 'bearer',
+                created: Date.now()
+            }, function(err, result) {
+                if (err) {
+                    winston.error(err);
+                    return response500(res);
+                }
+                else {
+                    winston.info(result.result, {
+                        'type': 'oauth token updated'
+                    })
+                    res.status(201);
+                    return res.json({
+                        code: code,
+                        meta: {
+                            "message": 'Success',
+                            "status": "success"
+                        }
+                    });
+                }
+            });
+        });
+
+
+    });
+
 
     module.router = router;
 

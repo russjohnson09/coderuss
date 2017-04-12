@@ -69,6 +69,8 @@ const exceptionHandlers = [
     })
 ];
 
+
+
 function createAlexaApp(app) {
     alexa(app);
 }
@@ -84,6 +86,24 @@ module.exports = function(opts, callback) {
     if (process.env.LOGSENE_TOKEN) {
         app.set('logsene_token', process.env.LOGSENE_TOKEN)
     }
+
+    var transports = getMainLoggerTransports();
+    var mainLogger = new winston.Logger({
+        transports: transports,
+        exceptionHandlers: exceptionHandlers,
+        exitOnError: false
+    })
+
+    var morgan = require('morgan');
+
+    mainLogger.info('setting up morgan logging to winston');
+    mainLogger.stream = {
+        write: function(message, encoding) {
+            mainLogger.info(message);
+        }
+    };
+
+    app.set('winston', mainLogger);
 
     app.set('serverstarted', Date.now());
 
@@ -149,26 +169,6 @@ module.exports = function(opts, callback) {
     });
 
 
-
-
-
-
-    var transports = getMainLoggerTransports();
-    var mainLogger = new winston.Logger({
-        transports: transports,
-        exceptionHandlers: exceptionHandlers,
-        exitOnError: false
-    })
-
-    var morgan = require('morgan');
-
-    mainLogger.info('setting up morgan logging to winston');
-    mainLogger.stream = {
-        write: function(message, encoding) {
-            mainLogger.info(message);
-        }
-    };
-
     app.use(morgan('combined', {
         stream: mainLogger.stream
     }));
@@ -198,7 +198,7 @@ module.exports = function(opts, callback) {
                 database: database,
                 passport: passport,
             }).router);
-            
+
 
             addLogseneRouter();
             addVoiceRouter();

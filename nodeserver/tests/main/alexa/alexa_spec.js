@@ -21,6 +21,69 @@ winston.loggers.add('testlogger', {
 var logger = winston.loggers.get('testlogger');
 
 
+var logIntent = 
+{
+  "session": {
+    "sessionId": "SessionId.572b4147-7e68-4661-9f5e-21bba97c6060",
+    "application": {
+      "applicationId": "amzn1.ask.skill.1a53d497-6c64-4836-9000-7b2bd4b49d6e"
+    },
+    "attributes": {},
+    "user": {
+      "userId": "amzn1.ask.account.AEXZBVFPKKSKUCQEIOZUW2FRZAY5TMB5QQZQKLPZXSHKSESOOPDUQNXZJOAW4EZJZOUH5NSFIJ662HMI2VCNDX6ZD7JAV34QKJFICZY4MDJ6GOKRVFXQTHZCSEBN37NADZLVRBEJKQTQZ3E7G3U7PCU6U2MVFDJXOB76ETP7WTKXS5JFXVCQOG6WYQVXDD25KPOLSRK5JMA5JVY",
+      "accessToken": "ca0ae94cb5a007c33a16a07199b02af1e2a2dc1e9b3ccd2f081c31b0ed3c86e8cb3ffc1bf34c119fe326e1d63ec01d26f778bf222a97136e0410a7727552858d"
+    },
+    "new": true
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.699d0f54-2317-4c3f-91fa-46aabb9f058d",
+    "locale": "en-US",
+    "timestamp": "2017-04-12T01:58:06Z",
+    "intent": {
+      "name": "logIntent",
+      "slots": {
+        "LOG": {
+          "name": "LOG"
+        }
+      }
+    }
+  },
+  "version": "1.0"
+};
+
+var logIntentError = {
+  "session": {
+    "sessionId": "SessionId.39e52e09-8af9-4d0e-996c-f3f75c9c568b",
+    "application": {
+      "applicationId": "amzn1.ask.skill.1a53d497-6c64-4836-9000-7b2bd4b49d6e"
+    },
+    "attributes": {},
+    "user": {
+      "userId": "amzn1.ask.account.AEXZBVFPKKSKUCQEIOZUW2FRZAY5TMB5QQZQKLPZXSHKSESOOPDUQNXZJOAW4EZJZOUH5NSFIJ662HMI2VCNDX6ZD7JAV34QKJFICZY4MDJ6GOKRVFXQTHZCSEBN37NADZLVRBEJKQTQZ3E7G3U7PCU6U2MVFDJXOB76ETP7WTKXS5JFXVCQOG6WYQVXDD25KPOLSRK5JMA5JVY",
+      "accessToken": "ca0ae94cb5a007c33a16a07199b02af1e2a2dc1e9b3ccd2f081c31b0ed3c86e8cb3ffc1bf34c119fe326e1d63ec01d26f778bf222a97136e0410a7727552858d"
+    },
+    "new": true
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.17e2a852-9d95-49f0-a100-b28176362db7",
+    "locale": "en-US",
+    "timestamp": "2017-04-12T01:59:29Z",
+    "intent": {
+      "name": "logIntent",
+      "slots": {
+        "LOG": {
+          "name": "LOG",
+          "value": "error"
+        }
+      }
+    }
+  },
+  "version": "1.0"
+};
+
+
 describe(path.basename(__dirname), function() {
 
   describe("/v1/alexa POST", function() {
@@ -334,6 +397,8 @@ describe(path.basename(__dirname), function() {
           },
           "version": "1.0"
         };
+        
+        expect(requestBody.session.user.accessToken).to.be.a('string');
 
         request.post({
           followRedirect: false,

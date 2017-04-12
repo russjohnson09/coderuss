@@ -59,8 +59,12 @@
     socket.on('notification', function (notification) {
         var lastNotificationId = localStorage.getItem('lastNotificationId');
         var notification = JSON.parse(notification);
+        console.log('-------------');
+        console.log(Date());
         console.log('received notification');
         console.log(notification);
+        console.log('-------------');
+
 
         if (notification.id != lastNotificationId) {
             localStorage.setItem('lastNotificationId', notification.id);

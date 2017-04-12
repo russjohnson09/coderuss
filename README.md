@@ -24,3 +24,4 @@ Changlog
 * added oauth spec
 * moved cdn to repo
 * /v1/todos/public/ display datetime on notification for debugging fixes #2
+* added external_resources fixes #47

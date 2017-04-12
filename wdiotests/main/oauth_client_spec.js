@@ -10,6 +10,8 @@ const SCREENSHOTS_DIR = __dirname + '/screenshots';
 
 console.log(SCREENSHOTS_DIR);
 
+
+
 describe(path.basename('oauth_client_spec'), function() {
     it('open login page', function() {
         return new Promise(function(resolve, reject) {
@@ -66,10 +68,13 @@ describe(path.basename('oauth_client_spec'), function() {
 
             var url = BASE_URL + '/v1/oauth/authorize?state=1&client_id=' + client_id + '&redirect_uri=' + BASE_URL;
             expect(url).to.be.a('string');
+
             console.log(url);
             browser.url(url);
-            browser.saveScreenshot(SCREENSHOTS_DIR + '/v1-oauth-authorize.png');
+        });
 
-        })
+        it('save screenshot', function() {
+            browser.saveScreenshot(SCREENSHOTS_DIR + '/v1-oauth-authorize.png');
+        });
     })
 })

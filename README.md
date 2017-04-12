@@ -21,3 +21,5 @@ Changlog
 * Added oauth token linking to github accounts. 2017-03 #69
 * fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js
 * added ability to reset password /v1/passwordresetrequest and /v1/passwordreset/:token see login_spec.js
+* added oauth spec
+* moved cdn to repo

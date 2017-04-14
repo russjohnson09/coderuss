@@ -86,7 +86,17 @@ module.exports = function(opts, callback) {
     if (process.env.LOGSENE_TOKEN) {
         app.set('logsene_token', process.env.LOGSENE_TOKEN)
     }
+    
+    app.set('version','');
+    
 
+    var child = spawn('git',['rev-parse','--short','HEAD']);
+
+    child.stdout.on('data', function(data) {
+        app.set('commit',data.toString().replace(/\s/g, ''));
+        winston.info(app.get('commit'));
+    });
+    
     var transports = getMainLoggerTransports();
     var mainLogger = new winston.Logger({
         transports: transports,

@@ -136,7 +136,8 @@ module.exports = function (opts) {
             'status': 'success',
             'server': {
                 port: app.get('port'),
-                started: app.get('serverstarted')
+                started: app.get('serverstarted'),
+                commit: app.get('commit')
             },
             'meta': { 'message': 'Success' }
         };

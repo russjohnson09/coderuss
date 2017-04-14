@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="index">
 
 <head>
-
+    <!--http://www.typosaur.us/-->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,7 +33,7 @@
 
 </head>
 
-<body id="page-top" class="index">
+<body id="page-top" class="index" ng-controller="mainController">
 
     <!-- Navigation -->
     <nav id="mainNav" class="navbar navbar-default navbar-custom navbar-fixed-top">
@@ -80,7 +80,7 @@
             <div class="intro-text">
                 <div class="intro-lead-in">Welcome To My Site!</div>
                 <div class="intro-heading">I'm Russ</div>
-                <a href="#services" class="page-scroll btn btn-xl">Tell me more</a>
+                <a href="#about-site" class="page-scroll btn btn-xl">Tell me more</a>
             </div>
         </div>
     </header>
@@ -92,8 +92,9 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">About this site</h2>
                     <h3 class="section-subheading text-muted">This site is used as my playground for testing out knew tools and sharping my skills in areas that I find promising. I make no assumptions on the direction that this site will go in or what tools I will end up using to accomplish my
-                        goals. My one metric is results and the tools I use are the ones that help me improve this metric.</h3>
+                        goals. My one metric is results and the tools I use are the ones that help me improve this metric. This version of the site was deployed on <span ng-bind="deploytime"></span>.</h3>
                 </div>
+
             </div>
             <!--<div class="row text-center">-->
             <!--    <div class="col-md-4">-->
@@ -142,8 +143,9 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">About Me</h2>
-                    <h3 class="section-subheading text-muted">I am coder and I can code for you. My educational background is in mathematics and computer science. My hobbies are coding, cooking, and gaming. I am familiar with many programming tools, frameworks, and programming languages through
-                        my hobbies and work.
+                    <!--rephrase hobbies-->
+                    <h3 class="section-subheading text-muted">
+                        My educational background is in mathematics and computer science. I am familiar with many programming tools, frameworks, and programming languages through my hobbies and work. My hobbies are coding, cooking, and gaming.
                     </h3>
                 </div>
             </div>
@@ -155,7 +157,7 @@
                     </span>
                     <h4 class="service-heading">Full stack developer</h4>
                     <p class="text-muted">
-                        With experience in front and backend development and expirience with SQL and noSQL databases, I can tackle any web development project.
+                        With experience in front and backend development and experience with SQL and noSQL databases, I can tackle any web development project.
                     </p>
                 </div>
                 <div class="col-md-4">
@@ -165,8 +167,7 @@
                     </span>
                     <h4 class="service-heading">Test Driven Development</h4>
                     <p class="text-muted">
-                        I use mocha and chai for writing human readble functional tests for my API. I use Travis CI as my continous integration tool. I do daily deployments that am confident in because of tests I write and the reporting Travis CI does to let me know if anything
-                        went wrong.
+                        I use mocha and chai for writing human readble tests for my API and Travis CI for continous integration.
                         <!--With tools like these open source development-->
                     </p>
                 </div>
@@ -206,7 +207,7 @@
                         <i class="fa fa-database fa-stack-1x fa-inverse"></i>
                     </span>
                         <h4 class="service-heading">Database</h4>
-                        <p class="text-muted">I have expirience with MySql and MongoDB.</p>
+                        <p class="text-muted">I have experience with MySql and MongoDB.</p>
                     </div>
                 </div>
             </div>
@@ -219,7 +220,7 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">My Repo</h2>
                     <p>
-                        My repo can be found at <a class="text-warning" href="https://github.com/russjohnson09/coderuss">https://github.com/russjohnson09/coderuss</a>
+                        My repo can be found at <a class="text-warning" href="https://github.com/russjohnson09/coderuss">https://github.com/russjohnson09/coderuss</a>. This version of the site is on commit <span ng-bind="commit"></span>.
                     </p>
                     <h3>Badges</h3>
                     <!--<h3>Travis CI</h3>-->
@@ -800,6 +801,14 @@
 
     <!-- Theme JavaScript -->
     <script src="js/agency.min.js"></script>
+
+
+    <script src="/bower_components/moment/moment.js"></script>
+    <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
+    <script src="/js/ext/angular-1.6.1.min.js"></script>
+    <script src="/index.js"></script>
+
 
 </body>
 

@@ -15,15 +15,15 @@ console.log(SCREENSHOTS_DIR);
 describe(path.basename('oauth_client_spec'), function() {
     it('open login page', function() {
         browser.url(BASE_URL + '/login');
-        // expect(browser.getUrl(),'url is normalized with extra /').to.be.equal(BASE_URL + '/login/');
+        expect(browser.getUrl()).to.be.equal(BASE_URL+'/login/');
     });
+    
 
     it('should be able to login', function() {
         // filtering property commands
         $('input[name=\'username\']').setValue('admin123456');
         $('input[name=\'password\']').setValue('admin123456');
 
-        console.log('clicking button');
         browser.click('button.coderuss-login');
 
         // browser.waitForVisible('form#create-todo');

@@ -84,19 +84,27 @@ module.exports = function(opts, callback) {
 
     var app = express();
     if (process.env.LOGSENE_TOKEN) {
-        app.set('logsene_token', process.env.LOGSENE_TOKEN)
+        app.set('logsene_token', process.env.LOGSENE_TOKEN);
     }
-    
-    app.set('version','');
-    
 
-    var child = spawn('git',['rev-parse','--short','HEAD']);
+    app.set('commit', '');
 
-    child.stdout.on('data', function(data) {
-        app.set('commit',data.toString().replace(/\s/g, ''));
-        winston.info(app.get('commit'));
-    });
-    
+
+    if (process.env.SOURCE_VERSION) {
+        app.set('commit', process.env.SOURCE_VERSION);
+
+    }
+    else {
+        var child = spawn('git', ['rev-parse', '--short', 'HEAD']);
+
+        child.stdout.on('data', function(data) {
+            app.set('commit', data.toString().replace(/\s/g, ''));
+            winston.info(app.get('commit'));
+        });
+    }
+
+
+
     var transports = getMainLoggerTransports();
     var mainLogger = new winston.Logger({
         transports: transports,

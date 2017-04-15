@@ -8,7 +8,7 @@ const publicurl = baseurl;
 
 describe('login', function() {
     it('open login page', function() {
-        browser.url(publicurl + '/login');
+        browser.url(publicurl + '/login/');
         expect(browser.getUrl()).to.be.equal(publicurl + '/login/');
         // browser.screenshot();
     });

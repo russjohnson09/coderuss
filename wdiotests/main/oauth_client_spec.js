@@ -14,7 +14,7 @@ console.log(SCREENSHOTS_DIR);
 
 describe(path.basename('oauth_client_spec'), function() {
     it('open login page', function() {
-        browser.url(BASE_URL + '/login');
+        browser.url(BASE_URL + '/login/');
         expect(browser.getUrl()).to.be.equal(BASE_URL+'/login/');
     });
     

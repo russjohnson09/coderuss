@@ -5,8 +5,11 @@ const fs = require('fs');
 const path = require('path');
 var winston = require('winston');
 const passport = require('passport');
+const request = require('request');
 const NODE_ENV = process.env.NODE_ENV || 'dev';
 const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
+const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
+
 
 winston.transports.Logsene = require('winston-logsene');
 
@@ -87,23 +90,18 @@ module.exports = function(opts, callback) {
         app.set('logsene_token', process.env.LOGSENE_TOKEN);
     }
 
+
     app.set('commit', '');
 
-
-    if (process.env.SOURCE_VERSION) {
-        app.set('commit', process.env.SOURCE_VERSION);
-
-    }
-    else {
-        var child = spawn('git', ['rev-parse', '--short', 'HEAD']);
-
-        child.stdout.on('data', function(data) {
-            app.set('commit', data.toString().replace(/\s/g, ''));
-            winston.info(app.get('commit'));
-        });
-    }
-
-
+    request.get({
+        url: TRAVIS_MASTER_BRANCH
+    }, function(error, response, body) {
+        if (response.statusCode < 400) {
+            var commit = JSON.parse(body).commit.sha;
+            app.set('commit', commit);
+        }
+        winston.info(app.get('commit'),{'type':'commit'});
+    });
 
     var transports = getMainLoggerTransports();
     var mainLogger = new winston.Logger({

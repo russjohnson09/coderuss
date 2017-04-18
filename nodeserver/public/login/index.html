@@ -34,9 +34,14 @@
 
 	<!-- SPELLS -->
 	<script src="/js/ext/jquery-3.2.1.min.js"></script>
-	
-	<script src="/js/ext/angular-1.6.1.min.js"></script>
 
+	<!--<script src="/js/ext/angular-1.6.1.min.js"></script>-->
+
+	<script src="/bower_components/angular/angular.min.js"></script>
+
+
+<!--https://www.sitepoint.com/easy-form-validation-angularjs-ngmessages/-->
+	<script src="/bower_components/angular-messages/angular-messages.js"></script>
 	<!-- load angular -->
 	<script src="login.js"></script>
 
@@ -53,11 +58,14 @@
 
 		<div id="login-form" class="row">
 			<div class="col-sm-8 col-sm-offset-2 text-center">
-				<form>
+				<form name="loginForm">
 					<div class="form-group">
-
-						<lablel>Username</lablel>
-						<input name="username" type="text" class="form-control input-lg text-center" ng-model="formData.username">
+						<lablel>
+							Username</lablel>
+						<input name="username" type="text" class="form-control input-lg text-center" ng-model="formData.username" required>
+						<div ng-messages="loginForm.username.$error">
+							<div ng-message="required">This field is required</div>
+						</div>
 					</div>
 
 					<div class="form-group">
@@ -75,12 +83,12 @@
 		</div>
 
 		<!--<div class="text-center" ng-bind="message"></div>-->
-<!--		<div class="alert alert-warning alert-dismissible fade show" role="alert">-->
-<!--  <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
-<!--    <span aria-hidden="true">&times;</span>-->
-<!--  </button>-->
-<!--  <strong>Holy guacamole!</strong> You should check in on some of those fields below.-->
-<!--</div>-->
+		<!--		<div class="alert alert-warning alert-dismissible fade show" role="alert">-->
+		<!--  <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+		<!--    <span aria-hidden="true">&times;</span>-->
+		<!--  </button>-->
+		<!--  <strong>Holy guacamole!</strong> You should check in on some of those fields below.-->
+		<!--</div>-->
 
 		<div class="col-sm-8 col-sm-offset-2 text-center">
 
@@ -104,6 +112,7 @@
 
 
 	</div>
+
 
 </body>
 

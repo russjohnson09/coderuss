@@ -75,501 +75,139 @@
     </nav>
 
     <!-- Header -->
-    <header>
-        <div class="container">
-            <div class="intro-text">
-                <div class="intro-lead-in">Welcome To My Site!</div>
-                <div class="intro-heading">I'm Russ</div>
-                <a href="#about-site" class="page-scroll btn btn-xl">Tell me more</a>
-            </div>
-        </div>
-    </header>
+    <!--<header>-->
+    <!--    <div class="container">-->
+    <!--        <div class="intro-text">-->
+    <!--            <div class="intro-lead-in">Welcome To My Site!</div>-->
+    <!--            <div class="intro-heading">I'm Russ</div>-->
+    <!--            <a href="#about-site" class="page-scroll btn btn-xl">Tell me more</a>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <!--</header>-->
 
     <!-- about Section -->
     <section id="about-site">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">About this site</h2>
-                    <h3 class="section-subheading text-muted">This site is used as my playground for testing out new tools and sharpening my skills in areas that I find promising. I make no assumptions on the direction that this site will go in or what tools I will end up using to accomplish
-                        my goals. My one metric is results and the tools I use are the ones that help me improve this metric. This version of the site was deployed on <span ng-bind="deploytime"></span>.</h3>
-                </div>
+        <div ng-app="validationApp" ng-controller="mainController">
+            <div class="container">
+                <div class="row">
 
-            </div>
-            <!--<div class="row text-center">-->
-            <!--    <div class="col-md-4">-->
-            <!--        <span class="fa-stack fa-4x">-->
-            <!--            <i class="fa fa-circle fa-stack-2x text-primary"></i>-->
-            <!--            <i class="fa fa-server fa-stack-1x fa-inverse"></i>-->
-            <!--        </span>-->
-            <!--        <h4 class="service-heading">Full stack developer</h4>-->
-            <!--        <p class="text-muted">-->
-            <!--            With experience in both front-end and backend development. -->
-            <!--        </p>-->
-            <!--    </div>-->
-            <!--    <div class="col-md-4">-->
-            <!--        <span class="fa-stack fa-4x">-->
-            <!--            <i class="fa fa-circle fa-stack-2x text-primary"></i>-->
-            <!--            <i class="fa fa-terminal fa-stack-1x fa-inverse"></i>-->
-            <!--        </span>-->
-            <!--        <h4 class="service-heading">Node.js</h4>-->
-            <!--        <p class="text-muted">-->
-            <!--            Node.js -->
-            <!--        </p>-->
-            <!--    </div>-->
-            <!--    <div class="col-md-4">-->
-            <!--        <span class="fa-stack fa-4x">-->
-            <!--            <i class="fa fa-circle fa-stack-2x text-primary"></i>-->
-            <!--            <i class="fa fa-laptop fa-stack-1x fa-inverse"></i>-->
-            <!--        </span>-->
-            <!--        <h4 class="service-heading">Responsive Design</h4>-->
-            <!--        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minima maxime quam architecto quo inventore harum ex magni, dicta impedit.</p>-->
-            <!--    </div>-->
-            <!--    <div class="col-md-4">-->
-            <!--        <span class="fa-stack fa-4x">-->
-            <!--            <i class="fa fa-circle fa-stack-2x text-primary"></i>-->
-            <!--            <i class="fa fa-lock fa-stack-1x fa-inverse"></i>-->
-            <!--        </span>-->
-            <!--        <h4 class="service-heading">Web Security</h4>-->
-            <!--        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minima maxime quam architecto quo inventore harum ex magni, dicta impedit.</p>-->
-            <!--    </div>-->
-            <!--</div>-->
-        </div>
-    </section>
+                    <div class="col-sm-6">
+                        <!-- FORM ============ -->
 
-    <!-- about Section -->
-    <section id="about-me">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">About Me</h2>
-                    <!--rephrase hobbies-->
-                    <h3 class="section-subheading text-muted">
-                        My educational background is in mathematics and computer science. I am familiar with many programming tools, frameworks, and programming languages through my hobbies and work. My hobbies are coding, cooking, and gaming.
-                    </h3>
-                </div>
-            </div>
-            <div class="row text-center">
-                <div class="col-md-4">
-                    <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-server fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h4 class="service-heading">Full Stack Developer</h4>
-                    <p class="text-muted">
-                        With experience with MEAN and LAMP stacks, I can tackle any web development project.
-                    </p>
-                </div>
-                <div class="col-md-4">
-                    <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-check-square-o fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h4 class="service-heading">Test Driven Development</h4>
-                    <p class="text-muted">
-                        I use mocha and chai for writing human readable tests for my API and Travis CI for continuous integration.
-                        <!--With tools like these open source development-->
-                    </p>
-                </div>
-                <div class="col-md-4">
-                    <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-terminal fa-stack-1x fa-inverse"></i>
-                    </span>
-                    <h4 class="service-heading">Node.js</h4>
-                    <p class="text-muted">
-                        With async io as its main selling point, node has attracted a healthy community of developers including me.
-                    </p>
-                </div>
-            </div>
+                        <form name="userForm" ng-submit="submitForm()" novalidate>
 
-            <div>
-                <div class="row text-center">
-                    <div class="col-md-4">
-                        <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-desktop fa-stack-1x fa-inverse"></i>
-                    </span>
-                        <h4 class="service-heading">UI</h4>
-                        <p class="text-muted">I use AngularJS as the frontend on my site. Backend logic is handled by node.</p>
+                            <!-- NAME -->
+                            <div class="form-group" ng-class="{ 'has-error' : userForm.name.$invalid && !userForm.name.$pristine }">
+                                <label>Name</label>
+                                <input type="text" name="name" class="form-control" ng-model="user.name" required>
+                                <p ng-show="userForm.name.$invalid && !userForm.name.$pristine" class="help-block">You name is required.</p>
+                            </div>
+
+                            <!-- USERNAME -->
+                            <div class="form-group" ng-class="{ 'has-error' : userForm.username.$invalid && !userForm.username.$pristine }">
+                                <label>Username</label>
+                                <input type="text" name="username" class="form-control" ng-model="user.username" ng-minlength="3" ng-maxlength="8">
+                                <p ng-show="userForm.username.$error.minlength" class="help-block">Username is too short.</p>
+                                <p ng-show="userForm.username.$error.maxlength" class="help-block">Username is too long.</p>
+                            </div>
+
+                            <!-- EMAIL -->
+                            <div class="form-group" ng-class="{ 'has-error' : userForm.email.$invalid && !userForm.email.$pristine }">
+                                <label>Email</label>
+                                <input type="email" name="email" class="form-control" ng-model="user.email">
+                                <p ng-show="userForm.email.$invalid && !userForm.email.$pristine" class="help-block">Enter a valid email.</p>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" ng-disabled="userForm.$invalid">Submit</button>
+
+                        </form>
                     </div>
-                    <div class="col-md-4">
-                        <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-lock fa-stack-1x fa-inverse"></i>
-                    </span>
-                        <h4 class="service-heading">Security</h4>
-                        <p class="text-muted">I am familiar basic, apiKey, and oauth2 security schemes and have implemented each of them in multiple languages.</p>
+                    <div class="col-sm-6">
+                        <!-- VALIDATION TABLES ======== -->
+                        <div class="row">
+                            <div class="col-xs-3">
+                                <h3>Form</h3>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.$valid, danger: userForm.$invalid }">Valid</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.$pristine, danger: !userForm.$pristine }">Pristine</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.$dirty }">Dirty</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <h3>Name</h3>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.name.$valid, danger: userForm.name.$invalid }">Valid</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.name.$pristine, danger: !userForm.name.$pristine }">Pristine</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.name.$dirty }">Dirty</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.name.$touched }">Touched</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <h3>Username</h3>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.username.$valid, danger: userForm.username.$invalid }">Valid</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.username.$pristine, danger: !userForm.username.$pristine }">Pristine</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.username.$dirty }">Dirty</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.username.$touched }">Touched</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <h3>Email</h3>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.email.$valid, danger: userForm.email.$invalid }">Valid</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.email.$pristine, danger: !userForm.email.$pristine }">Pristine</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.email.$dirty }">Dirty</td>
+                                        </tr>
+                                        <tr>
+                                            <td ng-class="{ success: userForm.email.$touched }">Touched</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="col-md-4">
-                        <span class="fa-stack fa-4x">
-                        <i class="fa fa-circle fa-stack-2x text-primary"></i>
-                        <i class="fa fa-database fa-stack-1x fa-inverse"></i>
-                    </span>
-                        <h4 class="service-heading">Database</h4>
-                        <p class="text-muted">I have experience with MySql and MongoDB.</p>
-                    </div>
-                </div>
-            </div>
-    </section>
-
-
-    <section id="my-badges">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">My Repo</h2>
-                    <p>
-                        My repo can be found at <a class="text-warning" href="https://github.com/russjohnson09/coderuss">https://github.com/russjohnson09/coderuss</a>. This version of the site is on commit
-                        <a class="text-warning" ng-href="https://github.com/russjohnson09/coderuss/commit/{{commit}}"><span ng-bind="commit"></span></a>
-                        .
-                    </p>
-                    <h3>Badges</h3>
-                    <!--<h3>Travis CI</h3>-->
-                    <div class="col-md-4">
-                        <h4 class="service-heading">Travis CI</h4>
-                        <a href="https://travis-ci.org/russjohnson09/coderuss"> <img src="https://travis-ci.org/russjohnson09/coderuss.svg?branch=master"></img>
-                        </a>
-                    </div>
-
-                    <div class="col-md-4">
-                        <h4 class="service-heading">David DM</h4>
-                        <a href="https://david-dm.org/russjohnson09/coderuss" title="dependencies status"><img src="https://david-dm.org/russjohnson09/coderuss/status.svg" /></a>
-                        </a>
-                    </div>
-
-
-                    <!--[![Coverage Status](https://coveralls.io/repos/github/russjohnson09/coderuss/badge.svg?branch=master)](https://coveralls.io/github/russjohnson09/coderuss?branch=master)-->
-
-                    <div class="col-md-4">
-                        <h4 class="service-heading">Coveralls</h4>
-                        <a href="https://coveralls.io/github/russjohnson09/coderuss?branch=master"> <img src="https://coveralls.io/repos/github/russjohnson09/coderuss/badge.svg?branch=master"></img>
-                        </a>
-                    </div>
-
-
-                    <!--<h3 class="section-subheading text-muted">I do daily deployments.</h3>-->
                 </div>
             </div>
         </div>
     </section>
 
 
-    <!-- Portfolio Grid Section -->
-    <!--<section id="portfolio" class="bg-light-gray">-->
-    <!--    <div class="container">-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12 text-center">-->
-    <!--                <h2 class="section-heading">Portfolio</h2>-->
-    <!--                <h3 class="section-subheading text-muted">Lorem ipsum dolor sit amet consectetur.</h3>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal1" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/roundicons.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Round Icons</h4>-->
-    <!--                    <p class="text-muted">Graphic Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal2" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/startup-framework.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Startup Framework</h4>-->
-    <!--                    <p class="text-muted">Website Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal3" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/treehouse.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Treehouse</h4>-->
-    <!--                    <p class="text-muted">Website Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal4" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/golden.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Golden</h4>-->
-    <!--                    <p class="text-muted">Website Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal5" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/escape.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Escape</h4>-->
-    <!--                    <p class="text-muted">Website Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-4 col-sm-6 portfolio-item">-->
-    <!--                <a href="#portfolioModal6" class="portfolio-link" data-toggle="modal">-->
-    <!--                    <div class="portfolio-hover">-->
-    <!--                        <div class="portfolio-hover-content">-->
-    <!--                            <i class="fa fa-plus fa-3x"></i>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                    <img src="img/portfolio/dreams.png" class="img-responsive" alt="">-->
-    <!--                </a>-->
-    <!--                <div class="portfolio-caption">-->
-    <!--                    <h4>Dreams</h4>-->
-    <!--                    <p class="text-muted">Website Design</p>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--</section>-->
 
-    <!-- About Section -->
-    <!--<section id="about">-->
-    <!--    <div class="container">-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12 text-center">-->
-    <!--                <h2 class="section-heading">About</h2>-->
-    <!--                <h3 class="section-subheading text-muted">Lorem ipsum dolor sit amet consectetur.</h3>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12">-->
-    <!--                <ul class="timeline">-->
-    <!--                    <li>-->
-    <!--                        <div class="timeline-image">-->
-    <!--                            <img class="img-circle img-responsive" src="img/about/1.jpg" alt="">-->
-    <!--                        </div>-->
-    <!--                        <div class="timeline-panel">-->
-    <!--                            <div class="timeline-heading">-->
-    <!--                                <h4>2009-2011</h4>-->
-    <!--                                <h4 class="subheading">Our Humble Beginnings</h4>-->
-    <!--                            </div>-->
-    <!--                            <div class="timeline-body">-->
-    <!--                                <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sunt ut voluptatum eius sapiente, totam reiciendis temporibus qui quibusdam, recusandae sit vero unde, sed, incidunt et ea quo dolore laudantium consectetur!</p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                    </li>-->
-    <!--                    <li class="timeline-inverted">-->
-    <!--                        <div class="timeline-image">-->
-    <!--                            <img class="img-circle img-responsive" src="img/about/2.jpg" alt="">-->
-    <!--                        </div>-->
-    <!--                        <div class="timeline-panel">-->
-    <!--                            <div class="timeline-heading">-->
-    <!--                                <h4>March 2011</h4>-->
-    <!--                                <h4 class="subheading">An Agency is Born</h4>-->
-    <!--                            </div>-->
-    <!--                            <div class="timeline-body">-->
-    <!--                                <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sunt ut voluptatum eius sapiente, totam reiciendis temporibus qui quibusdam, recusandae sit vero unde, sed, incidunt et ea quo dolore laudantium consectetur!</p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                    </li>-->
-    <!--                    <li>-->
-    <!--                        <div class="timeline-image">-->
-    <!--                            <img class="img-circle img-responsive" src="img/about/3.jpg" alt="">-->
-    <!--                        </div>-->
-    <!--                        <div class="timeline-panel">-->
-    <!--                            <div class="timeline-heading">-->
-    <!--                                <h4>December 2012</h4>-->
-    <!--                                <h4 class="subheading">Transition to Full Service</h4>-->
-    <!--                            </div>-->
-    <!--                            <div class="timeline-body">-->
-    <!--                                <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sunt ut voluptatum eius sapiente, totam reiciendis temporibus qui quibusdam, recusandae sit vero unde, sed, incidunt et ea quo dolore laudantium consectetur!</p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                    </li>-->
-    <!--                    <li class="timeline-inverted">-->
-    <!--                        <div class="timeline-image">-->
-    <!--                            <img class="img-circle img-responsive" src="img/about/4.jpg" alt="">-->
-    <!--                        </div>-->
-    <!--                        <div class="timeline-panel">-->
-    <!--                            <div class="timeline-heading">-->
-    <!--                                <h4>July 2014</h4>-->
-    <!--                                <h4 class="subheading">Phase Two Expansion</h4>-->
-    <!--                            </div>-->
-    <!--                            <div class="timeline-body">-->
-    <!--                                <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sunt ut voluptatum eius sapiente, totam reiciendis temporibus qui quibusdam, recusandae sit vero unde, sed, incidunt et ea quo dolore laudantium consectetur!</p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                    </li>-->
-    <!--                    <li class="timeline-inverted">-->
-    <!--                        <div class="timeline-image">-->
-    <!--                            <h4>Be Part-->
-    <!--                                <br>Of Our-->
-    <!--                                <br>Story!</h4>-->
-    <!--                        </div>-->
-    <!--                    </li>-->
-    <!--                </ul>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--</section>-->
-
-    <!-- Team Section -->
-    <!--<section id="team" class="bg-light-gray">-->
-    <!--    <div class="container">-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12 text-center">-->
-    <!--                <h2 class="section-heading">Our Amazing Team</h2>-->
-    <!--                <h3 class="section-subheading text-muted">Lorem ipsum dolor sit amet consectetur.</h3>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-sm-4">-->
-    <!--                <div class="team-member">-->
-    <!--                    <img src="img/team/1.jpg" class="img-responsive img-circle" alt="">-->
-    <!--                    <h4>Kay Garland</h4>-->
-    <!--                    <p class="text-muted">Lead Designer</p>-->
-    <!--                    <ul class="list-inline social-buttons">-->
-    <!--                        <li><a href="#"><i class="fa fa-twitter"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-facebook"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-linkedin"></i></a>-->
-    <!--                        </li>-->
-    <!--                    </ul>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-sm-4">-->
-    <!--                <div class="team-member">-->
-    <!--                    <img src="img/team/2.jpg" class="img-responsive img-circle" alt="">-->
-    <!--                    <h4>Larry Parker</h4>-->
-    <!--                    <p class="text-muted">Lead Marketer</p>-->
-    <!--                    <ul class="list-inline social-buttons">-->
-    <!--                        <li><a href="#"><i class="fa fa-twitter"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-facebook"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-linkedin"></i></a>-->
-    <!--                        </li>-->
-    <!--                    </ul>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--            <div class="col-sm-4">-->
-    <!--                <div class="team-member">-->
-    <!--                    <img src="img/team/3.jpg" class="img-responsive img-circle" alt="">-->
-    <!--                    <h4>Diana Pertersen</h4>-->
-    <!--                    <p class="text-muted">Lead Developer</p>-->
-    <!--                    <ul class="list-inline social-buttons">-->
-    <!--                        <li><a href="#"><i class="fa fa-twitter"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-facebook"></i></a>-->
-    <!--                        </li>-->
-    <!--                        <li><a href="#"><i class="fa fa-linkedin"></i></a>-->
-    <!--                        </li>-->
-    <!--                    </ul>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-8 col-lg-offset-2 text-center">-->
-    <!--                <p class="large text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut eaque, laboriosam veritatis, quos non quis ad perspiciatis, totam corporis ea, alias ut unde.</p>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--</section>-->
-
-    <!-- Clients Aside -->
-    <!--<aside class="clients">-->
-    <!--    <div class="container">-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-md-3 col-sm-6">-->
-    <!--                <a href="#">-->
-    <!--                    <img src="img/logos/envato.jpg" class="img-responsive img-centered" alt="">-->
-    <!--                </a>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-3 col-sm-6">-->
-    <!--                <a href="#">-->
-    <!--                    <img src="img/logos/designmodo.jpg" class="img-responsive img-centered" alt="">-->
-    <!--                </a>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-3 col-sm-6">-->
-    <!--                <a href="#">-->
-    <!--                    <img src="img/logos/themeforest.jpg" class="img-responsive img-centered" alt="">-->
-    <!--                </a>-->
-    <!--            </div>-->
-    <!--            <div class="col-md-3 col-sm-6">-->
-    <!--                <a href="#">-->
-    <!--                    <img src="img/logos/creative-market.jpg" class="img-responsive img-centered" alt="">-->
-    <!--                </a>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--</aside>-->
-
-    <!-- Contact Section -->
-    <!--<section id="contact">-->
-    <!--    <div class="container">-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12 text-center">-->
-    <!--                <h2 class="section-heading">Contact Us</h2>-->
-    <!--                <h3 class="section-subheading text-muted">Lorem ipsum dolor sit amet consectetur.</h3>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="row">-->
-    <!--            <div class="col-lg-12">-->
-    <!--                <form name="sentMessage" id="contactForm" novalidate>-->
-    <!--                    <div class="row">-->
-    <!--                        <div class="col-md-6">-->
-    <!--                            <div class="form-group">-->
-    <!--                                <input type="text" class="form-control" placeholder="Your Name *" id="name" required data-validation-required-message="Please enter your name.">-->
-    <!--                                <p class="help-block text-danger"></p>-->
-    <!--                            </div>-->
-    <!--                            <div class="form-group">-->
-    <!--                                <input type="email" class="form-control" placeholder="Your Email *" id="email" required data-validation-required-message="Please enter your email address.">-->
-    <!--                                <p class="help-block text-danger"></p>-->
-    <!--                            </div>-->
-    <!--                            <div class="form-group">-->
-    <!--                                <input type="tel" class="form-control" placeholder="Your Phone *" id="phone" required data-validation-required-message="Please enter your phone number.">-->
-    <!--                                <p class="help-block text-danger"></p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                        <div class="col-md-6">-->
-    <!--                            <div class="form-group">-->
-    <!--                                <textarea class="form-control" placeholder="Your Message *" id="message" required data-validation-required-message="Please enter a message."></textarea>-->
-    <!--                                <p class="help-block text-danger"></p>-->
-    <!--                            </div>-->
-    <!--                        </div>-->
-    <!--                        <div class="clearfix"></div>-->
-    <!--                        <div class="col-lg-12 text-center">-->
-    <!--                            <div id="success"></div>-->
-    <!--                            <button type="submit" class="btn btn-xl">Send Message</button>-->
-    <!--                        </div>-->
-    <!--                    </div>-->
-    <!--                </form>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--    </div>-->
-    <!--</section>-->
 
     <footer>
         <div class="container">
@@ -577,24 +215,6 @@
                 <div class="col-md-4">
                     <span class="copyright">Copyright &copy; Coderuss 2017</span>
                 </div>
-                <!--<div class="col-md-4">-->
-                <!--    <ul class="list-inline social-buttons">-->
-                <!--        <li><a href="#"><i class="fa fa-twitter"></i></a>-->
-                <!--        </li>-->
-                <!--        <li><a href="#"><i class="fa fa-facebook"></i></a>-->
-                <!--        </li>-->
-                <!--        <li><a href="#"><i class="fa fa-linkedin"></i></a>-->
-                <!--        </li>-->
-                <!--    </ul>-->
-                <!--</div>-->
-                <!--<div class="col-md-4">-->
-                <!--    <ul class="list-inline quicklinks">-->
-                <!--        <li><a href="#">Privacy Policy</a>-->
-                <!--        </li>-->
-                <!--        <li><a href="#">Terms of Use</a>-->
-                <!--        </li>-->
-                <!--    </ul>-->
-                <!--</div>-->
             </div>
         </div>
     </footer>

@@ -1,4 +1,4 @@
-var app = angular.module('login', []);
+var app = angular.module('login', ['ngMessages']);
 
 app.config(['$locationProvider', function($locationProvider) {
 	$locationProvider.html5Mode({

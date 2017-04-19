@@ -31,7 +31,7 @@ const url = require('url');
 
 describe(path.basename(__dirname), function() {
 
-    this.timeout(99999999);
+    this.timeout(5000);
     var client;
 
     before(function() {

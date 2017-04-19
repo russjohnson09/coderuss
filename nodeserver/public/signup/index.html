@@ -1,0 +1,81 @@
+<!--http://getbootstrap.com/getting-started/#template-->
+<!--http://getbootstrap.com/examples/signin/-->
+<!--http://stackoverflow.com/questions/15738259/disabling-chrome-autofill/30976223#30976223-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>Sing up | Coderuss</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="/css/signin.css" rel="stylesheet">
+
+
+    <script src="/bower_components/angular/angular.min.js"></script>
+
+    <!-- load angular -->
+    <script src="/signup/signup.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container" ng-app="validationApp" ng-controller="mainController">
+
+        <!--<form class="form-signin">-->
+        <!--  <label for="inputEmail" class="sr-only">Email address</label>-->
+        <!--  <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>-->
+        <!--  <label for="inputPassword" class="sr-only">Password</label>-->
+        <!--  <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>-->
+        <!--  <div class="checkbox">-->
+        <!--    <label>-->
+        <!--        <input type="checkbox" value="remember-me"> Remember me-->
+        <!--      </label>-->
+        <!--  </div>-->
+        <!--  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>-->
+        <!--</form>-->
+
+
+        <!-- FORM ============ -->
+
+        <form class="form-signin" name="userForm" ng-submit="submitForm()" novalidate>
+            <h2 class="form-signin-heading">Sign up</h2>
+
+            <!-- EMAIL -->
+            <div class="form-group" ng-class="{ 'has-error' : userForm.email.$invalid && !userForm.email.$pristine }">
+                <label class="sr-only" for="email">Email</label>
+                <input autocomplete="off" placeholder="email" type="email" name="email" class="form-control" ng-model="user.email" required>
+                <p ng-show="userForm.email.$invalid && !userForm.email.$pristine" class="help-block">Enter a valid email.</p>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
+                <label class="sr-only" for="password">Email</label>
+                <input autocomplete="new-password" placeholder="password" type="password" name="password" class="form-control" ng-model="user.password" ng-minlength="5">
+                <p ng-show="userForm.password.$error.minlength" class="help-block">Password is too short.</p>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit" ng-disabled="userForm.$invalid">Sign up</button>
+
+        </form>
+
+    </div>
+    <!-- /container -->
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!--<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>-->
+
+
+</body>
+
+</html>

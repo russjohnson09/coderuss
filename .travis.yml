@@ -5,6 +5,7 @@ addons:
     packages: 
       - gcc-4.8
       - g++-4.8
+      - oracle-java8-set-default
 language: node_js
 before_install:
   - sudo apt-get install frotz -y

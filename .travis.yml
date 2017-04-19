@@ -23,7 +23,7 @@ env:
 services:
   - mongodb
 script:
-  - selenium-standalone start &
+  - selenium-standalone start &> /dev/null &
   - sleep 5
   - npm run test:travis
   - npm run report:coveralls || true

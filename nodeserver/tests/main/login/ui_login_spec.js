@@ -29,7 +29,7 @@ const SCREENSHOT_DIR = __dirname + '/../../screenshots/';
 const path = require('path');
 const url = require('url');
 
-describe(path.basename(__dirname), function() {
+describe(path.basename(__filename), function() {
 
     this.timeout(5000);
     var client;

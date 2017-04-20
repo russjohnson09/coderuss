@@ -36,6 +36,16 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				}
 			},
 			function errorCallback(res) {
+				if (res.status === 401) {
+					//TODO add link to login page. Ensure animation works.
+					new Noty({
+					    text: 'This email has already been signed up. Please login from the main login page.',
+					    animation: {
+					        open: 'animated bounceInLeft', // Animate.css class names
+					        close: 'animated bounceOutLeft', // Animate.css class names
+					    }
+					}).show();
+				}
 				console.log(res.status);
 			});
 

@@ -43,15 +43,9 @@ describe(path.basename(__filename), function() {
                 return client.getUrl()
                     .then(
                         function(val) {
-                            console.log(val);
-                            var expected = BASE_URL + '/singup/';
-                            console.log(expected);
                             var parsedUrl = url.parse(val);
-                            console.log(parsedUrl.path);
                             expect(parsedUrl.path).not.to.be.undefined;
                             expect(parsedUrl.path).to.be.equal('/signup/');
-                            // expect(val == expected).to.be.true;
-                            // expect(val).to.be.equal(BASE_URL + '/singup/'); //I have no ida why this is evaluating to false
                         });
             });
         });
@@ -128,26 +122,17 @@ describe(path.basename(__filename), function() {
         describe('/signup', function() {
             it('url=/signup', function() {
                 return client.url(BASE_URL + '/signup/')
-                    //https://github.com/AtomLinter/linter-eslint/issues/210
-                    // .getUrl() //chaining this was causing issues
-                    .then(
-                        function(val) {
-                            // expect(val).to.be.equal(BASE_URL + '/login/');
-                        });
+                    // .then(
+                    //     function(val) {
+                    //     });
             });
             it('getUrl', function() {
                 return client.getUrl()
                     .then(
                         function(val) {
-                            console.log(val);
-                            var expected = BASE_URL + '/singup/';
-                            console.log(expected);
                             var parsedUrl = url.parse(val);
-                            console.log(parsedUrl.path);
                             expect(parsedUrl.path).not.to.be.undefined;
                             expect(parsedUrl.path).to.be.equal('/signup/');
-                            // expect(val == expected).to.be.true;
-                            // expect(val).to.be.equal(BASE_URL + '/singup/'); //I have no ida why this is evaluating to false
                         });
             });
 

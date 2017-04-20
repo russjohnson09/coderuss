@@ -96,7 +96,7 @@ describe(path.basename(__filename), function() {
                         expect(url.parse(val).pathname, 'on todo page').to.be.equal('/v1/todos/public/');
                     });
                 });
-
+                
                 it('todo screenshot', function() {
                     return client.saveScreenshot(SCREENSHOT_DIR + Date.now() + '_todo.png');
                 });
@@ -104,50 +104,6 @@ describe(path.basename(__filename), function() {
         });
 
 
-    });
-
-    return;
-    it('open login page', function() {
-        browser.url(publicurl + '/login/');
-        expect(browser.getUrl()).to.be.equal(publicurl + '/login/');
-        // browser.screenshot();
-    });
-
-    it('should be able to login', function() {
-        // filtering property commands
-        // $('input[name=\'username\']').setValue('admin123456');
-        // $('input[name=\'password\']').setValue('admin123456');
-
-        browser.setValue('input[name=\'username\']', 'admin123456');
-        browser.setValue('input[name=\'password\']', 'admin123456');
-
-        expect(browser.getValue('input[name=\'username\']')).to.be.equal('admin123456');
-        expect(browser.getValue('input[name=\'password\']')).to.be.equal('admin123456');
-
-        expect(browser.isVisible('button.coderuss-login'));
-        browser.click('button.coderuss-login');
-
-        browser.waitForVisible('form#create-todo');
-
-        expect(browser.getUrl()).to.be.equal(BASE_URL + '/v1/todos/public/');
-
-        expect(browser.isVisible('form#create-todo'), 'todo form is visible').to.be.true;
-
-    });
-
-    it('Github test', function() {
-        return client
-            .url('https://github.com/')
-            .getElementSize('.header-logo-invertocat .octicon.octicon-mark-github').then(function(result) {
-                assert.strictEqual(result.height, 32);
-                assert.strictEqual(result.width, 32);
-            })
-            .getTitle().then(function(title) {
-                assert.strictEqual(title, 'How people build software · GitHub');
-            })
-            .getCssProperty('a[href="/pricing"]', 'color').then(function(result) {
-                assert.strictEqual(result.value, 'rgba(60,65,70,1)');
-            });
     });
 
     after(function() {

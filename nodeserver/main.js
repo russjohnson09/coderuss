@@ -81,7 +81,7 @@ function createAlexaApp(app) {
 module.exports = function(opts, callback) {
     var module = {};
 
-    const PORT = process.env.PORT || 0;
+    const PORT = process.env.PORT || 3000;
 
     const PROXIED_PORT = process.env.PROXIED_PORT || 0;
 

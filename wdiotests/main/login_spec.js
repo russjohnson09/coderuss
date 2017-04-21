@@ -1,15 +1,14 @@
+require('dotenv').config();
+
 var expect = require('chai').expect;
 
-var baseurl = "http://localhost:3000";
-const BASE_URL = "http://localhost:3000";
-
-
-const publicurl = baseurl;
+const PORT = process.env.PORT || 3000;
+const BASE_URL = "http://localhost:" + PORT;
 
 describe('login', function() {
     it('open login page', function() {
-        browser.url(publicurl + '/login/');
-        expect(browser.getUrl()).to.be.equal(publicurl + '/login/');
+        browser.url(BASE_URL + '/login/');
+        expect(browser.getUrl()).to.be.equal(BASE_URL + '/login/');
         // browser.screenshot();
     });
 

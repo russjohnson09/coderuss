@@ -1,0 +1,6 @@
+site_name: Coderuss
+
+theme: cinder
+pages:
+  - Home: index.md
+  - Login and Singup: ui/login_signup.md

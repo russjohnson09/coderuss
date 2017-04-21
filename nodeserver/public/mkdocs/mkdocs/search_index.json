@@ -1,0 +1,24 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "Hello", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/ui/login_signup/", 
+            "text": "Login\n\n\nMockup\n\n\nNotifications will appear in the upper right corner if something goes wrong.", 
+            "title": "Login and Singup"
+        }, 
+        {
+            "location": "/ui/login_signup/#login", 
+            "text": "", 
+            "title": "Login"
+        }, 
+        {
+            "location": "/ui/login_signup/#mockup", 
+            "text": "Notifications will appear in the upper right corner if something goes wrong.", 
+            "title": "Mockup"
+        }
+    ]
+}

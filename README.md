@@ -5,8 +5,7 @@
 [![Issue Count](https://codeclimate.com/github/russjohnson09/coderuss/badges/issue_count.svg)](https://codeclimate.com/github/russjohnson09/coderuss)
 [Uptime last 7 days.](https://coderuss.herokuapp.com ) [![Statuscake Uptime Monitoring](https://app.statuscake.com/button/index.php?Track=BVzY2dDKip&Days=7&Design=6)](https://codeclimate.com/github/russjohnson09/coderuss)
 
-Coderuss
-===============================
+# Coderuss
 This repo is focused on implementing a web service and frontend
 for using this service. Initially I mad no assumptions on what
 the best way to do this but have ended up using node for
@@ -14,9 +13,17 @@ the api. The frontend is still undecided. Test cases are primarily
 endpoint tests although there will definitely be a need for
 unit tests when a service is not practical or not efficient.
 
+# Install
+* Install mongo ```docker/scripts/mongo-install.sh```
+* Start mongo ```docker/scripts/mongo-start.sh```
+* Install node packages. ```npm install```
+* Copy .env.example to .env
+* Optionally install frotz ```sudo apt-get install frotz```
+* Start node server ```npm start```
+* Run tests ```npm run test```
 
-Changlog
-=============
+
+# Changlog
 * Added basic TRD mkdocs, fixes #110
 * Added logsene token to user profile and /v1/logsene/errors GET (fixes #67)
 * Added oauth token linking to github accounts. 2017-03 #69

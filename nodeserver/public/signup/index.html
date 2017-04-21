@@ -50,7 +50,7 @@
 
             <!-- PASSWORD -->
             <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
-                <label class="sr-only" for="password">Email</label>
+                <label class="sr-only" for="password">Password</label>
                 <input autocomplete="new-password" placeholder="password" type="password" name="password" class="form-control" ng-model="user.password" ng-minlength="5">
                 <p ng-show="userForm.password.$error.minlength" class="help-block">Password is too short.</p>
             </div>

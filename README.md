@@ -17,6 +17,7 @@ unit tests when a service is not practical or not efficient.
 
 Changlog
 =============
+* Added basic TRD mkdocs, fixes #110
 * Added logsene token to user profile and /v1/logsene/errors GET (fixes #67)
 * Added oauth token linking to github accounts. 2017-03 #69
 * fix to broken cdn https://cdn.socket.io/socket.io-1.4.5.js

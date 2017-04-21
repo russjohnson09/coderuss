@@ -39,10 +39,10 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				if (res.status === 401) {
 					//TODO add link to login page. Ensure animation works.
 					new Noty({
-					    text: 'This email has already been signed up. Please login from the main login page.',
+					    text: 'This email has already been signed up. Please login from the <a href="/login">main login page.</a>',
 					    animation: {
-					        open: 'animated bounceInLeft', // Animate.css class names
-					        close: 'animated bounceOutLeft', // Animate.css class names
+					        // open: 'animated bounceInLeft', // Animate.css class names
+					        // close: 'animated bounceOutLeft', // Animate.css class names
 					    }
 					}).show();
 				}

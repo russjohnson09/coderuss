@@ -1,19 +1,28 @@
 <!--https://scotch.io/tutorials/single-page-apps-with-angularjs-routing-and-templating-->
 <!-- index.html -->
 <!DOCTYPE html>
-    <html ng-app="scotchApp">
+<html ng-app="scotchApp">
 
 <head>
     <!-- SCROLLS -->
     <!-- load bootstrap and fontawesome via CDN -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" />
+    
+    <!--http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css-->
+
+
+    <link rel="stylesheet" href="/css/coderuss.css" />
+    
 
     <!-- SPELLS -->
     <!-- load angular and angular route via CDN -->
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.js"></script>
     <script src="script.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -23,13 +32,15 @@
         <nav class="navbar navbar-default">
             <div class="container">
                 <div class="navbar-header">
-                    <a class="navbar-brand" href="/">Angular Routing Example</a>
+                    <!--TODO logo-->
+                    <a class="navbar-brand" href="/"></a>
                 </div>
 
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="#"><i class="fa fa-home"></i> Home</a></li>
                     <li><a href="#about"><i class="fa fa-shield"></i> About</a></li>
                     <li><a href="#contact"><i class="fa fa-comment"></i> Contact</a></li>
+                    <li><a href="#todos"><i class="fa fa-check-square-o"></i> Todos</a></li>
                 </ul>
             </div>
         </nav>

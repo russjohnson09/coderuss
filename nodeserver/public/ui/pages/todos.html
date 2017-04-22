@@ -1,3 +1,113 @@
-<div>
-    {{message}}
+<!--http://codepen.io/arg/pen/vjgJu-->
+<!--//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css-->
+<div class="container">
+
+    <div class="col-md-4">
+        <form>
+            <input>
+            <button class="btn btn-primary" type="submit">Add</button>
+        </form>
+    </div>
 </div>
+
+<div class="container kanban table-responsive">
+    <div class="row">
+        <div class="col-md-4">
+            Backlog
+        </div>
+        <div class="col-md-4">
+            In progress
+        </div>
+
+        <div class="col-md-4">
+            complete</div>
+
+    </div>
+
+    <div class="row">
+        <div>
+            Backlog
+        </div>
+        <div>
+            In progress
+        </div>
+
+        <div>Complete</div>
+
+    </div>
+
+</div>
+
+
+
+<!--<div class="container kanban table-responsive">-->
+<div class="container">
+
+    <!--<div class="col-md-4">-->
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th class="col-xs-4">Backlog</th>
+            <th class="col-xs-4">In progress</th>
+            <th class="col-xs-4">Complete</th>
+        </tr>
+        <tr>
+            <td class="sortable" data-position="backlog">
+                <div data-id="1" class="panel panel-primary">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">Panel heading this heading is too long overflowing testing sds</div>
+                    <div class="panel-body">
+                        <p>Here is the todo content</p>
+                    </div>
+                </div>
+            </td>
+            <td class="sortable" data-position="in progress">
+            </td>
+            <td class="sortable" data-position="completed">
+            </td>
+        </tr>
+    </table>
+
+    <!--</div>-->
+
+</div>
+
+
+<script>
+    // $(function() {
+    //     $(".draggable").draggable();
+    // });
+
+    $(function() {
+        // var boardWidth = $('#kanban-board').width();
+        // var $columns = $('.sortable-wrapper');
+        // var columnCount = $columns.length;
+        // var columnMargin = 10;
+        // $columns.width(Math.floor((boardWidth - (columnMargin*(columnCount + 1))) / columnCount));
+        $(".sortable").sortable({
+                // revert: true,
+                placeholder: 'drag-place-holder',
+                forcePlaceholderSize: true, //looks nicer this way, you can see where you are placing things
+                connectWith: ".sortable", //can be dragged to any sortable class
+                helper: function(event, element) {
+                    return $(element).clone().addClass('dragging');
+                },
+                // start: function (e, ui) {ui.item.show().addClass('ghost')},
+                stop: function (e, ui) { 
+                    // console.log(e);
+                    // console.log(ui);
+                    // console.log(ui.item);
+                    // console.log(ui.item.parentNode);
+                    
+                    var position = ui.item.parent('td.sortable').data('position');
+                    var id = ui.item.data('id');
+                    console.log(id);
+                    console.log('moved to');
+                    console.log(position);
+                    // ui.item.show().removeClass('ghost')
+                    
+                },      
+                // cursor:'move'
+            })
+            .disableSelection();
+    });
+</script>

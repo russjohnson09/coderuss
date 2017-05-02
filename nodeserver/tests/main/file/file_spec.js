@@ -36,4 +36,11 @@ describe("Files", function () {
         });
     });
 
+    describe('/v1/fax POST', function() {
+        it('/v1/files POST 200');
+    });
+    
+    describe('/v1/files/:id GET',function() {
+        
+    });
 });

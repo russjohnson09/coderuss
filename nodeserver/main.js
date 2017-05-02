@@ -81,7 +81,7 @@ function createAlexaApp(app) {
 module.exports = function(opts, callback) {
     var module = {};
 
-    const PORT = process.env.PORT || 0;
+    const PORT = process.env.PORT || 3000;
 
     const PROXIED_PORT = process.env.PROXIED_PORT || 0;
 
@@ -108,7 +108,9 @@ module.exports = function(opts, callback) {
         transports: transports,
         exceptionHandlers: exceptionHandlers,
         exitOnError: false
-    })
+    });
+    
+    
 
     var morgan = require('morgan');
 
@@ -217,6 +219,7 @@ module.exports = function(opts, callback) {
 
 
             addLogseneRouter();
+            addFaxRouter();
             addVoiceRouter();
             addTodosRouter();
             addGithubRouter();
@@ -423,6 +426,15 @@ module.exports = function(opts, callback) {
         });
         app.use('/v1/logsene', logsene.router);
     }
+
+    function addFaxRouter() {
+        var fax = require('./v1/fax/fax')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/v1/fax', fax.router);
+    }
+
 
     function addVoiceRouter() {
         var voice = require('./v1/voice.js')({

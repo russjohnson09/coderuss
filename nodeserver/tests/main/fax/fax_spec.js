@@ -12,7 +12,7 @@ const PORT = 3000;
 const BASE_URL = "http://localhost:" + PORT;
 
 
-const TEST_FAX = process.env.TEST_FAX || '555-555-5555';
+const TEST_FAX = process.env.TEST_FAX || '6082719000';
 
 
 const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'info';
@@ -121,7 +121,7 @@ describe("fax", function() {
                     filename: 'myfile.txt',
                     // contentType: 'text/plain'
                 });
-                form.append('fax', 'test');
+                form.append('fax', TEST_FAX);
             });
         });
 

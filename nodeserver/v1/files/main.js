@@ -64,8 +64,6 @@ module.exports = function (opts) {
     router.post('/tmp', function (req, res) {
         var errors = [];
         var requestBody = req.body;
-        console.log(requestBody);
-        console.log(req.file);
         upload(req, res, function (err) {
             winston.info(req.file);
             if (err || !req.file) {

@@ -2,7 +2,10 @@ var express = require('express');
 const moment = require('moment-timezone');
 const r = require('request');
 
-const FAX_URL = process.env.FAX_URL || 'http://localhost:3000/api/v1/files/tmp'
+const FAX_URL = process.env.FAX_URL || 'http://localhost:3000/api/v1/files/tmp';
+
+const FAX_API_KEY = process.env.FAX_API_KEY || '123';
+const FAX_API_ID = process.env.FAX_API_KEY || '123';
 
 module.exports = function(opts) {
     var module = {};
@@ -23,16 +26,31 @@ module.exports = function(opts) {
 
     router.post('/', function(req, res) {
         upload(req, res, function(err) {
-            winston.warn(req.file);
+
+            if (req.user) {
+                winston.warn('logged in as', req.user);
+
+            }
+            winston.warn('fax req body', req.body);
+            
+            var fax = req.body.fax;
+            var faxUrl = FAX_URL;
 
             var faxRequestFormMultipart = r.post({
-                    url: FAX_URL,
+                    url: faxUrl,
                 },
                 function(err, response, body) {
+                    if (err) {
+                        winston.error(err);
+                        return res.status(500);
+
+                    }
                     if (response.statusCode < 400) {
                         res.status(201).json({
                             filename: req.file.originalname,
-                            fax: req.requestBody.fax
+                            fax: fax,
+                            url: faxUrl,
+                            response: body
                         });
                     }
                     else {
@@ -41,11 +59,15 @@ module.exports = function(opts) {
 
                 });
 
+            // console.log('faxRequestForm');
+            faxRequestFormMultipart.headers['api-id'] = FAX_API_KEY;
+            faxRequestFormMultipart.headers['api-key'] = FAX_API_KEY;
+            // console.log(faxRequestFormMultipart.headers);
             var form = faxRequestFormMultipart.form();
             form.append('file', req.file.buffer, {
                 filename: req.file.originalname,
-                fax: req.fax
             });
+            form.append('fax',fax);
 
         });
 

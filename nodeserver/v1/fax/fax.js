@@ -7,7 +7,7 @@ const r = require('request');
 const FAX_URL = process.env.FAX_URL || 'http://localhost:3000/v1/ping';
 
 const FAX_API_KEY = process.env.FAX_API_KEY || 'b04d8415a44c0b5156445ac4589f9cc9e5e5abde';
-const FAX_API_SECRET = process.env.FAX_API_KEY || '65ca8b7e97d85c52e60dc9ef073eccab19d608a4';
+const FAX_API_SECRET = process.env.FAX_API_SECRET || '65ca8b7e97d85c52e60dc9ef073eccab19d608a4';
 
 module.exports = function(opts) {
     var module = {};

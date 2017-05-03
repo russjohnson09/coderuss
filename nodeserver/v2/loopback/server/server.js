@@ -1,11 +1,11 @@
 'use strict';
-const LOOPBACK_API_PORT = 52661;
+const LOOPBACK_API_PORT = process.env.LOOPBACK_API_PORT || 0;
 
 var loopback = require('loopback');
 var boot = require('loopback-boot');
 
 var app = module.exports = loopback();
-
+app.set('port',LOOPBACK_API_PORT);
 
 app.start = function() {
   // start the web server

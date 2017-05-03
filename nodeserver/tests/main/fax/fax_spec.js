@@ -12,7 +12,7 @@ const PORT = 3000;
 const BASE_URL = "http://localhost:" + PORT;
 
 
-const TEST_FAX = process.env.TEST_FAX || '555-555-5555';
+const TEST_FAX = process.env.TEST_FAX || '6082719000';
 
 
 const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'info';
@@ -35,6 +35,28 @@ winston.loggers.add('testlogger', {
 var logger = winston.loggers.get('testlogger');
 
 describe("fax", function() {
+
+    describe('/v1/login', function() {
+        var username = "admin@foo.com";
+        var password = "admin@foo.com";
+        it("successfully login", function(done) {
+            request({
+                method: "POST",
+                json: {
+                    "username": username,
+                    "password": password
+                },
+                uri: BASE_URL + '/v1/login'
+            }, function(error, response, body) {
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(201);
+                expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                expect(response.headers['set-cookie']).not.to.be.undefined;
+                cookie = response.headers['set-cookie'];
+                done();
+            });
+        });
+    });
 
     describe("Temp file create and get", function() {
 
@@ -75,6 +97,9 @@ describe("fax", function() {
             });
         });
 
+
+
+
         it("/v1/fax POST returns status 201", function() {
             return new Promise(function(resolve) {
                 var url = BASE_URL + "/v1/fax"
@@ -90,10 +115,13 @@ describe("fax", function() {
                     });
 
                 var form = req.form();
+                req.headers['Cookie'] = cookie;
+
                 form.append('file', new Buffer('123'), {
                     filename: 'myfile.txt',
                     // contentType: 'text/plain'
                 });
+                form.append('fax', TEST_FAX);
             });
         });
 

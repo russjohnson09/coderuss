@@ -9,6 +9,7 @@ const request = require('request');
 const NODE_ENV = process.env.NODE_ENV || 'dev';
 const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
+const LOOPBACK_API_PORT = 52661;
 
 var loopback = require('loopback');
 
@@ -404,7 +405,7 @@ module.exports = function(opts, callback) {
                     proxy.web(proxyReq, proxyRes, {
                         target: {
                             host: 'localhost',
-                            port: 4000
+                            port: LOOPBACK_API_PORT
                         },
                         secure: false
                     }, function(err) {

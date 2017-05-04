@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>Sing up | Coderuss</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="/css/signin.css" rel="stylesheet">
+
+    <link href="/bower_components/noty/lib/noty.css" rel="stylesheet">
+
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+
+    <script src="/bower_components/angular/angular.min.js"></script>
+
+    <!-- load angular -->
+    <script src="fax.js"></script>
+
+    <script src="/bower_components/noty/lib/noty.js"></script>
+
+
+</head>
+
+<body>
+
+    <div class="container" ng-app="validationApp" ng-controller="mainController">
+
+
+
+        <!-- FORM ============ -->
+
+        <form class="form-signin" name="userForm" ng-submit="submitForm()" novalidate>
+            <h2 class="form-signin-heading">Fax</h2>
+
+            <!-- EMAIL -->
+            <div class="form-group">
+                <label class="sr-only" for="fax">Email</label>
+                <input autocomplete="off" placeholder="fax" type="fax" name="fax" class="form-control" ng-model="fax" required>
+                <p ng-show="userForm.email.$invalid && !userForm.email.$pristine" class="help-block">Enter a valid email.</p>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
+                <label class="sr-only" for="password">Password</label>
+                <input type="file" name="file" class="form-control" ng-model="file" ng-minlength="5">
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Fax</button>
+
+        </form>
+
+    </div>
+
+
+</body>
+
+</html>

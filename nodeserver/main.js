@@ -10,6 +10,8 @@ const NODE_ENV = process.env.NODE_ENV || 'dev';
 const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
 
+var loopback = require('loopback');
+
 
 winston.transports.Logsene = require('winston-logsene');
 
@@ -78,7 +80,33 @@ function createAlexaApp(app) {
     alexa(app);
 }
 
+function initLoopBack() {
+    var loopbackApp = require(__dirname + '/v2/loopback/server/server');
+    loopbackApp.start();
+
+    return loopbackApp;
+}
+
+// var app = loopback();
+
+// app.start = function() {
+//   // start the web server
+//   return app.listen(function() {
+//     app.emit('started');
+//     var baseUrl = app.get('url').replace(/\/$/, '');
+//     console.log('Web server listening at: %s', baseUrl);
+//     if (app.get('loopback-component-explorer')) {
+//       var explorerPath = app.get('loopback-component-explorer').mountPath;
+//       console.log('Browse your REST API at %s%s', baseUrl, explorerPath);
+//     }
+//   });
+// };
+// }
+
 module.exports = function(opts, callback) {
+
+    var loopbackApp = initLoopBack();
+
     var module = {};
 
     const PORT = process.env.PORT || 3000;
@@ -100,7 +128,9 @@ module.exports = function(opts, callback) {
             var commit = JSON.parse(body).commit.sha;
             app.set('commit', commit);
         }
-        winston.info(app.get('commit'),{'type':'commit'});
+        winston.info(app.get('commit'), {
+            'type': 'commit'
+        });
     });
 
     var transports = getMainLoggerTransports();
@@ -108,7 +138,9 @@ module.exports = function(opts, callback) {
         transports: transports,
         exceptionHandlers: exceptionHandlers,
         exitOnError: false
-    })
+    });
+
+
 
     var morgan = require('morgan');
 
@@ -217,6 +249,7 @@ module.exports = function(opts, callback) {
 
 
             addLogseneRouter();
+            addFaxRouter();
             addVoiceRouter();
             addTodosRouter();
             addGithubRouter();
@@ -367,6 +400,19 @@ module.exports = function(opts, callback) {
                     });
 
                 }
+                else if (path.indexOf('/v2/') !== -1) {
+                    proxy.web(proxyReq, proxyRes, {
+                        target: {
+                            host: 'localhost',
+                            port: loopbackApp.get('port')
+                        },
+                        secure: false
+                    }, function(err) {
+                        winston.log('error', err);
+                        proxyRes.writeHead(502);
+                        proxyRes.end("There was an error. Please try again");
+                    });
+                }
                 else {
                     proxy.web(proxyReq, proxyRes, {
                         target: {
@@ -423,6 +469,15 @@ module.exports = function(opts, callback) {
         });
         app.use('/v1/logsene', logsene.router);
     }
+
+    function addFaxRouter() {
+        var fax = require('./v1/fax/fax')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/v1/fax', fax.router);
+    }
+
 
     function addVoiceRouter() {
         var voice = require('./v1/voice.js')({

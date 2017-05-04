@@ -16,7 +16,6 @@ db.json
 .vagrant
 params.json
 params*.js*
-.*
 sessions/
 !.gitignore
 !.codeclimate.yml
@@ -27,4 +26,10 @@ nodeserver/public/docs
 !.env.example
 
 /docker/scripts/data
+
+.*
 !.gitignore
+!.eslintrc
+!.eslintignore
+!.editorconfig
+!.yo-rc.json

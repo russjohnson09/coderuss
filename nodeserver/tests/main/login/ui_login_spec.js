@@ -8,8 +8,9 @@ const BASE_URL = 'http://localhost:3000';
 
 const SCREENSHOT_DIR = __dirname + '/../../screenshots/';
 
+//10.0.2.2
 const WEBDRIVER_BROWSER = process.env.WEBDRIVER_BROWSER || 'phantomjs';
-const WEBDRIVER_HOST = process.env.WEBDRIVER_HOST || '10.0.2.2';
+const WEBDRIVER_HOST = process.env.WEBDRIVER_HOST || '127.0.0.1';
 // const WEBDRIVER_PORT = process.env.WEBDRIVER_PORT || '8443';
 
 

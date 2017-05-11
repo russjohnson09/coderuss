@@ -25,14 +25,13 @@ describe(path.basename(__filename), function() {
 
     describe('initialize client', function() {
         it('start client', function() {
-            var desiredCapabilities = {
-                browserName: WEBDRIVER_BROWSER,
+            client = webdriverio.remote({
                 host: WEBDRIVER_HOST,
-                // port: WEBDRIVER_PORT
-            };
-            console.log(desiredCapabilities);
-            client = webdriverio.remote(
-                desiredCapabilities);
+
+                desiredCapabilities: {
+                    browserName: WEBDRIVER_BROWSER,
+                }
+            });
             return client.init();
             // .setViewportSize({
             //     width: 1920,
@@ -85,10 +84,10 @@ describe(path.basename(__filename), function() {
                 return client.click(login_button);
             });
 
-//http://www.guru99.com/alert-popup-handling-selenium.html
+            //http://www.guru99.com/alert-popup-handling-selenium.html
             describe('/v1/todos/public/', function() {
                 it('wait for form#create-todo to be visible', function() {
-                    return client.waitForVisible('form#create-todo',5000).getUrl().then(function(val) {
+                    return client.waitForVisible('form#create-todo', 5000).getUrl().then(function(val) {
                         expect(url.parse(val).pathname, 'on todo page').to.be.equal('/v1/todos/public/');
                     });
                 });

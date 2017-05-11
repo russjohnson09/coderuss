@@ -254,6 +254,17 @@ module.exports = function(opts, callback) {
             addTodosRouter();
             addGithubRouter();
             addZorkRouter();
+
+
+            var Init = db.collection('init');
+
+            Init.insert({
+                    server_start: Date.now()
+                },
+                function(err, result) {
+                    if (err) mainLogger.error(err);
+                    mainLogger.info(JSON.stringify(result.ops));
+                });
         })
     });
 

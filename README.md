@@ -23,7 +23,7 @@ unit tests when a service is not practical or not efficient.
 * Run tests ```npm run test```
 
 
-# Changlog
+# Changelog
 * Added loopback app as /v2
 * Added faxing with phaxio.
 * Added basic TRD mkdocs, fixes #110
@@ -35,3 +35,6 @@ unit tests when a service is not practical or not efficient.
 * moved cdn to repo
 * /v1/todos/public/ display datetime on notification for debugging fixes #2
 * added external_resources fixes #47
+
+# TODOS
+* /v1/postcards/send/test POST added

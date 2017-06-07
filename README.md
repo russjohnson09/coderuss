@@ -24,6 +24,8 @@ unit tests when a service is not practical or not efficient.
 
 
 # Changelog
+* /v1/postcards/send/test POST added
+* /postcards UI added (test only)
 * Added loopback app as /v2
 * Added faxing with phaxio.
 * Added basic TRD mkdocs, fixes #110
@@ -37,4 +39,3 @@ unit tests when a service is not practical or not efficient.
 * added external_resources fixes #47
 
 # TODOS
-* /v1/postcards/send/test POST added

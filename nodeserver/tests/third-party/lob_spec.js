@@ -110,7 +110,6 @@ describe(path.basename(__filename), function() {
 
         })
     });
-    return;
 
     describe('/addresses POST create address', function() {
         describe('/address POST 401', function() {

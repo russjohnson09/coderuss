@@ -250,6 +250,7 @@ module.exports = function(opts, callback) {
 
             addLogseneRouter();
             addFaxRouter();
+            addPostcardRouter();
             addVoiceRouter();
             addTodosRouter();
             addGithubRouter();
@@ -482,6 +483,14 @@ module.exports = function(opts, callback) {
         app.use('/v1/logsene', logsene.router);
     }
 
+    function addPostcardRouter() {
+        var result = require('./v1/postcards/postcards')({
+            winston: mainLogger,
+            app: app
+        });
+        app.use('/v1/postcards', result.router);
+    }
+    
     function addFaxRouter() {
         var fax = require('./v1/fax/fax')({
             winston: mainLogger,

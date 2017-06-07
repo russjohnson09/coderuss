@@ -1,0 +1,1 @@
+kill $(ps aux | grep 'frotz' | grep -v 'grep' | awk '{print $2}')

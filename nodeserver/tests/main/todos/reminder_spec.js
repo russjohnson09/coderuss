@@ -4,6 +4,7 @@ var expect = require("chai").expect;
 
 process.env.EXPRESS_SESSION_SECRET = 'secret';
 process.env.PORT = 0;
+process.env.LOOPBACK_API_PORT = 0;
 
 
 describe("reminders send socket events", function () {

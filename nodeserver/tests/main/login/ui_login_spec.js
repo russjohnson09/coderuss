@@ -1,22 +1,5 @@
-// https://github.com/webdriverio/webdriverio/blob/24764b920f6652852678b0390234f6dcc1e35daa/CONTRIBUTING.md
+require('dotenv').config();
 
-// sudo apt-get install oracle-java8-installer
-
-// sudo apt-get install default-jre
-
-// 
-// sudo apt-get install default-jdk
-
-// sudo apt-get install openjdk-7-jre
-// wget http://selenium-release.storage.googleapis.com/3.3/selenium-server-standalone-3.3.1.jar
-
-// npm install -g selenium-standalone phantomjs-prebuilt
-// selenium-standalone install
-// selenium-standalone start
-
-//update-alternatives --config java
-
-//sudo apt-get install oracle-java8-installer
 
 const expect = require('chai').expect;
 const webdriverio = require('webdriverio');
@@ -24,6 +7,12 @@ const webdriverio = require('webdriverio');
 const BASE_URL = 'http://localhost:3000';
 
 const SCREENSHOT_DIR = __dirname + '/../../screenshots/';
+
+//10.0.2.2
+const WEBDRIVER_BROWSER = process.env.WEBDRIVER_BROWSER || 'phantomjs';
+const WEBDRIVER_HOST = process.env.WEBDRIVER_HOST || '127.0.0.1';
+// const WEBDRIVER_PORT = process.env.WEBDRIVER_PORT || '8443';
+
 
 
 const path = require('path');
@@ -34,17 +23,22 @@ describe(path.basename(__filename), function() {
     this.timeout(5000);
     var client;
 
-    before(function() {
-        client = webdriverio.remote({
-            desiredCapabilities: {
-                browserName: 'phantomjs'
-            }
-        });
-        return client.init().setViewportSize({
-            width: 1920,
-            height: 1080,
-        });
-    });
+    describe('initialize client', function() {
+        it('start client', function() {
+            client = webdriverio.remote({
+                host: WEBDRIVER_HOST,
+
+                desiredCapabilities: {
+                    browserName: WEBDRIVER_BROWSER,
+                }
+            });
+            return client.init();
+            // .setViewportSize({
+            //     width: 1920,
+            //     height: 1080,
+            // });
+        })
+    })
 
     describe('/login', function() {
 
@@ -90,13 +84,14 @@ describe(path.basename(__filename), function() {
                 return client.click(login_button);
             });
 
+            //http://www.guru99.com/alert-popup-handling-selenium.html
             describe('/v1/todos/public/', function() {
                 it('wait for form#create-todo to be visible', function() {
-                    return client.waitForVisible('form#create-todo').getUrl().then(function(val) {
+                    return client.waitForVisible('form#create-todo', 5000).getUrl().then(function(val) {
                         expect(url.parse(val).pathname, 'on todo page').to.be.equal('/v1/todos/public/');
                     });
                 });
-                
+
                 it('todo screenshot', function() {
                     return client.saveScreenshot(SCREENSHOT_DIR + Date.now() + '_todo.png');
                 });
@@ -104,9 +99,5 @@ describe(path.basename(__filename), function() {
         });
 
 
-    });
-
-    after(function() {
-        return client.end();
     });
 });

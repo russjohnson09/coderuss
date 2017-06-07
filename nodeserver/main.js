@@ -254,6 +254,18 @@ module.exports = function(opts, callback) {
             addTodosRouter();
             addGithubRouter();
             addZorkRouter();
+            addDeployRouter();
+
+
+            var Init = db.collection('init');
+
+            Init.insert({
+                    server_start: Date.now()
+                },
+                function(err, result) {
+                    if (err) mainLogger.error(err);
+                    mainLogger.info(JSON.stringify(result.ops));
+                });
         })
     });
 
@@ -529,6 +541,16 @@ module.exports = function(opts, callback) {
         }).router);
     }
 
+
+
+    function addDeployRouter() {
+
+        app.use('/v1/deploys', require(__dirname + '/v1/deploys/deploys')({
+            winston: mainLogger,
+            db: mongo_db,
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
 
 
     function addZorkRouter() {

@@ -20,6 +20,43 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 	};
 	$scope.test = 'test';
 	
+	$scope.fathersdaytemplate = {
+			description: 'Demo Postcard job',
+			to: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			from: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			front: null,
+			back: null,
+			data: {
+				
+			}
+		};
+	
+	$http.get('/postcards/fathersday.html').then(function successCallback(res) {
+		$scope.fathersdaytemplate.front = res.data;
+		})
+		
+	$http.get('/postcards/fathersday-back.html').then(function successCallback(res) {
+		$scope.fathersdaytemplate.back = res.data;
+		});
+		
+
+	$scope.fathersdaytemplate.data.signature = "Sincerly,<br><br>Russ<br>"
+	$scope.fathersdaytemplate.data.body = "Thank you so much for being my Dad."
+
+
+	
 	$scope.postcard = {
 			description: 'Demo Postcard job',
 			to: {
@@ -67,6 +104,41 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 			$window.location.href = '/login?redirect_uri=/postcards/test';
 
 		});
+		
+	$scope.fathersDayTemplate = function() {
+		$scope.preview = {};
+		
+		$http.post('/v1/postcards', $scope.fathersdaytemplate, {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(function successCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+				if (res.status === 200) {
+					console.log(Date.now());
+					$timeout(function() {
+						console.log('set preview');
+						console.log(Date.now());
+
+						console.log($scope);
+						$scope.preview.front_src = res.data.thumbnails[0].large;
+						$scope.preview.back_src = res.data.thumbnails[1].large;
+						console.log($scope.preview);
+					}, 8000)
+
+
+				}
+			},
+			function errorCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+			});
+	};
 
 
 	$scope.submitForm = function() {

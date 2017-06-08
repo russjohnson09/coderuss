@@ -55,7 +55,10 @@ module.exports = function(opts) {
                 winston.error(err);
             }
             if (result.result.nModified == 0) {
-                return res.status(429).json(result.result);
+                var statusCode = 429;
+                return res.status(statusCode).json({meta: {statusCode: statusCode,
+                    message: 'Insufficient funds'
+                }});
             }
             var url = LOB_API_V1_ENDPONT + '/postcards';
             var requestBody = req.body;

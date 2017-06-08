@@ -24,7 +24,8 @@ unit tests when a service is not practical or not efficient.
 
 
 # Changelog
-* /v1/postcards POST
+* /postcards/test UI testing postcards api
+* /v1/postcards POST protected by paywall
 * /v1/users/:id/inc POST increase available credit available to user
 * /v1/users/:id/dec POST decrease available credit available to user
 * /v1/postcards/send/test POST added

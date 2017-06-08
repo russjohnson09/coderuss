@@ -11,7 +11,7 @@ validationApp.config(['$locationProvider', function($locationProvider) {
 
 
 //https://stackoverflow.com/questions/19009370/timeout-not-defined-error-in-angularjs-app
-validationApp.controller('mainController', function($rootScope, $scope, $location, $http, $timeout) {
+validationApp.controller('mainController', function($rootScope, $scope, $location, $http, $timeout,$window) {
 
 	// var userId;
 	var user = {};
@@ -19,6 +19,66 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 		'test': 1
 	};
 	$scope.test = 'test';
+	
+	$scope.fathersdaytemplate = {
+			description: 'Demo Postcard job',
+			to: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			from: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			front: null,
+			back: null,
+			data: {
+				
+			}
+		};
+	
+	$http.get('/postcards/fathersday.html').then(function successCallback(res) {
+		$scope.fathersdaytemplate.front = res.data;
+		})
+		
+	$http.get('/postcards/fathersday-back.html').then(function successCallback(res) {
+		$scope.fathersdaytemplate.back = res.data;
+		});
+		
+
+	$scope.fathersdaytemplate.data.signature = "Sincerly,<br><br>Russ<br>"
+	$scope.fathersdaytemplate.data.body = "Thank you so much for being my Dad."
+
+
+	
+	$scope.postcard = {
+			description: 'Demo Postcard job',
+			to: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			from: {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			},
+			front: '<html style="padding: 1in; font-size: 50;">Front HTML for {{name}}</html>',
+			back: '<html style="padding: 1in; font-size: 20;">Back HTML for {{name}}</html>',
+			data: {
+				name: 'Harry'
+			}
+		}
 
 	$http.get('/v1/users/me', {
 		transformRequest: angular.identity,
@@ -41,34 +101,50 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				text: JSON.stringify(res.data, null, '  '),
 				animation: {}
 			}).show();
+			$window.location.href = '/login?redirect_uri=/postcards/test';
+
 		});
+		
+	$scope.fathersDayTemplate = function() {
+		$scope.preview = {};
+		
+		$http.post('/v1/postcards', $scope.fathersdaytemplate, {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(function successCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+				if (res.status === 200) {
+					console.log(Date.now());
+					$timeout(function() {
+						console.log('set preview');
+						console.log(Date.now());
+
+						console.log($scope);
+						$scope.preview.front_src = res.data.thumbnails[0].large;
+						$scope.preview.back_src = res.data.thumbnails[1].large;
+						console.log($scope.preview);
+					}, 8000)
+
+
+				}
+			},
+			function errorCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+			});
+	};
 
 
 	$scope.submitForm = function() {
 		$scope.preview = {};
 
-		$http.post('/v1/postcards', {
-			description: 'Demo Postcard job',
-			to: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
-			},
-			from: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
-			},
-			front: '<html style="padding: 1in; font-size: 50;">Front HTML for {{name}}</html>',
-			back: '<html style="padding: 1in; font-size: 20;">Back HTML for {{name}}</html>',
-			data: {
-				name: 'Harry'
-			}
-		}, {
+		$http.post('/v1/postcards', $scope.postcard, {
 			headers: {
 				'Content-Type': 'application/json'
 			}
@@ -113,28 +189,11 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				'Content-Type': 'application/json'
 			}
 		}).then(function successCallback(res) {
-				console.log('success');
-				console.log(res);
 				console.log(res.status);
-				console.log(res.data);
-				if (res.status === 200) {
-					new Noty({
+				new Noty({
 						text: JSON.stringify(res.data, null, '  '),
 						animation: {}
 					}).show();
-					console.log(Date.now());
-					$timeout(function() {
-						console.log('set preview');
-						console.log(Date.now());
-
-						console.log($scope);
-						$scope.preview.front_src = res.data.thumbnails[0].small;
-						$scope.preview.back_src = res.data.thumbnails[1].small;
-						console.log($scope.preview);
-					}, 8000)
-
-
-				}
 			},
 			function errorCallback(res) {
 				new Noty({

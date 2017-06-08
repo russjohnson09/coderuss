@@ -9,12 +9,12 @@
     <meta name="author" content="">
     <link rel="icon" href="/favicon.ico">
 
-    <title>Sing up | Coderuss</title>
+    <title>Postcard | Coderuss</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="/css/signin.css" rel="stylesheet">
+    <!--<link href="/css/signin.css" rel="stylesheet">-->
 
     <link href="/bower_components/noty/lib/noty.css" rel="stylesheet">
 
@@ -46,8 +46,45 @@
 
         <form class="form-signin" name="userForm" ng-submit="submitForm()" novalidate>
             <h2 class="form-signin-heading">Test</h2>
+            
+   <!--         			to: {-->
+			<!--	name: 'Joe Smith',-->
+			<!--	address_line1: '123 Main Street',-->
+			<!--	address_city: 'Mountain View',-->
+			<!--	address_state: 'CA',-->
+			<!--	address_zip: '94041'-->
+			<!--},-->
+			<!--from: {-->
+			<!--	name: 'Joe Smith',-->
+			<!--	address_line1: '123 Main Street',-->
+			<!--	address_city: 'Mountain View',-->
+			<!--	address_state: 'CA',-->
+			<!--	address_zip: '94041'-->
+			<!--},-->
+			
+			<!--			front: '<html style="padding: 1in; font-size: 50;">Front HTML for {{name}}</html>',-->
+			<!--back: '<html style="padding: 1in; font-size: 20;">Back HTML for {{name}}</html>',-->
+			<!--data: {-->
+			<!--	name: 'Harry'-->
+			<!--}-->
+            
+            <div class="form-group">
+                <label class="sr-only" for="toName">To Name</label>
+                <input name="toName" ng-model="postcard.to.name" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="sr-only" for="front">Front</label>
+                <textarea class="form-control" name="front" ng-model="postcard.front" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="sr-only" for="back">Back</label>
+                <textarea class="form-control" name="back" ng-model="postcard.back" required></textarea>
+            </div>
+            
 
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Test</button>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Preview</button>
 
         </form>
         <img ng-src="{{preview.front_src}}">

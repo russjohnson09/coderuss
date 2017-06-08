@@ -1,4 +1,6 @@
 module.exports = function(opts) {
+    var self = {};
+    
     var http = require('http');
     var url = require('url');
     var express = require('express');
@@ -96,7 +98,8 @@ module.exports = function(opts) {
                 username: user.username,
                 email: user.email || null,
                 name: user.name || null,
-                logsene_token: user.logsene_token || null
+                logsene_token: user.logsene_token || null,
+                dollars_available: user.dollars_available || null,
             })).end();
         });
     });
@@ -160,8 +163,99 @@ module.exports = function(opts) {
 
     });
 
-    module.router = router;
 
-    return module;
+    function isAdmin(username) {
+        return username === process.env.MAIN_ADMIN_USERNAME;    
+    }
+    
+    
+    function isAdminRouter(req,res,next) {
+        // return function(req,res,next) {
+            if (!isAdmin(req.user.username)) {
+                return res.status(401).json({}).end();
+            }
+            return next();
+        // }
+    }
+    
+    router.use('/:id',isAdminRouter);
+    router.use('/:id/inc',isAdminRouter);
+    router.use('/:id/dec',isAdminRouter);
+    
+    
+    router.get('/:id', function(req, res) {
+        // if (!isAdmin(req.user.username)) {
+        //     return res.status(401).json({}).end();
+        // }
+        User.findOne({
+            _id: ObjectID(req.params.id)
+        }, function(err, user) {
+            winston.debug(user);
+            if (err) {
+                winston.error(err);
+                res.status(401);
+                return res.end(JSON.stringify({
+                    "message": 'Unauthorized',
+                    status: "unauthorized"
+                }));
+            }
+            return res.status(200).send(JSON.stringify({
+                _id: user._id,
+                username: user.username,
+                email: user.email || null,
+                name: user.name || null,
+                logsene_token: user.logsene_token || null,
+                dollars_available: user.dollars_available || null,
+            })).end();
+        });
+    });
+
+    router.post('/:id/inc', function(req, res) {
+        if (!req.body.inc || req.body.inc < 0) {
+            return res.status(400).json({});
+        }
+        User.updateOne({
+            _id: ObjectID(req.params.id),
+            // dollars_available: { $gt: 0 }
+        }, {
+            $inc: {
+                dollars_available: req.body.inc,
+            }
+        }, function(err, result) {
+            if (err) {
+                winston.error(err);
+                return res.status(500);
+            }
+            return res.status(201).json(result.result);
+        })
+    });
+    
+    router.post('/:id/dec', function(req, res) {
+        if (!req.body.dec || req.body.dec < 0) {
+            return res.status(400).json({});
+        }
+        User.updateOne({
+            _id: ObjectID(req.params.id),
+            dollars_available: { $gt: 0 }
+        }, {
+            $inc: {
+                dollars_available: - req.body.dec,
+            }
+        }, function(err, result) {
+            if (err) {
+                winston.error(err);
+            }
+            if (result.result.nModified == 0) {
+                return res.status(429).json(result.result);
+            }
+            return res.status(201).json(result.result);
+        })
+    });
+    
+    self.router = router;
+    
+    
+
+    return self;
 
 };

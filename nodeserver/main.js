@@ -232,6 +232,7 @@ module.exports = function(opts, callback) {
 
 
     var main_application;
+    var database;
     MongoClient.connect(MONGO_CONNECTION, function(err, db) {
         require('./migrations/migrations')({
             winston: mainLogger,
@@ -486,7 +487,8 @@ module.exports = function(opts, callback) {
     function addPostcardRouter() {
         var result = require('./v1/postcards/postcards')({
             winston: mainLogger,
-            app: app
+            app: app,
+            database: database,
         });
         app.use('/v1/postcards', result.router);
     }

@@ -4,3 +4,4 @@ theme: cinder
 pages:
   - Home: index.md
   - Login and Singup: ui/login_signup.md
+  - Ping: v1/ping/ping.md

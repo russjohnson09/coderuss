@@ -43,78 +43,55 @@
         <form class="form-signin" name="userForm" ng-submit="addDollar()" novalidate>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Add a dollar</button>
         </form>
-
-        <form class="form-signin" name="userForm" ng-submit="submitForm()" novalidate>
-            <h2 class="form-signin-heading">Test</h2>
-            
-   <!--         			to: {-->
-			<!--	name: 'Joe Smith',-->
-			<!--	address_line1: '123 Main Street',-->
-			<!--	address_city: 'Mountain View',-->
-			<!--	address_state: 'CA',-->
-			<!--	address_zip: '94041'-->
-			<!--},-->
-			<!--from: {-->
-			<!--	name: 'Joe Smith',-->
-			<!--	address_line1: '123 Main Street',-->
-			<!--	address_city: 'Mountain View',-->
-			<!--	address_state: 'CA',-->
-			<!--	address_zip: '94041'-->
-			<!--},-->
-			
-			<!--			front: '<html style="padding: 1in; font-size: 50;">Front HTML for {{name}}</html>',-->
-			<!--back: '<html style="padding: 1in; font-size: 20;">Back HTML for {{name}}</html>',-->
-			<!--data: {-->
-			<!--	name: 'Harry'-->
-			<!--}-->
-            
-            <div class="form-group">
-                <label class="sr-only" for="toName">To Name</label>
-                <input name="toName" ng-model="postcard.to.name" required>
-            </div>
-            
-            <div class="form-group">
-                <label class="sr-only" for="front">Front</label>
-                <textarea class="form-control" name="front" ng-model="postcard.front" required></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label class="sr-only" for="back">Back</label>
-                <textarea class="form-control" name="back" ng-model="postcard.back" required></textarea>
-            </div>
-            
-
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Preview</button>
-
-        </form>
         
+            <button class="btn btn-lg btn-primary btn-block" ng-click="populate()">Populate with test data</button>
+
         
         <form class="form-signin" name="userForm" ng-submit="fathersDayTemplate()" novalidate>
             <h2 class="form-signin-heading">Father's Day Template</h2>
+
+            <div ng-repeat="(key, val) in fathersdaytemplate.to">
+                 <div class="form-group">
+                    <label for="body">To {{key}}</label>
+                <input class="form-control" name="body" ng-model="fathersdaytemplate.to[key]" required>
+                </div>
+            </div>
+            
+            <div ng-repeat="(key, val) in fathersdaytemplate.from">
+                 <div class="form-group">
+                    <label for="body">From {{key}}</label>
+                <input class="form-control" name="body" ng-model="fathersdaytemplate.from[key]" required>
+                </div>
+            </div>
             
             <div class="form-group">
-                <label class="sr-only" for="body">Body</label>
+                <label for="body">Body</label>
                 <textarea class="form-control" name="body" ng-model="fathersdaytemplate.data.body" required></textarea>
             </div>
             
             <div class="form-group">
-                <label class="sr-only" for="signature">Signature</label>
+                <label for="signature">Signature</label>
                 <textarea class="form-control" name="signature" ng-model="fathersdaytemplate.data.signature" required></textarea>
             </div>
 
             <button class="btn btn-lg btn-primary btn-block" type="submit">Preview</button>
 
         </form>
+        <span ng-bind=completeVisible></span>
 
-        <img ng-src="{{preview.front_src}}">
-        <br>
-        <img ng-src="{{preview.back_src}}">
-
-        <!--<image src="https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986_thumb_small_1.png?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=t3OhGjrlf106W8f9MAfnR9XwhGA%3D"></image>-->
-        <!--<image src="https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986_thumb_small_2.png?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=5Yz2uXUzMGcVVm%2FImOWpAITep8Y%3D"></image>-->
-
-<!--        <iframe src="http://docs.google.com/gview?url=https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986.pdf?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=Yf1W3fPLa9u8Vma3sxzMmBkjChM%3&embedded=true" -->
-<!--style="width:600px; height:500px;" frameborder="0"></iframe>-->
+        <div ng-show=completeVisible>
+            <div>
+                <h1>Front</h1>
+                <a ng-href={{preview.front_src}}><img ng-src="{{preview.front_src}}"></a>
+            </div>
+            <div>
+                <h1>Back</h1>
+                <a ng-href={{preview.back_src}}><img ng-src="{{preview.back_src}}"></a>
+            </div>
+            <div>
+                <button class="btn btn-lg btn-primary btn-block" ng-click="fathersDayTemplateComplete()">Complete</button>
+            </div>
+        </div>
 
     </div>
 

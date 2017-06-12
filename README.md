@@ -24,6 +24,7 @@ unit tests when a service is not practical or not efficient.
 
 
 # Changelog
+* /postcards/preview
 * /postcards/test UI testing postcards api
 * /v1/postcards POST protected by paywall
 * /v1/users/:id/inc POST increase available credit available to user
@@ -43,3 +44,4 @@ unit tests when a service is not practical or not efficient.
 * added external_resources fixes #47
 
 # TODOS
+* Checkout with unique id for postcards to prevent duplication.

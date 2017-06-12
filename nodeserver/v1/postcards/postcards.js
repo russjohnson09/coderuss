@@ -8,8 +8,9 @@ const userRouter = require('./../users/main');
 // const FAX_URL = process.env.FAX_URL || 'https://api.phaxio.com/v2/faxes'; //429 response will cause test error
 const FAX_URL = process.env.FAX_URL || 'http://localhost:3000/v1/ping';
 
-const LOB_LIVE_API_KEY = process.env.LOB_LIVE_API_KEY || 'INVALID';
 const LOB_TEST_API_KEY = process.env.LOB_TEST_API_KEY;
+const LOB_LIVE_API_KEY = process.env.LOB_LIVE_API_KEY || LOB_TEST_API_KEY;
+
 const LOB_API_V1_ENDPONT = process.env.LOB_API_V1_ENDPONT;
 
 const POSTCARD_COST = 1;
@@ -19,6 +20,8 @@ module.exports = function(opts) {
     var router = express.Router();
     var app = opts.app;
     var winston = opts.winston;
+    
+    var last_request = null;
     
     console.log(opts);
 
@@ -38,6 +41,25 @@ module.exports = function(opts) {
             });
         }
         next();
+    });
+    
+    router.post('/preview',function(req,res) {
+            var url = LOB_API_V1_ENDPONT + '/postcards';
+            var requestBody = req.body;
+            winston.info(url);
+            r({
+                'url': url,
+                'method': 'POST',
+                'form': requestBody,
+                'auth': {
+                    'user': LOB_TEST_API_KEY,
+                    'pass': ''
+                }
+            }, function(error, response, body) {
+                if (error) winston.error(error);
+                res.set(response.headers);
+                return res.status(response.statusCode).send(body).end();
+            });
     });
 
     router.post('/', function(req, res) {
@@ -68,7 +90,7 @@ module.exports = function(opts) {
                 'method': 'POST',
                 'form': requestBody,
                 'auth': {
-                    'user': LOB_TEST_API_KEY,
+                    'user': LOB_LIVE_API_KEY,
                     'pass': ''
                 }
             }, function(error, response, body) {

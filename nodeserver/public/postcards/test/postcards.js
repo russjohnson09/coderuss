@@ -23,25 +23,44 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 	$scope.fathersdaytemplate = {
 			description: 'Demo Postcard job',
 			to: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
+				name: null,
+				address_line1: null,
+				address_city: null,
+				address_state: null,
+				address_zip: null,
 			},
 			from: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
+				name: null,
+				address_line1: null,
+				address_city: null,
+				address_state: null,
+				address_zip: null,
 			},
 			front: null,
 			back: null,
 			data: {
-				
 			}
 		};
+		
+			$scope.testTo = {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			};
+			$scope.testFrom = {
+				name: 'Joe Smith',
+				address_line1: '123 Main Street',
+				address_city: 'Mountain View',
+				address_state: 'CA',
+				address_zip: '94041'
+			};
+		
+	$scope.populate = function() {
+		$scope.fathersdaytemplate.to = $scope.testTo;
+		$scope.fathersdaytemplate.from = $scope.testFrom;
+	}
 	
 	$http.get('/postcards/fathersday.html').then(function successCallback(res) {
 		$scope.fathersdaytemplate.front = res.data;
@@ -52,7 +71,7 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 		});
 		
 
-	$scope.fathersdaytemplate.data.signature = "Sincerly,<br><br>Russ<br>"
+	$scope.fathersdaytemplate.data.signature = "Sincerely,<br><br>Russ<br>"
 	$scope.fathersdaytemplate.data.body = "Thank you so much for being my Dad."
 
 
@@ -104,11 +123,13 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 			$window.location.href = '/login?redirect_uri=/postcards/test';
 
 		});
-		
+
+
+	$scope.completeVisible = false;
 	$scope.fathersDayTemplate = function() {
 		$scope.preview = {};
 		
-		$http.post('/v1/postcards', $scope.fathersdaytemplate, {
+		$http.post('/v1/postcards/preview', $scope.fathersdaytemplate, {
 			headers: {
 				'Content-Type': 'application/json'
 			}
@@ -127,6 +148,8 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 						$scope.preview.front_src = res.data.thumbnails[0].large;
 						$scope.preview.back_src = res.data.thumbnails[1].large;
 						console.log($scope.preview);
+												$scope.completeVisible = true;
+
 					}, 8000)
 
 
@@ -140,19 +163,20 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 			});
 	};
 
-
-	$scope.submitForm = function() {
+	$scope.isSubmitted = false;
+	$scope.fathersDayTemplateComplete = function() {
 		$scope.preview = {};
-
-		$http.post('/v1/postcards', $scope.postcard, {
+		
+		if ($scope.isSubmitted) {
+			return;
+		}
+		$scope.isSubmitted = true;
+		
+		$http.post('/v1/postcards', $scope.fathersdaytemplate, {
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		}).then(function successCallback(res) {
-				console.log('success');
-				console.log(res);
-				console.log(res.status);
-				console.log(res.data);
 				new Noty({
 					text: JSON.stringify(res.data, null, '  '),
 					animation: {}
@@ -160,12 +184,9 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				if (res.status === 200) {
 					console.log(Date.now());
 					$timeout(function() {
-						console.log('set preview');
-						console.log(Date.now());
-
 						console.log($scope);
-						$scope.preview.front_src = res.data.thumbnails[0].small;
-						$scope.preview.back_src = res.data.thumbnails[1].small;
+						$scope.preview.front_src = res.data.thumbnails[0].large;
+						$scope.preview.back_src = res.data.thumbnails[1].large;
 						console.log($scope.preview);
 					}, 8000)
 
@@ -179,6 +200,7 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				}).show();
 			});
 	};
+
 
 	$scope.addDollar = function() {
 

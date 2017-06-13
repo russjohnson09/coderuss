@@ -265,7 +265,8 @@ module.exports = function(opts, callback) {
 
     function setupProxy() {
         var ping = require('./v1/ping.js')({
-            app: app
+            app: app,
+            winston: mainLogger
         });
         var fileapi = require('./v1/files/main.js')({
             winston: mainLogger

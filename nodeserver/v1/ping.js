@@ -6,6 +6,7 @@ module.exports = function (opts) {
     var module = {};
     var router = express.Router();
     var app = opts.app;
+    var winston = opts.winston;
 
 
     function getLogSeneUrl() {
@@ -153,7 +154,6 @@ module.exports = function (opts) {
         res.setHeader('content-type', 'application/json; charset=utf-8');
 
         body = JSON.stringify(getElasticSearchToday());
-        console.log(body);
         if (app.get('logsene_token')) {
             r.post({
                 headers: {
@@ -187,9 +187,32 @@ module.exports = function (opts) {
     })
 
     router.post('/', function (req, res) {
+        if (req.body) {
+            winston.info({endpoint:'/v1/ping',method:'POST','BODY':req.body,
+                '_json': JSON.stringify(req.body,null,'    ')
+            });
+        }
         res.status(201);
         res.setHeader('content-type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(getStatusResponse()));
+    });
+    
+    router.post('/eventlogger', function (req, res) {
+        var winstonLogged = {};
+        if (req.body) {
+            var event_type = 'unkown';
+            if (req.body.event_type && req.body.event_type.id) {
+                event_type = req.body.event_type.id
+            }
+            var winstonLogged = {endpoint:'/v1/ping/eventlogger',method:'POST','BODY':req.body,
+                '_json': JSON.stringify(req.body,null,'    '),
+                'event_type': event_type
+            };
+        }
+        
+        res.status(201);
+        winston.info(winstonLogged);
+        res.json(winstonLogged)
     });
 
     module.router = router;

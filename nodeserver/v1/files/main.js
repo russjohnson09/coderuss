@@ -8,6 +8,8 @@ module.exports = function (opts) {
     var inspect = require('util').inspect;
     var current_files = {};
     var doDelete = true;
+    
+    const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 
     var expiry = opts.expiry || 86400000; //24 hours
 
@@ -52,8 +54,10 @@ module.exports = function (opts) {
 
         res.setHeader('Content-disposition', 'attachment; filename=' + filename);
         res.send(file.buffer);
+        
+        current_files[req.query.id].expirationCount--;
 
-        if (doDelete) {
+        if (current_files[req.query.id].expirationCount < 1) {
             delete current_files[req.query.id];
         }
 
@@ -76,12 +80,21 @@ module.exports = function (opts) {
             }
             winston.info(req.file);
             const crypto = require('crypto');
-            crypto.randomBytes(256, (err, buf) => {
+            var byteLength = req.body.byteLength || 256;
+            byteLength = parseInt(byteLength);
+            if (byteLength < 5) {
+                res.status(400);
+                res.send(JSON.stringify({ error: 'Bad Request' }));
+                return;
+            }
+            
+            crypto.randomBytes(byteLength, (err, buf) => {
                 if (err) throw err;
                 var id = buf.toString('hex');
                 current_files[id] = {
                     file: req.file,
-                    created: Date.now()
+                    created: Date.now(),
+                    expirationCount: req.body.expirationCount || 1
                 };
 
                 winston.debug(JSON.stringify(current_files));
@@ -93,6 +106,7 @@ module.exports = function (opts) {
                         id: id,
                         meta: {
                             message: "Temporary file created",
+                            href: CODERUSS_BASE_URL + '/api/v1/files/tmp?id='+id
                         }
                     }))
             });

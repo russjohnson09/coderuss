@@ -1,0 +1,75 @@
+<html>
+<head>
+      <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+
+<meta charset="UTF-8">
+<link href='https://fonts.googleapis.com/css?family=Lato:400' rel='stylesheet' type='text/css'>
+<title>Lob.com Thank You 4x6 Postcard Template Back</title>
+<style>
+  *, *:before, *:after {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  @font-face {
+    font-family: 'DragonIsComing';
+    font-style: normal;
+    font-weight: 400;
+    src: url('https://s3-us-west-2.amazonaws.com/lob-assets/Dragon+is+coming.otf') format('opentype');
+  }
+  body {
+    width: 6.25in;
+    height: 4.25in;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+  }
+  /* do not put text outside of the safe area */
+  #safe-area {
+    position: absolute;
+    width: 5.875in;
+    height: 3.875in;
+    left: 0.1875in;
+    top: 0.1875in;
+  }
+  #message {
+    position: absolute;
+    width: 2.2in;
+    height: 2in;
+    top: 1.4in;
+    left: .25in;
+    /*font-family: 'Lato';*/
+        font-family: "Kaushan Script","Helvetica Neue",Helvetica,Arial,cursive;
+
+    font-weight: 400;
+    font-size: .122in;
+  }
+  #thanks {
+    font-family: 'DragonIsComing';
+    font-size: 1.3in;
+    text-align: center;
+    color: white;
+    background-color: 	#800000;
+  }
+</style>
+</head>
+
+<body>
+  <div id="thanks">
+    {{backTitle}}
+  </div>
+
+  <!-- do not put text outside of the safe area -->
+  <div id="safe-area">
+    <div id="message">
+      <span class="accent">{{opening}}</span>
+      <br><br>
+      {{body}}
+      <br><br>
+      {{signature}}
+      <br>
+    </div>
+  </div>
+</body>
+
+</html>

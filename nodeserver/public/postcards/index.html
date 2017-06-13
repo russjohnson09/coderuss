@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,12 +10,12 @@
     <meta name="author" content="">
     <link rel="icon" href="/favicon.ico">
 
-    <title>Sing up | Coderuss</title>
+    <title>Postcard | Coderuss</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="/css/signin.css" rel="stylesheet">
+    <!--<link href="/css/signin.css" rel="stylesheet">-->
 
     <link href="/bower_components/noty/lib/noty.css" rel="stylesheet">
 
@@ -36,22 +37,73 @@
 
 
 
-        <!-- FORM ============ -->
 
-        <form class="form-signin" name="userForm" ng-submit="submitForm()" novalidate>
-            <h2 class="form-signin-heading">Test</h2>
+        <button class="btn btn-lg btn-primary btn-block" ng-click="populate()">Populate with test data</button>
 
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Test</button>
+        <form class="form-signin" name="userForm" ng-submit="fathersDayTemplate()" novalidate>
+            <div ng-repeat="(key, val) in postcard.to">
+                <div class="form-group">
+                    <label for="body">To {{key}}</label>
+                    <input class="form-control" name="body" ng-model="postcard.to[key]" required>
+                </div>
+            </div>
+
+            <div ng-repeat="(key, val) in postcard.from">
+                <div class="form-group">
+                    <label for="body">From {{key}}</label>
+                    <input class="form-control" name="body" ng-model="postcard.from[key]" required>
+                </div>
+            </div>
+            <label for=selectedTemplate>Template</label>
+            <select ng-model="selectedTemplate" ng-options="template.value as template.label for template in templates">
+
+
+        </select>
+            <div ng-show="selectedTemplate=='fathersday'">
+                <div class="form-group">
+                    <label for="body">Body</label>
+                    <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="signature">Signature</label>
+                    <textarea class="form-control" name="signature" ng-model="postcard.data.signature" required></textarea>
+                </div>
+            </div>
+            
+            
+            <div ng-show="selectedTemplate=='postcard'">
+                <div class="form-group">
+                    <label for="body">Body</label>
+                    <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="signature">Signature</label>
+                    <textarea class="form-control" name="signature" ng-model="postcard.data.signature" required></textarea>
+                </div>
+            </div>
+
+
+
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Preview</button>
 
         </form>
-        <img ng-src="{{preview.front_src}}">
-        <img ng-src="{{preview.back_src}}">
+        <span ng-bind=completeVisible></span>
 
-        <!--<image src="https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986_thumb_small_1.png?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=t3OhGjrlf106W8f9MAfnR9XwhGA%3D"></image>-->
-        <!--<image src="https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986_thumb_small_2.png?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=5Yz2uXUzMGcVVm%2FImOWpAITep8Y%3D"></image>-->
-
-<!--        <iframe src="http://docs.google.com/gview?url=https://s3-us-west-2.amazonaws.com/assets.lob.com/psc_4d22e28836c9a986.pdf?AWSAccessKeyId=AKIAIILJUBJGGIBQDPQQ&Expires=1499388577&Signature=Yf1W3fPLa9u8Vma3sxzMmBkjChM%3&embedded=true" -->
-<!--style="width:600px; height:500px;" frameborder="0"></iframe>-->
+        <div ng-show=completeVisible>
+            <div>
+                <h1>Front</h1>
+                <a ng-href={{preview.front_src}}><img ng-src="{{preview.front_src}}"></a>
+            </div>
+            <div>
+                <h1>Back</h1>
+                <a ng-href={{preview.back_src}}><img ng-src="{{preview.back_src}}"></a>
+            </div>
+            <div>
+                <button class="btn btn-lg btn-primary btn-block" ng-click="fathersDayTemplateComplete()">Complete</button>
+            </div>
+        </div>
 
     </div>
 

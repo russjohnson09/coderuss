@@ -52,8 +52,10 @@ module.exports = function (opts) {
 
         res.setHeader('Content-disposition', 'attachment; filename=' + filename);
         res.send(file.buffer);
+        
+        file.expirationCount--;
 
-        if (doDelete) {
+        if (file.expirationCount < 1) {
             delete current_files[req.query.id];
         }
 
@@ -81,7 +83,8 @@ module.exports = function (opts) {
                 var id = buf.toString('hex');
                 current_files[id] = {
                     file: req.file,
-                    created: Date.now()
+                    created: Date.now(),
+                    expirationCount: req.body.expirationCount || 1
                 };
 
                 winston.debug(JSON.stringify(current_files));

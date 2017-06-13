@@ -144,6 +144,7 @@ module.exports = function (opts) {
         };
     }
 
+
     router.get('/', function (req, res) {
         res.setHeader('content-type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(getStatusResponse()));

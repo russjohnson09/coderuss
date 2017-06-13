@@ -95,17 +95,6 @@ module.exports = function (opts) {
     }
 
 
-
-
-
-    var collection = db.collection('init');
-
-    collection.insert({ server_start: Date.now() },
-        function (err, result) {
-            if (err) winston.error(err);
-            winston.info(JSON.stringify(result.ops));
-        });
-
     var staticRoot = __dirname + '/public';
 
     router.use(express.static(staticRoot));

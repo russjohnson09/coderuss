@@ -62,11 +62,11 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 		$scope.fathersdaytemplate.from = $scope.testFrom;
 	}
 	
-	$http.get('/postcards/fathersday.html').then(function successCallback(res) {
+	$http.get('/postcards/templates/fathersday/front.html').then(function successCallback(res) {
 		$scope.fathersdaytemplate.front = res.data;
 		})
 		
-	$http.get('/postcards/fathersday-back.html').then(function successCallback(res) {
+	$http.get('/postcards/templates/fathersday/back.html').then(function successCallback(res) {
 		$scope.fathersdaytemplate.back = res.data;
 		});
 		

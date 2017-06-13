@@ -36,6 +36,12 @@
     <div class="container" ng-app="validationApp" ng-controller="mainController">
 
 
+                <input type="file" name="file" class="form-control" ng-model="file" ng-minlength="5">
+<button ng-click="submitImage()">Image </button>
+
+            <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
+                <label class="sr-only" for="password">Password</label>
+            </div>
 
 
         <button class="btn btn-lg btn-primary btn-block" ng-click="populate()">Populate with test data</button>
@@ -73,6 +79,12 @@
             
             
             <div ng-show="selectedTemplate=='postcard'">
+                
+                <div class="form-group">
+                    <label for="body">Body</label>
+                    <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>
+                </div>
+                
                 <div class="form-group">
                     <label for="body">Body</label>
                     <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>

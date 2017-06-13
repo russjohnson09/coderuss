@@ -209,27 +209,43 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 	};
 
 
-	$scope.addDollar = function() {
+	$scope.submitImage = function() {
 
-		$http.post('/v1/users/' + $scope.me._id + '/inc', {
-			inc: 1
-		}, {
+		var fd = new FormData();
+		$scope.file = $('input[name=file]')[0].files[0]
+		console.log($scope.file)
+		fd.append('file', $scope.file);
+		fd.append('expirationCount',50);
+		$http.post('/api/v1/files/tmp', fd, 
+		{
+			transformRequest: angular.identity,
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': undefined
 			}
 		}).then(function successCallback(res) {
+				console.log('success');
+				console.log(res);
 				console.log(res.status);
-				new Noty({
-						text: JSON.stringify(res.data, null, '  '),
+				console.log(res.data);
+				if (res.status === 201) {
+					new Noty({
+						text: JSON.stringify(res.data,null,'  ') +
+						"<a href=/api/v1/files/tmp?id="+res.data.id+">Link to file</a>",
 						animation: {}
 					}).show();
+				}
 			},
 			function errorCallback(res) {
-				new Noty({
-					text: JSON.stringify(res.data, null, '  '),
-					animation: {}
-				}).show();
+				if (res.status === 401) {
+					new Noty({
+						text: JSON.stringify(res.data,null,'  '),
+						animation: {}
+					}).show();
+				}
+				console.log(res.status);
 			});
+
 	};
+
 
 });

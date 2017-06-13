@@ -53,9 +53,9 @@ module.exports = function (opts) {
         res.setHeader('Content-disposition', 'attachment; filename=' + filename);
         res.send(file.buffer);
         
-        file.expirationCount--;
+        current_files[req.query.id].expirationCount--;
 
-        if (file.expirationCount < 1) {
+        if (current_files[req.query.id].expirationCount < 1) {
             delete current_files[req.query.id];
         }
 

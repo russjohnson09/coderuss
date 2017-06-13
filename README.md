@@ -24,6 +24,7 @@ unit tests when a service is not practical or not efficient.
 
 
 # Changelog
+* /api/v1/files/tmp added expirationCount to delete after x uses 
 * /postcards/preview
 * /postcards/test UI testing postcards api
 * /v1/postcards POST protected by paywall

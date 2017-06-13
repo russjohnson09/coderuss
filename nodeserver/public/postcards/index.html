@@ -36,17 +36,17 @@
     <div class="container" ng-app="validationApp" ng-controller="mainController">
 
 
-                <input type="file" name="file" class="form-control" ng-model="file" ng-minlength="5">
-<button ng-click="submitImage()">Image </button>
+        <!--<input type="file" name="file" class="form-control" ng-model="file" ng-minlength="5">-->
+        <!--<button ng-click="submitImage()">Image </button>-->
 
-            <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
-                <label class="sr-only" for="password">Password</label>
-            </div>
+        <div class="form-group" ng-class="{ 'has-error' : userForm.password.$invalid && !userForm.password.$pristine }">
+            <label class="sr-only" for="password">Password</label>
+        </div>
 
 
         <button class="btn btn-lg btn-primary btn-block" ng-click="populate()">Populate with test data</button>
 
-        <form class="form-signin" name="userForm" ng-submit="fathersDayTemplate()" novalidate>
+        <form class="form-signin" name="userForm">
             <div ng-repeat="(key, val) in postcard.to">
                 <div class="form-group">
                     <label for="body">To {{key}}</label>
@@ -76,15 +76,29 @@
                     <textarea class="form-control" name="signature" ng-model="postcard.data.signature" required></textarea>
                 </div>
             </div>
-            
-            
+
+
             <div ng-show="selectedTemplate=='postcard'">
-                
+
+                <lable>Image</lable>
+                <input type="file" name="file" class="form-control" ng-model="file" ng-minlength="5">
+
+
                 <div class="form-group">
-                    <label for="body">Body</label>
-                    <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>
+                    <label for="caption">Caption</label>
+                    <textarea class="form-control" name="body" ng-model="postcard.data.caption" required></textarea>
                 </div>
                 
+                <div class="form-group">
+                    <label for="backTitle">Opening</label>
+                    <textarea class="form-control" name="backTitle" ng-model="postcard.data.backTitle" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="opening">Opening</label>
+                    <textarea class="form-control" name="signature" ng-model="postcard.data.opening" required></textarea>
+                </div>
+
                 <div class="form-group">
                     <label for="body">Body</label>
                     <textarea class="form-control" name="body" ng-model="postcard.data.body" required></textarea>
@@ -97,8 +111,7 @@
             </div>
 
 
-
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Preview</button>
+            <button class="btn btn-lg btn-primary btn-block" ng-click="postcardPreview()">Preview</button>
 
         </form>
         <span ng-bind=completeVisible></span>
@@ -113,7 +126,7 @@
                 <a ng-href={{preview.back_src}}><img ng-src="{{preview.back_src}}"></a>
             </div>
             <div>
-                <button class="btn btn-lg btn-primary btn-block" ng-click="fathersDayTemplateComplete()">Complete</button>
+                <button class="btn btn-lg btn-primary btn-block" ng-click="submitCompletePostcard()">Complete</button>
             </div>
         </div>
 

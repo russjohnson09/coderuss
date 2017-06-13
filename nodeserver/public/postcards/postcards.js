@@ -11,7 +11,7 @@ validationApp.config(['$locationProvider', function($locationProvider) {
 
 
 //https://stackoverflow.com/questions/19009370/timeout-not-defined-error-in-angularjs-app
-validationApp.controller('mainController', function($rootScope, $scope, $location, $http, $timeout,$window, $sce) {
+validationApp.controller('mainController', function($rootScope, $scope, $location, $http, $timeout, $window, $sce) {
 
 	// var userId;
 	var user = {};
@@ -19,38 +19,40 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 		'test': 1
 	};
 	$scope.test = 'test';
-	
+
 	$scope.selectedTemplate = {};
-	
-	$scope.templates = [
-		{value:'fathersday','label': 'Father\'s day'},
-		{value:'postcard','label': 'Postcard'},
-	];
-	
+
+	$scope.templates = [{
+		value: 'fathersday',
+		'label': 'Father\'s day'
+	}, {
+		value: 'postcard',
+		'label': 'Postcard'
+	}, ];
+
 	$scope.currentProjectUrl = '/templates/fathersday.html'
-	
+
 	$scope.postcard = {
-			description: 'Demo Postcard job',
-			to: {
-				name: null,
-				address_line1: null,
-				address_city: null,
-				address_state: null,
-				address_zip: null,
-			},
-			from: {
-				name: null,
-				address_line1: null,
-				address_city: null,
-				address_state: null,
-				address_zip: null,
-			},
-			front: null,
-			back: null,
-			data: {
-			}
-		};
-		
+		description: 'Demo Postcard job',
+		to: {
+			name: null,
+			address_line1: null,
+			address_city: null,
+			address_state: null,
+			address_zip: null,
+		},
+		from: {
+			name: null,
+			address_line1: null,
+			address_city: null,
+			address_state: null,
+			address_zip: null,
+		},
+		front: null,
+		back: null,
+		data: {}
+	};
+
 	$scope.testTo = {
 		name: 'Joe Smith',
 		address_line1: '123 Main Street',
@@ -65,46 +67,13 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 		address_state: 'CA',
 		address_zip: '94041'
 	};
-		
+
 	$scope.populate = function() {
 		$scope.postcard.to = $scope.testTo;
 		$scope.postcard.from = $scope.testFrom;
 	}
-	
-
-	$http.get('/postcards/templates/fathersday.html').then(function successCallback(res) {
-		$scope.postcard.front = res.data;
-		});
-		
-	$http.get('/postcards/templates/fathersday-back.html').then(function successCallback(res) {
-		$scope.postcard.back = res.data;
-	});
-		
 
 
-	
-	$scope.postcard = {
-			description: 'Demo Postcard job',
-			to: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
-			},
-			from: {
-				name: 'Joe Smith',
-				address_line1: '123 Main Street',
-				address_city: 'Mountain View',
-				address_state: 'CA',
-				address_zip: '94041'
-			},
-			front: '<html style="padding: 1in; font-size: 50;">Front HTML for {{name}}</html>',
-			back: '<html style="padding: 1in; font-size: 20;">Back HTML for {{name}}</html>',
-			data: {
-				name: 'Harry'
-			}
-		}
 
 	$http.get('/v1/users/me', {
 		transformRequest: angular.identity,
@@ -133,91 +102,82 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 
 
 	$scope.completeVisible = false;
-	$scope.fathersDayTemplate = function() {
-		$scope.preview = {};
-		
-		$http.post('/v1/postcards/preview', $scope.fathersdaytemplate, {
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		}).then(function successCallback(res) {
-				new Noty({
-					text: JSON.stringify(res.data, null, '  '),
-					animation: {}
-				}).show();
-				if (res.status === 200) {
-					console.log(Date.now());
-					$timeout(function() {
-						console.log('set preview');
-						console.log(Date.now());
 
-						console.log($scope);
-						$scope.preview.front_src = res.data.thumbnails[0].large;
-						$scope.preview.back_src = res.data.thumbnails[1].large;
-						console.log($scope.preview);
-												$scope.completeVisible = true;
-
-					}, 8000)
-
-
-				}
-			},
-			function errorCallback(res) {
-				new Noty({
-					text: JSON.stringify(res.data, null, '  '),
-					animation: {}
-				}).show();
+	$scope.getTemplate = function(callback) {
+		$http.get('/postcards/templates/' + $scope.selectedTemplate + '/front.html').then(function successCallback(res) {
+			$scope.postcard.front = res.data;
+			$http.get('/postcards/templates/' + $scope.selectedTemplate + '/back.html').then(function successCallback(res) {
+				$scope.postcard.back = res.data;
+				console.log('template complete');
+				callback();
 			});
+		});
+	}
+
+	$scope.postcardPreview = function() {
+		$scope.preview = {};
+
+		console.log('call get template');
+		$scope.getTemplate(function() {
+			console.log('got template');
+			$scope.submitImage(function() {
+				console.log('submitted image');
+				$http.post('/v1/postcards/preview', $scope.postcard, {
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}).then(function successCallback(res) {
+						new Noty({
+							text: JSON.stringify(res.data, null, '  '),
+							animation: {}
+						}).show();
+						if (res.status === 200) {
+							console.log(Date.now());
+							$timeout(function() {
+								console.log('set preview');
+								console.log(Date.now());
+
+								console.log($scope);
+								$scope.preview.front_src = res.data.thumbnails[0].large;
+								$scope.preview.back_src = res.data.thumbnails[1].large;
+								console.log($scope.preview);
+								$scope.completeVisible = true;
+
+							}, 8000)
+
+
+						}
+					},
+					function errorCallback(res) {
+						new Noty({
+							text: JSON.stringify(res.data, null, '  '),
+							animation: {}
+						}).show();
+					});
+			});
+
+		});
+
 	};
 
 	$scope.isSubmitted = false;
-	$scope.fathersDayTemplateComplete = function() {
-		$scope.preview = {};
-		
-		if ($scope.isSubmitted) {
-			return;
-		}
-		$scope.isSubmitted = true;
-		
-		$http.post('/v1/postcards', $scope.fathersdaytemplate, {
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		}).then(function successCallback(res) {
-				new Noty({
-					text: JSON.stringify(res.data, null, '  '),
-					animation: {}
-				}).show();
-				if (res.status === 200) {
-					console.log(Date.now());
-					$timeout(function() {
-						console.log($scope);
-						$scope.preview.front_src = res.data.thumbnails[0].large;
-						$scope.preview.back_src = res.data.thumbnails[1].large;
-						console.log($scope.preview);
-					}, 8000)
+
+	$scope.img = "";
 
 
-				}
-			},
-			function errorCallback(res) {
-				new Noty({
-					text: JSON.stringify(res.data, null, '  '),
-					animation: {}
-				}).show();
-			});
-	};
-
-
-	$scope.submitImage = function() {
-
-		var fd = new FormData();
+	$scope.submitImage = function(callback) {
 		$scope.file = $('input[name=file]')[0].files[0]
+		if (!$scope.file) {
+			console.log('no file');
+			return callback();
+		}
+		var fd = new FormData();
 		console.log($scope.file)
 		fd.append('file', $scope.file);
-		fd.append('expirationCount',50);
-		$http.post('/api/v1/files/tmp', fd, 
-		{
+		fd.append('expirationCount', 50);
+		fd.append('byteLength', 5);
+
+		$http.post('/api/v1/files/tmp', fd, {
 			transformRequest: angular.identity,
 			headers: {
 				'Content-Type': undefined
@@ -228,24 +188,69 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				console.log(res.status);
 				console.log(res.data);
 				if (res.status === 201) {
+					$scope.postcard.data.img = "<img src=" + res.data.meta.href + "></img>"
+					console.log('img length');
+					console.log($scope.postcard.data.img.length);
 					new Noty({
-						text: JSON.stringify(res.data,null,'  ') +
-						"<a href=/api/v1/files/tmp?id="+res.data.id+">Link to file</a>",
+						text: JSON.stringify(res.data, null, '  ') +
+							"<a href=/api/v1/files/tmp?id=" + res.data.id + ">Link to file</a>",
 						animation: {}
 					}).show();
 				}
+				callback();
 			},
 			function errorCallback(res) {
 				if (res.status === 401) {
 					new Noty({
-						text: JSON.stringify(res.data,null,'  '),
+						text: JSON.stringify(res.data, null, '  '),
 						animation: {}
 					}).show();
 				}
 				console.log(res.status);
+				callback();
+
 			});
 
 	};
+
+
+	$scope.submitCompletePostcard = function() {
+		$scope.preview = {};
+
+		if ($scope.isSubmitted) {
+			return;
+		}
+		$scope.isSubmitted = true;
+
+		$http.post('/v1/postcards', $scope.postcard, {
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(function successCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+				if (res.status === 200) {
+					console.log(Date.now());
+					$timeout(function() {
+						console.log($scope);
+						$scope.preview.front_src = res.data.thumbnails[0].large;
+						$scope.preview.back_src = res.data.thumbnails[1].large;
+						console.log($scope.preview);
+					}, 8000)
+
+
+				}
+			},
+			function errorCallback(res) {
+				new Noty({
+					text: JSON.stringify(res.data, null, '  '),
+					animation: {}
+				}).show();
+			});
+	};
+
 
 
 });

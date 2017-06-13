@@ -122,6 +122,10 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 			console.log('got template');
 			$scope.submitImage(function() {
 				console.log('submitted image');
+        new Noty({
+							text: JSON.stringify($scope.postcard, null, '  '),
+							animation: {}
+						}).show()
 				$http.post('/v1/postcards/preview', $scope.postcard, {
 					headers: {
 						'Content-Type': 'application/json'

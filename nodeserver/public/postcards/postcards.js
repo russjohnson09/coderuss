@@ -122,7 +122,7 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 			console.log('got template');
 			$scope.submitImage(function() {
 				console.log('submitted image');
-				new Noty({
+        new Noty({
 							text: JSON.stringify($scope.postcard, null, '  '),
 							animation: {}
 						}).show()

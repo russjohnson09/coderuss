@@ -69,7 +69,6 @@ module.exports = function (opts) {
         var errors = [];
         var requestBody = req.body;
         upload(req, res, function (err) {
-            winston.info(req.file);
             if (err || !req.file) {
                 winston.error("upload error:" + err);
                 winston.error(req.files);
@@ -78,7 +77,6 @@ module.exports = function (opts) {
                 res.send(JSON.stringify({ error: 'Bad Request' }));
                 return;
             }
-            winston.info(req.file);
             const crypto = require('crypto');
             var byteLength = req.body.byteLength || 256;
             byteLength = parseInt(byteLength);
@@ -97,7 +95,6 @@ module.exports = function (opts) {
                     expirationCount: req.body.expirationCount || 1
                 };
 
-                winston.debug(JSON.stringify(current_files));
                 res.setHeader('Content-Type', 'application/json');
                 res.status(201);
 

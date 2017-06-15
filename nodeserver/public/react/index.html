@@ -6,17 +6,22 @@
   <head>
     <meta charset="UTF-8" />
     <title>Hello World</title>
-    <script src="/bower_components/react/react.min.js"></script>
-    <script src="/bower_components/react/react-dom.min.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="/bower_components/react/react.js"></script>
+    <script src="/bower_components/react/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
   </head>
   <body>
     <div id="root"></div>
     <script type="text/babel">
 
-function formatName(user) {
-  return user.firstName + ' ' + user.lastName;
-}
+function tick() {
+    function formatName(user) {
+      return user.firstName + ' ' + user.lastName;
+    }
+    
+    console.log('hello')
+
+
 
 const user = {
   firstName: 'Harper',
@@ -24,15 +29,22 @@ const user = {
 };
 
 const element = (
+    <div>
   <h1>
-    Hello, {formatName(user)}!
+    Hello, {formatName(user)} !
   </h1>
+  <h1>{(new Date()).toString()}</h1>
+  </div>
 );
 
 ReactDOM.render(
   element,
   document.getElementById('root')
 );
+
+}
+
+setInterval(tick,1000)
 
     </script>
   </body>

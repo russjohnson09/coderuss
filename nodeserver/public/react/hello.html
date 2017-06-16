@@ -1,20 +1,222 @@
+
+
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
     <title>Hello World</title>
-    <script src="https://unpkg.com/react@latest/dist/react.js"></script>
-    <script src="https://unpkg.com/react-dom@latest/dist/react-dom.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="/bower_components/react/react.js"></script>
+    <script src="/bower_components/react/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="text/babel">
+    <div id="hello"></div>
+        <div id="app"></div>
+        <div id="comment"></div>
+        <div id="clock"></div>
 
-      ReactDOM.render(
-        <h1>Hello, world!</h1>,
-        document.getElementById('root')
-      );
+    <script type="text/babel">
+    
+//two ways of declaring Components
+//1. as class
+class Welcome extends React.Component {
+  render() {
+    return <h1>Hello, {this.props.name}</h1>;
+  }
+}
+//2.  As function
+function App() {
+  return (
+    <div>
+      <Welcome name="Sara" />
+      <Welcome name="Cahal" />
+      <Welcome name="Edite" />
+    </div>
+  );
+}
+
+function formatDate(date)
+{
+    return date.toString();
+}
+
+function Comment(props) {
+  return (
+    <div className="Comment">
+      <div className="UserInfo">
+        <img className="Avatar"
+          src={props.author.avatarUrl}
+          alt={props.author.name}
+        />
+        <div className="UserInfo-name">
+          {props.author.name}
+        </div>
+      </div>
+      <div className="Comment-text">
+        {props.text}
+      </div>
+      <div className="Comment-date">
+        {formatDate(props.date)}
+      </div>
+    </div>
+  );
+}
+
+function sum(a, b) {
+  return a + b;
+}
+
+//this function changes property input and is not allowed
+// function withdraw(account, amount) {
+//   account.total -= amount;
+// }
+
+// const comment = <Comment author={} date=(new Date())  />
+
+const author = {};
+const comment = <Comment author={author} date={new Date()}  />
+
+
+ReactDOM.render(comment,document.getElementById('comment'))
+
+
+ReactDOM.render(<App />,document.getElementById('app'))
+
+function tick() {
+    function formatName(user) {
+      return user.firstName + ' ' + user.lastName;
+    }
+    
+    console.log('hello')
+
+
+
+const user = {
+  firstName: 'Harper',
+  lastName: 'Perez'
+};
+
+const element = (
+    <div>
+  <h1>
+    Hello, {formatName(user)} !
+  </h1>
+  <h1>{(new Date()).toString()}</h1>
+  </div>
+);
+
+
+
+    ReactDOM.render(
+      element,
+      document.getElementById('root')
+    );
+
+}
+
+const hello = <Welcome name="Sara" />;
+
+    ReactDOM.render(
+      hello,
+      document.getElementById('hello')
+    );
+
+setInterval(tick,1000);
+
+tick();
+
+
+function Posts(props) {
+  return (<div>posts</div>);
+    var posts = '';
+    props.posts.forEach(function(el) {
+          posts += <span>{el.title}</span>
+    });
+    return posts;
+    
+}
+
+
+class Clock extends React.Component {
+  
+    tick() {
+      // Wrong cannot set directly or rely on other states
+      //this.counter = 1;
+// this.setState({
+  // counter: this.state.counter + this.props.increment,
+// });
+// Correct
+this.setState((prevState, props) => ({
+  counter: prevState.counter + props.increment
+}));
+    this.setState({
+      date: new Date()
+    });
+    
+    //set state object is merged
+      this.setState({
+        posts: [{title: "hello post"},{title: "hello pos2t"}]
+      });
+  }
+  
+    componentDidMount() {
+console.log('clock did mount');
+
+
+    this.timerID = 
+    setInterval(
+      () => {
+        console.log('tick')
+        this.tick()},
+      1000
+    );
+
+    // this.timerID = 
+    // setTimeout(
+    //   () => {
+    //     console.log('tick')
+    //     this.tick()},
+    //   1000
+    // );
+  }
+
+  componentWillUnmount() {
+console.log('clock will unmount');
+
+//haven't seen this event yet
+    clearInterval(this.timerID);
+
+
+  }
+  constructor(props) {
+    super(props);
+    this.state = {date: new Date()};
+    this.state.counter = 1;
+  }
+  render() {
+    return (
+      <div>
+        <h1>Hello, world!</h1>
+        <h2>{this.state.counter}</h2>
+      
+        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+        
+        <Posts posts={this.state.posts} />
+      </div>
+    );
+  }
+}
+function tickClock() {
+  ReactDOM.render(
+    <Clock increment={2} date={new Date()} />,
+    document.getElementById('clock')
+  );
+}
+
+setInterval(tickClock, 1000);
+
 
     </script>
   </body>

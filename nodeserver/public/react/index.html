@@ -5,13 +5,36 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World</title>
-    <script src="/bower_components/react/react.js"></script>
+    <title>Habit Tracker</title>
+    
+            <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js', {scope: '/react/'})
+        .then(function(reg) {
+          // registration worked
+          console.log('Registration succeeded. Scope is ' + reg.scope);
+        }).catch(function(error) {
+          // registration failed
+          console.log('Registration failed with ' + error);
+        });
+      }
+    </script>
+    
+    <script src="/bower_components/react/react.js"></script> 
     <script src="/bower_components/react/react-dom.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
+    
+        <script src="/bower_components/jquery/dist/jquery.js"></script>
+
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.css"></link>
+
+
   </head>
   <body>
     <div id="root"></div>
+  
+
     
     <script type="text/babel">
     

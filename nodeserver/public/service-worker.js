@@ -14,13 +14,14 @@
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
 // in turn trigger the install event again.
-const PRECACHE = 'precache-v1';
+const PRECACHE = 'precache-v12' + Date.now();
 const RUNTIME = 'runtime';
 
 // A list of local resources we always want to be cached.
 const PRECACHE_URLS = [
-  '/react/',
-  '/react/index.html',
+  // '/react/',
+  '/v1/ping'
+  // '/react/index.html',
   // '/service-worker.js'
 
 //   './', // Alias for index.html
@@ -29,8 +30,13 @@ const PRECACHE_URLS = [
 //   'demo.js'
 ];
 
+// console.log('service-worker 0735');
+
+// console.log(PRECACHE_URLS);
+
 // The install handler takes care of precaching the resources we always need.
 self.addEventListener('install', event => {
+  console.log('install service-worker');
   event.waitUntil(
     caches.open(PRECACHE)
       .then(cache => cache.addAll(PRECACHE_URLS))
@@ -41,10 +47,13 @@ self.addEventListener('install', event => {
 // The activate handler takes care of cleaning up old caches.
 self.addEventListener('activate', event => {
   const currentCaches = [PRECACHE, RUNTIME];
+  console.log('activate',currentCaches);
   event.waitUntil(
     caches.keys().then(cacheNames => {
+      console.log(cacheNames);
       return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
     }).then(cachesToDelete => {
+      console.log('delete',cachesToDelete);
       return Promise.all(cachesToDelete.map(cacheToDelete => {
         return caches.delete(cacheToDelete);
       }));
@@ -56,18 +65,25 @@ self.addEventListener('activate', event => {
 // If no response is found, it populates the runtime cache with the response
 // from the network before returning it to the page.
 self.addEventListener('fetch', event => {
+  console.log('fetch',event.request.url,self.location.origin);
   // Skip cross-origin requests, like those for Google Analytics.
   if (event.request.url.startsWith(self.location.origin)) {
+    console.log('does start with')
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
+        if (cachedResponse && false) {
+          console.log('returning cachedResponse',caches,cachedResponse)
           return cachedResponse;
         }
-
+        console.log('fetch',RUNTIME,caches);
+        return; //no runtime cache
         return caches.open(RUNTIME).then(cache => {
+          // console.log('runtime cache', cache);
           return fetch(event.request).then(response => {
             // Put a copy of the response in the runtime cache.
             return cache.put(event.request, response.clone()).then(() => {
+              // console.log('runtime cache response');
+              console.log('runtime cache response',event.request.url);
               return response;
             });
           });

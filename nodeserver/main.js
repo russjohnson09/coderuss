@@ -254,6 +254,7 @@ module.exports = function(opts, callback) {
             addPostcardRouter();
             addVoiceRouter();
             addTodosRouter();
+            addHabitsRouter();
             addGithubRouter();
             addZorkRouter();
             addDeployRouter();
@@ -535,6 +536,14 @@ module.exports = function(opts, callback) {
     function addGithubRouter() {
 
         app.use('/v1', require('./v1/github/github.js')({
+            winston: mainLogger,
+            db: mongo_db,
+            sessionMiddleware: sessionMiddleware
+        }).router);
+    }
+    
+    function addHabitsRouter() {
+        app.use('/v1/habits', require('./v1/habits/habits.js')({
             winston: mainLogger,
             db: mongo_db,
             sessionMiddleware: sessionMiddleware

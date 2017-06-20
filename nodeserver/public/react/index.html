@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -8,20 +5,67 @@
     <title>Habit Tracker</title>
     
             <script>
-      if ('serviceWorker' in navigator) {
+            function registerServiceWorker() {
+                    if ('serviceWorker' in navigator) {
+        console.log('registering service worker');
         navigator.serviceWorker.register('/service-worker.js', {scope: '/react/'})
         .then(function(reg) {
+          
+          // reg.unregister().then(function(boolean) {
+          //   console.log('unregistered 0756 version');
+          // });
           // registration worked
+          const version = Date.now();
+          console.log('registered 0756 version' + version);
           console.log('Registration succeeded. Scope is ' + reg.scope);
         }).catch(function(error) {
           // registration failed
           console.log('Registration failed with ' + error);
         });
       }
+      else {
+        console.log('serviceworker not supported');
+      }
+      
+      console.log('habit tracker 0756');
+            }
+      
+      function unregister() {
+        navigator.serviceWorker.getRegistration("http://localhost:3000/react/")
+        .then(function(reg) {
+          reg.unregister().then(function(isSuccess) {
+            if (isSuccess) {
+              console.log('successfully unregistered serviceworker')
+            }
+            else {
+              console.log('could not unregister',reg);
+            }
+          });
+          // console.log(reg)
+        })
+      }
+
+
+            var doServiceWorker = false;
+            if (doServiceWorker) {
+              registerServiceWorker();
+            }
+            // unregister();
+            
+          
+
+    
     </script>
     
+    <script src="/bower_components/moment/moment.js"></script>
+    <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
+
     <script src="/bower_components/react/react.js"></script> 
     <script src="/bower_components/react/react-dom.js"></script>
+    
+    <!--<script src="/bower_components/react/react-dom.js"></script>-->
+
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
     
         <script src="/bower_components/jquery/dist/jquery.js"></script>
@@ -38,12 +82,176 @@
     
     <script type="text/babel">
     
+
+class HabitInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: ''};
+    
+    this.state = {habit: {
+      name: ''
+    }}
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    var habit = this.state.habit;
+    habit.name = event.target.value;
+    console.log(habit);
+    this.setState({habit:habit});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    this.props.submitCallback(this.state.habit);
+    // alert('A name was submitted: ' + this.state.value);
+    console.log('prevent default');
+  }
+
+  render() {
+    return (
+      <div>
+      <RemoveServiceWorker />
+      <form onSubmit={this.handleSubmit}>
+        <label >Habit Name:
+          <input type="text" value={this.state.habit.name} onChange={this.handleChange} />
+        </label>
+        <button type="submit">Add Habit</button>
+      </form>
+      </div>
+    );
+  }
+}
+
+class RemoveServiceWorker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {serviceWorker: null}
+  }
+  
+  
+  componentDidMount() {
+    navigator.serviceWorker.getRegistration(window.location.href)
+    .then(function(reg) {
+      if (reg) {
+        this.setState({serviceWorker:reg})
+      }
+      }.bind(this))
+  }
+
+
+  handleSubmit(event) {
+    event.preventDefault();
+    this.state.serviceWorker.unregister().then(function(isSuccess) {
+      if (isSuccess) {
+        this.setState({serviceWorker:null})
+        console.log('successfully unregistered serviceworker')
+      }
+      else {
+        console.log('could not unregister',reg);
+      }
+    });
+  }
+
+  render() {
+    if (this.state.serviceWorker) {
+      return <button onClick={this.handleSubmit.bind(this)}>RemoveServiceWorker</button>
+    }
+    else {
+      return null;
+    }
+  }
+}
+
+//https://facebook.github.io/react/docs/lists-and-keys.html
+function HabitList(props) {
+  const habitList = props.habits.map((habit, index) =>
+    <Habit key={index} DeleteCallback={props.DeleteCallback} habit={habit} />
+    );
+    console.log(habitList);
+    return (<table><tbody>{habitList}</tbody></table>);
+  // return habitList;
+  // return( 
+  //   <Habit habit={props.habit} />
+  //   );
+}
+
+function Habit(props) {
+  return ( 
+    <tr>
+    <td>{props.habit._id}</td>
+    <td >
+    {props.habit.name}
+    </td>
+    <td >
+    <button onClick={function() {props.DeleteCallback(props.habit)}}>Delete </button>
+    </td>
+    </tr>
+    );
+}
+
+
 class HabitTracker extends React.Component {
   constructor(props) {
     super(props);
-    // this.handleLoginClick = this.handleLoginClick.bind(this);
-    // this.handleLogoutClick = this.handleLogoutClick.bind(this);
-    this.state = {isLoggedIn: false};
+    this.state = {isLoggedIn: false,
+      habits: [
+        // {name:'test'}
+      ]
+    };
+  }
+  
+  getHabits() {
+    $.ajax('/v1/habits').then(function(res) {
+      console.log('/v1/habits GET',res);
+        this.setState({habits:res});
+    }.bind(this));
+    
+  }
+  
+  componentDidMount() {
+    this.getHabits();
+  }
+  
+  removeHabit(habit)
+  {
+    console.log('remove habit',habit,this);
+    
+    $.ajax({
+      url: '/v1/habits/' + habit._id,
+      'method': 'DELETE',
+      data: habit
+        }
+        ).then(function(res) {
+          this.getHabits();
+      }.bind(this));
+  }
+  
+  addHabit(habit) {
+    console.log('add habit',habit,this);
+    
+    $.ajax({
+      url: '/v1/habits',
+      'method': 'POST',
+      data: habit
+        }
+        ).then(function(res) {
+          this.getHabits();
+      }.bind(this));
+    // return;
+    // var habits = this.state.habits;
+    
+    
+    
+    // this.getHabits();
+   
+    // habits.push(habit);
+ 
+    // this.setState({
+    //   habits: habits
+    // });
   }
 
   handleLoginClick() {
@@ -59,16 +267,68 @@ class HabitTracker extends React.Component {
     return (
       <div>
       <h1>Habit Tracker</h1>
+      <HabitInput submitCallback={this.addHabit.bind(this)} />
+      <HabitList DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
       </div>
+    );
+  }
+}
+
+function PingDiv(props) {
+      const dateFormat = 'MMMM Do YYYY, h:mm:ss a z';
+
+  console.log(props.ping);
+  if (props.ping.server) {
+    var started = props.ping.server.started;
+    var dateString = moment(started).tz(moment.tz.guess()).format(dateFormat);
+    return (
+      <div className="ping">
+      <div> Last Update: </div>
+      <div>
+        {dateString}
+      </div>
+      </div>
+    );
+  }
+  else {
+    return (
+      <div></div>
+      );
+  }
+
+}
+
+class Ping extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {ping:{}};
+  }
+  
+  componentDidMount() {
+    console.log('did mount');
+    //https://stackoverflow.com/questions/29990809/handling-ajax-with-react
+    https://stackoverflow.com/questions/27192621/reactjs-async-rendering-of-components
+    $.get('/v1/ping').then(function(res) {
+      console.log(res);
+      this.setState({ping:res})
+    }.bind(this));
+  }
+
+  render() {
+    return (
+      <PingDiv ping={this.state.ping} />
     );
   }
 }
 
 
 
+
+
 const element = (
 <div>
 <HabitTracker />
+<Ping />
 </div>
 );
 

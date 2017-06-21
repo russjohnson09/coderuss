@@ -168,7 +168,7 @@ class RemoveServiceWorker extends React.Component {
 //https://facebook.github.io/react/docs/lists-and-keys.html
 function HabitList(props) {
   const habitList = props.habits.map((habit, index) =>
-    <Habit key={index} DeleteCallback={props.DeleteCallback} habit={habit} />
+    <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} DeleteCallback={props.DeleteCallback} habit={habit} />
     );
     console.log(habitList);
     return (<table><tbody>{habitList}</tbody></table>);
@@ -179,11 +179,16 @@ function HabitList(props) {
 }
 
 function Habit(props) {
+    console.log('habit',props.habitUpdateCallback);
+
   return ( 
     <tr>
     <td>{props.habit._id}</td>
     <td >
     {props.habit.name}
+    </td>
+    <td>
+        <HabitDateInputList habit={props.habit} habitUpdateCallback={props.habitUpdateCallback} />
     </td>
     <td >
     <button onClick={function() {props.DeleteCallback(props.habit)}}>Delete </button>
@@ -191,6 +196,91 @@ function Habit(props) {
     </tr>
     );
 }
+
+function HabitDateInputList(props)
+{
+  console.log('habitdateinputlist',props.habitUpdateCallback);
+  var relativeDays = [-2,-1,0];
+  // var today = moment().tz(moment.tz.guess()).add(1,'days');
+  const habitDateList = relativeDays.map((day,index) => {
+    var day =  moment().tz(moment.tz.guess()).add(day,'days');
+    console.log(day);
+    return (<HabitDateInput key={index} habit={props.habit} day={day}
+    habitUpdateCallback={props.habitUpdateCallback} />);
+  });
+  console.log(habitDateList);
+  return (
+    <div>
+    {habitDateList}
+    </div>
+    )
+}
+
+class HabitDateInput extends React.Component {
+  constructor(props) {
+    super(props);
+    var habit = this.props.habit;
+    habit.dates = habit.dates || {};
+    var dateIdx = props.day.format('YYYY-MM-DD')
+    habit.dates[dateIdx] = habit.dates[dateIdx] || {completed: 0};
+    this.state = {habit: habit, day: props.day, dateIdx: dateIdx}
+    
+    this.habitUpdateCallback = this.props.habitUpdateCallback;
+    
+    console.log(this.habitUpdateCallback);
+
+    this.handleChange = this.handleChange;//.bind(this);
+    // this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    var habit = this.state.habit;
+    console.log('input change on ',habit)
+        console.log('check value',event);
+    console.log('check value',event.target.value);
+    habit.dates[this.state.dateIdx].completed = event.target.value;
+    this.setState({habit:habit});
+    console.log('input change on ',habit)
+
+    this.habitUpdateCallback(habit);
+  }
+
+  render() {
+    console.log('habitinput state', this.state);
+  return (
+    <div>
+    <label>
+    <input onChange={this.handleChange.bind(this)} value={this.state.habit.dates[this.state.dateIdx].completed} type="checkbox" />
+    {this.state.day.format('dddd')}
+    </label>
+    
+    </div>
+    )
+    return (
+      <div>
+      <RemoveServiceWorker />
+      <form onSubmit={this.handleSubmit}>
+        <label >Habit Name:
+          <input type="text" value={this.state.habit.name} onChange={this.handleChange} />
+        </label>
+        <button type="submit">Add Habit</button>
+      </form>
+      </div>
+    );
+  }
+}
+
+// function HabitDateInput(props) {
+//   return (
+//     <div>
+//     <label>
+//     <input type="checkbox" />
+//     {props.day.format('dddd')}
+//     </label>
+    
+//     </div>
+//     )
+// }
 
 
 class HabitTracker extends React.Component {
@@ -226,6 +316,18 @@ class HabitTracker extends React.Component {
         }
         ).then(function(res) {
           this.getHabits();
+      }.bind(this));
+  }
+  
+  updateHabit(habit) {
+    console.log('input change on ',habit)
+    $.ajax({
+      url: '/v1/habits/' + habit._id,
+      'method': 'PUT',
+      data: habit
+        }
+        ).then(function(res) {
+          // this.getHabits();
       }.bind(this));
   }
   
@@ -268,7 +370,7 @@ class HabitTracker extends React.Component {
       <div>
       <h1>Habit Tracker</h1>
       <HabitInput submitCallback={this.addHabit.bind(this)} />
-      <HabitList DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
+      <HabitList habitUpdateCallback={this.updateHabit.bind(this)} DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
       </div>
     );
   }

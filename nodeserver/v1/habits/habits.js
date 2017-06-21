@@ -78,15 +78,16 @@ module.exports = function (opts) {
 
 
     router.post('/', function (req, res) {
-        winston.debug('request params=' + JSON.stringify(req.params));
-        winston.debug('request body=' + JSON.stringify(req.body));
+        winston.info('request params=' + JSON.stringify(req.params));
+        winston.info('request body=' + JSON.stringify(req.body));
         var obj = {
             name: req.body.name,
             text: req.body.text ? req.body.text : null,
             created: Date.now(),
             due: Date.now() + 1000 * 60 * 60 * 5,
             reminder: Date.now() + 1000 * 60 * 30,
-            user_id: req.user_id
+            user_id: req.user_id,
+            dates: req.body.dates || {}
         };
         console.log(obj)
         Habit.insertOne(obj, function (error, result) {
@@ -110,16 +111,25 @@ module.exports = function (opts) {
         res.status(201).end();
         return;
     });
-
-
-    router.post('/:id', function (req, res) {
+    
+    router.put('/:id', function (req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));
         winston.debug('request body=' + JSON.stringify(req.body));
         Habit.updateOne({ _id: ObjectID(req.params.id) },
-            { $set: req.params });
+            { $set: req.body });
         res.status(201).end();
         return;
     });
+
+
+    // router.post('/:id', function (req, res) {
+    //     winston.debug('request params=' + JSON.stringify(req.params));
+    //     winston.debug('request body=' + JSON.stringify(req.body));
+    //     Habit.updateOne({ _id: ObjectID(req.params.id) },
+    //         { $set: req.params });
+    //     res.status(201).end();
+    //     return;
+    // });
 
     router.delete('/:id', function (req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));

@@ -235,12 +235,10 @@ class HabitDateInput extends React.Component {
 
   handleChange(event) {
     var habit = this.state.habit;
-    console.log('input change on ',habit)
-        console.log('check value',event);
-    console.log('check value',event.target.value);
-    habit.dates[this.state.dateIdx].completed = event.target.value;
+    var checked = event.target.checked ? 1 : 0;
+    console.log('HabitDateInput','checked',checked);
+    habit.dates[this.state.dateIdx].completed = checked;
     this.setState({habit:habit});
-    console.log('input change on ',habit)
 
     this.habitUpdateCallback(habit);
   }
@@ -250,7 +248,7 @@ class HabitDateInput extends React.Component {
   return (
     <div>
     <label>
-    <input onChange={this.handleChange.bind(this)} value={this.state.habit.dates[this.state.dateIdx].completed} type="checkbox" />
+    <input onChange={this.handleChange.bind(this)} checked={this.state.habit.dates[this.state.dateIdx].completed} type="checkbox" />
     {this.state.day.format('dddd')}
     </label>
     
@@ -270,17 +268,6 @@ class HabitDateInput extends React.Component {
   }
 }
 
-// function HabitDateInput(props) {
-//   return (
-//     <div>
-//     <label>
-//     <input type="checkbox" />
-//     {props.day.format('dddd')}
-//     </label>
-    
-//     </div>
-//     )
-// }
 
 
 class HabitTracker extends React.Component {

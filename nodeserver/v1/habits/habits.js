@@ -1,4 +1,4 @@
-module.exports = function (opts) {
+module.exports = function(opts) {
     var http = require('http');
     var url = require('url');
     var express = require('express');
@@ -10,15 +10,15 @@ module.exports = function (opts) {
     var ObjectID = require('mongodb').ObjectID;
     var uuid = require('node-uuid');
     var router = express.Router();
-    
+
     var module = {};
 
     var bcrypt = require('bcrypt');
 
     const User = opts.db.collection('user');
-    
-    
-    router.use(function (req, res, next) {
+
+
+    router.use(function(req, res, next) {
         req.user_id = null;
         winston.debug('authentication status');
         winston.debug(req.isAuthenticated());
@@ -56,14 +56,14 @@ module.exports = function (opts) {
     var storage = multer.memoryStorage();
 
 
-    router.get('/', function (req, res) {
+    router.get('/', function(req, res) {
         var query = {
             "user_id": req.user_id
         };
         console.log(query);
         Habit.find(query).sort({
             "created": -1,
-        }).toArray((function (err, results) {
+        }).toArray((function(err, results) {
             if (err) {
                 winston.error(err);
             }
@@ -77,7 +77,7 @@ module.exports = function (opts) {
     });
 
 
-    router.post('/', function (req, res) {
+    router.post('/', function(req, res) {
         winston.info('request params=' + JSON.stringify(req.params));
         winston.info('request body=' + JSON.stringify(req.body));
         var obj = {
@@ -90,20 +90,22 @@ module.exports = function (opts) {
             dates: req.body.dates || {}
         };
         console.log(obj)
-        Habit.insertOne(obj, function (error, result) {
+        Habit.insertOne(obj, function(error, result) {
             if (error) {
                 winston.error(error);
-                return res.status(500).json({error:error})
+                return res.status(500).json({
+                    error: error
+                })
             }
             obj._id = result.insertedId;
             res.setHeader('content-type', 'application/json; charset=utf-8');
             res.status(201).send(JSON.stringify(obj)).end();
             return;
         });
-        
+
     });
 
-    router.post('/:id/dates', function (req, res) {
+    router.post('/:id/dates', function(req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));
         winston.debug('request body=' + JSON.stringify(req.body));
 
@@ -112,30 +114,68 @@ module.exports = function (opts) {
         return;
     });
     
-    router.put('/:id', function (req, res) {
+    var validateDates = function(dates)
+    {
+        var result = {};
+        for (var key in dates)
+        {
+            result[key] = dates[key];
+            result[key].completed = parseInt(dates[key].completed)
+        }
+        return result;
+    }
+    
+    var validateHabitUpdate = function(body)
+    {
+        var dates = validateDates(body.dates);
+        var result = {
+            created: body.created,
+            user_id: body.user_id ? body.user_id : null,
+            dates: body.dates ? body.dates : {},
+            reminder: body.reminder,
+            due: body.reminder,
+            text: body.text
+        };
+        
+        return result;
+    }
+
+    router.put('/:id', function(req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));
         winston.debug('request body=' + JSON.stringify(req.body));
-        Habit.updateOne({ _id: ObjectID(req.params.id) },
-            { $set: req.body });
-        res.status(201).end();
+        var habitUpdate = validateHabitUpdate(req.body);
+        Habit.updateOne({
+            _id: ObjectID(req.params.id)
+        }, {
+            $set: habitUpdate
+        }, function(err, result) {
+            if (err) {
+                winston.error(err);
+            }
+            Habit.findOne({
+                _id: ObjectID(req.params.id)
+            }, function(err, habit) {
+                if (err)
+                {
+                    winston.err(err);
+                }
+                return res.status(201)
+                .json(habit).end();
+            });
+        });
         return;
     });
 
 
-    // router.post('/:id', function (req, res) {
-    //     winston.debug('request params=' + JSON.stringify(req.params));
-    //     winston.debug('request body=' + JSON.stringify(req.body));
-    //     Habit.updateOne({ _id: ObjectID(req.params.id) },
-    //         { $set: req.params });
-    //     res.status(201).end();
-    //     return;
-    // });
-
-    router.delete('/:id', function (req, res) {
+    router.delete('/:id', function(req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));
         winston.debug('request body=' + JSON.stringify(req.body));
-        Habit.remove({ _id: ObjectID(req.params.id),
-            user_id: req.user_id }, { w: 1 }, function (error, result) {
+        Habit.remove({
+            _id: ObjectID(req.params.id),
+            user_id: req.user_id
+        }, {
+            w: 1
+        }, function(error, result) {
             if (error) {
                 // winston.error(error);
             }
@@ -143,8 +183,6 @@ module.exports = function (opts) {
         });
 
         res.status(201).end();
-
-
     });
 
 

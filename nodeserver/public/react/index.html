@@ -68,10 +68,10 @@
 
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.js"></script>
     
-        <script src="/bower_components/jquery/dist/jquery.js"></script>
+      <script src="/bower_components/jquery/dist/jquery.js"></script>
 
     <script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <link href="/bower_components/bootstrap/dist/css/bootstrap.css"></link>
+    <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.css"></link>
 
 
   </head>
@@ -329,18 +329,6 @@ class HabitTracker extends React.Component {
         ).then(function(res) {
           this.getHabits();
       }.bind(this));
-    // return;
-    // var habits = this.state.habits;
-    
-    
-    
-    // this.getHabits();
-   
-    // habits.push(habit);
- 
-    // this.setState({
-    //   habits: habits
-    // });
   }
 
   handleLoginClick() {
@@ -358,9 +346,55 @@ class HabitTracker extends React.Component {
       <h1>Habit Tracker</h1>
       <HabitInput submitCallback={this.addHabit.bind(this)} />
       <HabitList habitUpdateCallback={this.updateHabit.bind(this)} DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
+      <Calendar />
       </div>
     );
   }
+}
+
+function Calendar(props)
+{
+  const tdStyle = {width:'30px',
+    background:'skyblue',
+    border: '1px solid black'
+  };
+  const tdStyleNotSelected = 
+  {width:'30px',
+    background:'white',
+    border: '1px solid black'
+  };
+  return (
+    <table style={{width:0}}>
+    <thead>
+      <tr>
+      <th>June</th>
+      </tr>
+    </thead>
+    <tbody style={{'text-align':'center'}}>
+      <tr>
+      <td style={tdStyleNotSelected}>1</td><td style={tdStyle}>8</td>
+      </tr>
+      <tr>
+      <td>2</td><td>9</td>
+      </tr>
+            <tr>
+      <td>3</td>
+      </tr>
+            <tr>
+      <td>4</td>
+      </tr>
+            <tr>
+      <td>5</td>
+      </tr>
+            <tr>
+      <td>6</td>
+      </tr>
+            <tr>
+      <td>7</td>
+      </tr>
+    </tbody>
+    </table>
+    );
 }
 
 function PingDiv(props) {

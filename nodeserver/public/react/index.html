@@ -168,14 +168,11 @@ class RemoveServiceWorker extends React.Component {
 //https://facebook.github.io/react/docs/lists-and-keys.html
 function HabitList(props) {
   const habitList = props.habits.map((habit, index) =>
-    <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} DeleteCallback={props.DeleteCallback} habit={habit} />
+    <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} 
+    DeleteCallback={props.DeleteCallback} habit={habit} />
     );
     console.log(habitList);
     return (<table><tbody>{habitList}</tbody></table>);
-  // return habitList;
-  // return( 
-  //   <Habit habit={props.habit} />
-  //   );
 }
 
 function Habit(props) {
@@ -193,7 +190,62 @@ function Habit(props) {
     <td >
     <button onClick={function() {props.DeleteCallback(props.habit)}}>Delete </button>
     </td>
+    <td>
+      <HabitCalendar habit={props.habit} />
+    </td>
     </tr>
+    );
+}
+
+function HabitCalendar(props)
+{
+    const tdStyle = {width:'30px',
+    background:'skyblue',
+    border: '1px solid black'
+  };
+  const tdStyleNotSelected = 
+  {width:'30px',
+    background:'white',
+    border: '1px solid black'
+  };
+  
+  
+  var daysInPast = 180;
+  var totalDays = 26*7;
+  var i = 0;
+  var trs = [[],[],[],[],[],[],[]];// = ['','','','','','',''];
+  for (var i = 0; i < totalDays; i++)
+  {
+    var date = moment().add(i - daysInPast,'day');
+    var dayOfWeek = date.weekday() % 7;
+    trs[dayOfWeek].push(<td style={tdStyleNotSelected} key={i}>{date.format('DD')}</td>);
+    // trs.push(
+    //   <td style={tdStyleNotSelected}>1</td><td style={tdStyle}>8</td>
+    //   );
+  }
+  
+  console.log('calendar',trs);
+  
+  const trString = trs.map((tds, index) =>
+    <tr key={index}>{tds}</tr>
+  );
+  
+  
+    // const habitList = props.habits.map((habit, index) =>
+    // <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} 
+    // DeleteCallback={props.DeleteCallback} habit={habit} />
+    // );
+  return (
+    <table style={{width:0}}>
+    <thead>
+      <tr>
+      <th></th>
+      </tr>
+    </thead>
+    <tbody style={{'textAlign':'center'}}>
+      {trString}
+    </tbody>
+    </table>
     );
 }
 
@@ -370,7 +422,7 @@ function Calendar(props)
       <th>June</th>
       </tr>
     </thead>
-    <tbody style={{'text-align':'center'}}>
+    <tbody style={{'textAlign':'center'}}>
       <tr>
       <td style={tdStyleNotSelected}>1</td><td style={tdStyle}>8</td>
       </tr>

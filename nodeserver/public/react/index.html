@@ -168,82 +168,179 @@ class RemoveServiceWorker extends React.Component {
 //https://facebook.github.io/react/docs/lists-and-keys.html
 function HabitList(props) {
   const habitList = props.habits.map((habit, index) =>
-    <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} 
-    DeleteCallback={props.DeleteCallback} habit={habit} />
+    <div class="row">
+    
+        <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} 
+        DeleteCallback={props.DeleteCallback} habit={habit} />
+    </div>
     );
-    console.log(habitList);
-    return (<table><tbody>{habitList}</tbody></table>);
+    console.log('HabitList',habitList);
+    return (<div className="habit-list-container">{habitList}</div>);
 }
 
 function Habit(props) {
     console.log('habit',props.habitUpdateCallback);
+  // return (<div>123</div>)
+  
+  var colClassName = "col-sm-6"
+  
+  var buttonClass = "btn";
 
   return ( 
-    <tr>
-    <td>{props.habit._id}</td>
-    <td >
-    {props.habit.name}
-    </td>
-    <td>
-        <HabitDateInputList habit={props.habit} habitUpdateCallback={props.habitUpdateCallback} />
-    </td>
-    <td >
-    <button onClick={function() {props.DeleteCallback(props.habit)}}>Delete </button>
-    </td>
-    <td>
-      <HabitCalendar habit={props.habit} />
-    </td>
-    </tr>
+    <div className="row" >
+      <div className="row" >
+        <div class="col-sm-6" >
+        
+          <div >{props.habit._id}</div>
+          <div >
+          {props.habit.name}
+          </div>
+          <div >
+              <HabitDateInputList habit={props.habit} habitUpdateCallback={props.habitUpdateCallback} />
+          </div>
+          <div >
+            <button className={buttonClass} onClick={function() {props.DeleteCallback(props.habit)}}>Delete </button>
+          </div>
+          <div >
+          </div>
+        </div>
+        
+        <div className={colClassName}>
+          <HabitCalendar habit={props.habit} />
+        </div>
+      </div>
+    
+    </div>
     );
+    
+      // <div className="row">
+      //   <div className={colClassName}>
+      //     <HabitCalendar habit={props.habit} />
+      //   </div>
+      // </div>
 }
+
+
+class HabitCalendarDiv extends React.Component {
+  
+  constructor(props) {
+    super(props);
+    console.log('HabitCalendarDiv',props);
+    this.state = {};
+    this.state.moment = props.moment;
+    this.state.date = props.habit.dates[this.state.moment.format('YYYY-MM-DD')] || {};
+    
+    console.log('HabitCalendarDiv',this.state.moment,this.state.date)
+  }
+
+  render() {
+    
+    const selectedStyle = {
+      width:'40px',
+      background:'skyblue',
+      border: '1px solid black'
+    };
+    
+    const defaultStyle = {
+      width:'40px',
+      background:'white',
+      border: '1px solid black'
+    };
+  
+    if (this.state.date && this.state.date.completed) {
+      return (<div style={selectedStyle}>{this.state.moment.format('D')}</div>);
+    }
+    else {
+      return (<div style={defaultStyle}>{this.state.moment.format('D')}</div>);
+    }
+  }
+}
+
 
 function HabitCalendar(props)
 {
-    const tdStyle = {width:'30px',
+  const selectedStyle = {width:'40px',
     background:'skyblue',
     border: '1px solid black'
   };
+  
   const tdStyleNotSelected = 
-  {width:'30px',
+  {width:'40px',
     background:'white',
     border: '1px solid black'
   };
   
+  const defaultStyle = {
+    width:'100px',
+    background:'white',
+    border: '1px solid black'
+  };
+  
+  const tableStyle = {
+    // width: 0,
+    // width: "100%",
+    // "tableLayout": "fixed"
+  }
+  
+  const dateStyle = {
+    width: "30px"
+    
+  }
+  
   
   var daysInPast = 180;
-  var totalDays = 26*7;
+  var totalDays = 12*7;
   var i = 0;
-  var trs = [[],[],[],[],[],[],[]];// = ['','','','','','',''];
-  for (var i = 0; i < totalDays; i++)
+  var startOfWeek = moment().startOf('week');
+  totalDays += moment().diff(moment().startOf('week'),'days');
+  daysInPast = totalDays;
+  var els = [[],[],[],[],[],[],[]];// = ['','','','','','',''];
+  for (var i = 0; i <= totalDays; i++)
   {
     var date = moment().add(i - daysInPast,'day');
     var dayOfWeek = date.weekday() % 7;
-    trs[dayOfWeek].push(<td style={tdStyleNotSelected} key={i}>{date.format('DD')}</td>);
-    // trs.push(
-    //   <td style={tdStyleNotSelected}>1</td><td style={tdStyle}>8</td>
-    //   );
+
+    console.log('habitdate',props.habit.dates[date.format('YYYY-MM-DD')]);
+    if (props.habit.dates[date.format('YYYY-MM-DD')] && false &&
+        props.habit.dates[date.format('YYYY-MM-DD')].completed) {
+          
+        els[dayOfWeek].push(<td style={selectedStyle} key={i}>
+        <div style={dateStyle}>
+          {date.format('D')}
+        </div>
+        </td>);
+        }
+    else {
+      els[dayOfWeek].push(<td key={i}><HabitCalendarDiv 
+      moment={date}
+      habit={props.habit}
+      /></td>)
+      // els[dayOfWeek].push(<td style={defaultStyle} key={i}>
+      // <div style={dateStyle}>
+      //   {date.format('D')}
+      // </div>
+      // </td>);
+    }
+
   }
   
-  console.log('calendar',trs);
+  console.log('calendar',els);
   
-  const trString = trs.map((tds, index) =>
-    <tr key={index}>{tds}</tr>
+  const calendarBody = els.map((days, index) =>
+    <tr key={index}>{days}</tr>
   );
   
+  console.log('habitcalender','calendarBody',calendarBody)
   
-    // const habitList = props.habits.map((habit, index) =>
-    // <Habit habitUpdateCallback={props.habitUpdateCallback} key={index} 
-    // DeleteCallback={props.DeleteCallback} habit={habit} />
-    // );
   return (
-    <table style={{width:0}}>
+    <table style={tableStyle}>
     <thead>
       <tr>
       <th></th>
       </tr>
     </thead>
     <tbody style={{'textAlign':'center'}}>
-      {trString}
+      {calendarBody}
     </tbody>
     </table>
     );
@@ -394,11 +491,15 @@ class HabitTracker extends React.Component {
   render() {
     const isLoggedIn = this.state.isLoggedIn;
     return (
-      <div>
+      <div className="container">
       <h1>Habit Tracker</h1>
-      <HabitInput submitCallback={this.addHabit.bind(this)} />
-      <HabitList habitUpdateCallback={this.updateHabit.bind(this)} DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
-      <Calendar />
+        <div className="col col-5">
+          <HabitInput submitCallback={this.addHabit.bind(this)} />
+          <div className="col col-5">
+            <HabitList habitUpdateCallback={this.updateHabit.bind(this)} DeleteCallback={this.removeHabit.bind(this)} habits={this.state.habits} />
+            <Calendar />
+          </div>
+        </div>
       </div>
     );
   }

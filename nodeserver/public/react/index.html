@@ -220,6 +220,43 @@ function Habit(props) {
       // </div>
 }
 
+
+class HabitCalendarDiv extends React.Component {
+  
+  constructor(props) {
+    super(props);
+    console.log('HabitCalendarDiv',props);
+    this.state = {};
+    this.state.moment = props.moment;
+    this.state.date = props.habit.dates[this.state.moment.format('YYYY-MM-DD')] || {};
+    
+    console.log('HabitCalendarDiv',this.state.moment,this.state.date)
+  }
+
+  render() {
+    
+    const selectedStyle = {
+      width:'40px',
+      background:'skyblue',
+      border: '1px solid black'
+    };
+    
+    const defaultStyle = {
+      width:'40px',
+      background:'white',
+      border: '1px solid black'
+    };
+  
+    if (this.state.date && this.state.date.completed) {
+      return (<div style={selectedStyle}>{this.state.moment.format('D')}</div>);
+    }
+    else {
+      return (<div style={defaultStyle}>{this.state.moment.format('D')}</div>);
+    }
+  }
+}
+
+
 function HabitCalendar(props)
 {
   const selectedStyle = {width:'40px',
@@ -262,8 +299,9 @@ function HabitCalendar(props)
   {
     var date = moment().add(i - daysInPast,'day');
     var dayOfWeek = date.weekday() % 7;
+
     console.log('habitdate',props.habit.dates[date.format('YYYY-MM-DD')]);
-    if (props.habit.dates[date.format('YYYY-MM-DD')] &&
+    if (props.habit.dates[date.format('YYYY-MM-DD')] && false &&
         props.habit.dates[date.format('YYYY-MM-DD')].completed) {
           
         els[dayOfWeek].push(<td style={selectedStyle} key={i}>
@@ -273,11 +311,15 @@ function HabitCalendar(props)
         </td>);
         }
     else {
-      els[dayOfWeek].push(<td style={defaultStyle} key={i}>
-      <div style={dateStyle}>
-        {date.format('D')}
-      </div>
-      </td>);
+      els[dayOfWeek].push(<td key={i}><HabitCalendarDiv 
+      moment={date}
+      habit={props.habit}
+      /></td>)
+      // els[dayOfWeek].push(<td style={defaultStyle} key={i}>
+      // <div style={dateStyle}>
+      //   {date.format('D')}
+      // </div>
+      // </td>);
     }
 
   }

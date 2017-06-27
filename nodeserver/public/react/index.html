@@ -222,93 +222,83 @@ function Habit(props) {
 
 function HabitCalendar(props)
 {
-    const tdStyle = {width:'30px',
+  const selectedStyle = {width:'40px',
     background:'skyblue',
     border: '1px solid black'
   };
+  
   const tdStyleNotSelected = 
-  {width:'30px',
+  {width:'40px',
     background:'white',
     border: '1px solid black'
   };
   
-  const defaultStyle =   {width:'30px',
+  const defaultStyle = {
+    width:'100px',
     background:'white',
     border: '1px solid black'
   };
+  
+  const tableStyle = {
+    // width: 0,
+    // width: "100%",
+    // "tableLayout": "fixed"
+  }
+  
+  const dateStyle = {
+    width: "30px"
+    
+  }
   
   
   var daysInPast = 180;
-  var totalDays = 26*7;
+  var totalDays = 12*7;
   var i = 0;
+  var startOfWeek = moment().startOf('week');
+  totalDays += moment().diff(moment().startOf('week'),'days');
+  daysInPast = totalDays;
   var els = [[],[],[],[],[],[],[]];// = ['','','','','','',''];
-  for (var i = 0; i < totalDays; i++)
+  for (var i = 0; i <= totalDays; i++)
   {
     var date = moment().add(i - daysInPast,'day');
     var dayOfWeek = date.weekday() % 7;
-    els[dayOfWeek].push(<div style={defaultStyle} key={i}>
-    {date.format('DD')}</div>);
+    console.log('habitdate',props.habit.dates[date.format('YYYY-MM-DD')]);
+    if (props.habit.dates[date.format('YYYY-MM-DD')] &&
+        props.habit.dates[date.format('YYYY-MM-DD')].completed) {
+          
+        els[dayOfWeek].push(<td style={selectedStyle} key={i}>
+        <div style={dateStyle}>
+          {date.format('D')}
+        </div>
+        </td>);
+        }
+    else {
+      els[dayOfWeek].push(<td style={defaultStyle} key={i}>
+      <div style={dateStyle}>
+        {date.format('D')}
+      </div>
+      </td>);
+    }
+
   }
   
   console.log('calendar',els);
   
   const calendarBody = els.map((days, index) =>
-    <div className="row" key={index}>{days}</div>
+    <tr key={index}>{days}</tr>
   );
   
   console.log('habitcalender','calendarBody',calendarBody)
   
-  return (<div>{calendarBody}</div>);
-  
-  
   return (
-    <div className="caldendar">
-      <div className="row">
-        <div className="col">
-        1
-        </div>
-        <div className="col">
-          8
-        </div>
-        <div className="col">
-        2
-        </div>
-      </div>
-            
-      <div class="row">
-        
-      </div>
-      
-      <div class="row">
-        
-      </div>
-      
-      <div class="row">
-        
-      </div>
-            <div class="row">
-        
-      </div>
-            <div class="row">
-        
-      </div>
-            <div class="row">
-        
-      </div>
-    </div>
-    
-    );
-  
-  
-  return (
-    <table style={{width:0}}>
+    <table style={tableStyle}>
     <thead>
       <tr>
       <th></th>
       </tr>
     </thead>
     <tbody style={{'textAlign':'center'}}>
-      {trString}
+      {calendarBody}
     </tbody>
     </table>
     );

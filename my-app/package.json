@@ -9,7 +9,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build:angular": "ng build"
+    "build:angular": "ng build --verbose"
   },
   "private": true,
   "dependencies": {

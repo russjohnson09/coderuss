@@ -17,6 +17,7 @@ const WEBDRIVER_HOST = process.env.WEBDRIVER_HOST || '127.0.0.1';
 
 const path = require('path');
 const url = require('url');
+const request = require('request');
 
 describe(path.basename(__filename), function() {
 
@@ -35,7 +36,27 @@ describe(path.basename(__filename), function() {
             });
             return client.init();
         })
-    })
+    });
+    
+    
+    describe("/my-app GET", function() {
+        it("/my-app GET 200", function(done) {
+          request({
+            method: "GET",
+            uri: BASE_URL + '/my-app',
+            // followRedirect: false,
+            // headers: {
+            //   Cookie: cookie
+            // }
+          }, function(error, response, body) {
+            console.log(body);
+            expect(error).to.be.equal(null);
+            expect(response.statusCode).to.equal(200);
+            done();
+          });
+        });
+      });
+
 
     describe('/my-app', function() {
 

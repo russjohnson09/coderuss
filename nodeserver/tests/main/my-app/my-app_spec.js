@@ -69,7 +69,8 @@ describe(path.basename(__filename), function() {
         //Here are some links to help you start
         describe('hello world visible', function() {
             it('hello world visible', function() {
-                return client.waitForVisible('h2*=Here are some links').isVisible('h2*=Here are some links').then(function(val) {
+                var selector = "h2*=Hello";
+                return client.waitForVisible(selector).isVisible(selector).then(function(val) {
                     expect(val).to.be.true;
                 })
             })

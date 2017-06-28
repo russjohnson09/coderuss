@@ -20,10 +20,14 @@ export class MovieComponent implements OnInit {
     ngOnInit() {
     }
  
-    callMovieService() { 
-        this._sharedService.findMovie(this.id_movie)
+    callMovieService() {
+        var self = this;
+        self._sharedService.findMovie(this.id_movie)
             .subscribe(
-            lstresult => { 
+            lstresult => {
+                console.log('movie',lstresult);
+                $angular.extend(self,lstresult);
+                return;
                 this.mv_Title = lstresult["Title"];
                 this.mv_Rated = lstresult["Rated"];
                 this.mv_Released = lstresult["Released"];

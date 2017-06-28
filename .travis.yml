@@ -1,4 +1,5 @@
 addons: 
+  firefox: "latest"
   apt: 
     sources: 
       - ubuntu-toolchain-r-test 
@@ -27,7 +28,7 @@ env:
 services:
   - mongodb
 script:
-  - selenium-standalone start &> /dev/null &
+  - selenium-standalone start &
   - sleep 5
   - npm run test:travis
   - npm run report:coveralls || true

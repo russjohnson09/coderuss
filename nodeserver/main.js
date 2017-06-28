@@ -273,6 +273,9 @@ module.exports = function(opts, callback) {
     });
 
     app.use(express.static(path.join(__dirname, 'public/')));
+    
+    app.use('/my-app',express.static(path.join(__dirname,'..', 'my-app','dist')));
+
 
 
 

@@ -2,10 +2,11 @@
   "name": "code-russ-node",
   "version": "1.0.0",
   "scripts": {
-    "test:travis": "istanbul cover nodeserver/tests/travis_run.js",
+    "test:travis": "npm run prestart && istanbul cover nodeserver/tests/travis_run.js",
     "istanbul:start": "istanbul cover nodeserver/server.js",
     "kill:node": "killall node",
-    "prestart": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs",
+    "prestart": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs && npm run build:angular",
+    "build:angular": "cd ./my-app && npm install && npm run build:angular",
     "heroku-postbuild": "bash ./postbuild.sh",
     "start": "node nodeserver/server.js",
     "test": "npm run test:main",

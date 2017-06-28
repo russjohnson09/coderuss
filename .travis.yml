@@ -1,4 +1,5 @@
 addons: 
+  firefox: "latest"
   apt: 
     sources: 
       - ubuntu-toolchain-r-test 
@@ -18,12 +19,16 @@ before_install:
 node_js:
   - 7
   - 8
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
 env:
 - MAIN_ADMIN_USERNAME=admin@foo.com CODERUSS_CLIENT_ID=58e4d1ce39e7d8076ddd0ec2 CODERUSS_CLIENT_SECRET=secret ALEXA_CHECK_CERT=0 NODE_ENV=TEST CXX=g++-4.8 EXPRESS_SESSION_SECRET=123 PORT=3000 MONGO_CONNECTION=mongodb://localhost:27017 MONGO_URI=mongodb://localhost:27017
 services:
   - mongodb
 script:
-  - selenium-standalone start &> /dev/null &
+  - selenium-standalone start &
   - sleep 5
   - npm run test:travis
   - npm run report:coveralls || true

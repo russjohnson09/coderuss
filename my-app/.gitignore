@@ -1,7 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # compiled output
-/dist
+#/dist #don't like doing this but heroku ran out of memory on compile.
 /tmp
 /out-tsc
 

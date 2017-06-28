@@ -33,3 +33,5 @@ nodeserver/public/docs
 !.eslintignore
 !.editorconfig
 !.yo-rc.json
+!/my-app/.gitignore
+!/my-app/*

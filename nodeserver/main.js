@@ -432,11 +432,7 @@ module.exports = function(opts, callback) {
 
                     console.log('proxyReq','fullpath',themoviedbidx, proxyPath,proxyReq.data);
 
-<<<<<<< HEAD
                     var qs = urlPath.query || {};
-=======
-                    var qs = urlPath.query;
->>>>>>> 205cac28ef9b757e4bb01b41de1368694c562577
                     qs['api_key'] = THEMOVIEDB_API_KEY;
 
                     var target = THEMOVIEDB_BASE_URL + proxyPath + '?' + querystring.stringify(qs);

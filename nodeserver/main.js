@@ -4,11 +4,14 @@ const low = require('lowdb');
 const fs = require('fs');
 const path = require('path');
 var winston = require('winston');
+const querystring = require('querystring');
 const passport = require('passport');
 const request = require('request');
 const NODE_ENV = process.env.NODE_ENV || 'dev';
 const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
+const THEMOVIEDB_BASE_URL = process.env.THEMOVIEDB_BASE_URL;
+const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
 
 var loopback = require('loopback');
 
@@ -341,8 +344,7 @@ module.exports = function(opts, callback) {
 
         var uuid = require('node-uuid');
 
-        var httpServer = http.
-        createServer(
+        var httpServer = http.createServer(
             function(req, res) {
                 proxyLogger.debug('proxyrequest', req.headers);
                 var proxyReq = req;
@@ -351,8 +353,13 @@ module.exports = function(opts, callback) {
                 var proxy_uuid = uuid.v1();
 
                 var url = require('url');
-                var path = url.parse(proxyReq.url, true).pathname;
-                if (path.indexOf('/private/Downloads') !== -1) {
+                var urlPath = url.parse(proxyReq.url, true)
+                var path = urlPath.pathname;
+                var moviedbproxypath = '/proxy/themoviedb';
+                var themoviedbidx = path.indexOf(moviedbproxypath);
+                if (path.indexOf('/private/Downloads') == 0) {
+
+
                     winston.info('start request');
                     var headers = {
                         cookie: proxyReq.headers['cookie'] ? proxyReq.headers['cookie'] : null
@@ -418,6 +425,35 @@ module.exports = function(opts, callback) {
                         );
                     });
 
+                }
+                else if (themoviedbidx !== -1) {
+                    // console.log('proxyReq',proxyReq);
+                    var proxyPath = path.substring(moviedbproxypath.length);
+
+                    console.log('proxyReq','fullpath',themoviedbidx, proxyPath,proxyReq.data);
+
+                    var qs = urlPath.query;
+                    qs['api_key'] = THEMOVIEDB_API_KEY;
+
+                    var target = THEMOVIEDB_BASE_URL + proxyPath + '?' + querystring.stringify(qs);
+
+                    console.log('proxyReq',target);
+
+                    proxyReq.url = target;
+
+                    proxy.web(proxyReq, proxyRes, {
+                        target: target,
+                        // ignorePath: true,
+                        changeOrigin: true
+                        // secure: false,
+                        // ws: true
+                    }, function(err) {
+                        winston.log('error', err);
+                        proxyRes.writeHead(502);
+                        proxyRes.end("There was an error. Please try again");
+                    });
+
+                    return;
                 }
                 else if (path.indexOf('/v2/') !== -1) {
                     proxy.web(proxyReq, proxyRes, {

@@ -1,18 +1,122 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
 <html>
+
 <head>
-    <title>Coderuss | hello</title>
+    <!-- META -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Optimize mobile viewport -->
+
+    <title>Login</title>
+
+    <link rel="stylesheet" href="/css/ext/bootstrap.min.css">
+    <style>
+    </style>
+
+    <script src="/js/ext/jquery-3.2.1.min.js"></script>
+    <script src="/bower_components/angular/angular.min.js"></script>
+
+    <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
+
 
 </head>
+
 <body>
-<div class="container">
-    <div class="row">
-        <div>
-            tests 123
-        </div>
-    </div>
+<div ng-app="app" ng-controller="mainController" class="login">
+
+    <movie movie="movie" search-movie="searchMovie"></movie>
+
 </div>
-<div>
-    Hello World
-</div>
+
+<script>
+    //    angular.module('movieDirective', [])
+    //        .controller('Controller', ['$scope', function($scope) {
+    //            $scope.customer = {
+    //                name: 'Naomi',
+    //                address: '1600 Amphitheatre'
+    //            };
+    //        }])
+    //        .directive('myCustomer', function() {
+    //            return {
+    //                restrict: 'E',
+    //                templateUrl: 'my-customer.html'
+    //            };
+    //        });
+</script>
+
+<script>
+
+    var app = angular.module('app', []);
+
+    app.config(['$locationProvider', function ($locationProvider) {
+        $locationProvider.html5Mode({
+            enabled: true,
+            requireBase: false
+        });
+    }]);
+
+    app.controller('mainController', function ($rootScope, $scope, $location, $http) {
+        $scope.formData = {};
+
+        $scope.alerts = [];
+
+        $scope.movie = {};
+
+        $scope.movieSearch = {};
+
+        //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
+        $scope.searchMovie = function (movie) {
+            console.log('searchMovie');
+            $http(
+                {
+                    method: 'get',
+                    url: '/proxy/themoviedb/search/movie',
+                    headers: {
+                        'content-type': 'application/json',
+                        'cache-control': 'no-cache'
+                    },
+                    params: {
+                        _proxy: 1,
+                        query: $scope.movie.query
+                    }
+//                    qs: {
+//                        query: $scope.movie.query
+//                    }
+                }
+            ).then(function (response) {
+                if (response.data && response.data.results &&
+                    response.data.results[0]) {
+                    Object.assign($scope.movie, response.data.results[0])
+                    //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
+                    if ($scope.movie.backdrop_path) {
+                        $scope.movie.imagePath = 'https://image.tmdb.org/t/p/w500' + $scope.movie.backdrop_path
+                    }
+                }
+                console.log(response);
+            }, function (err) {
+                console.log(err);
+            })
+        };
+
+        var params = $location.search();
+
+    })
+        .directive('movie', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    movie: '=movie',
+                    searchMovie: '=searchMovie'
+
+                },
+                templateUrl: 'directives/movie.html'
+            };
+        });
+    ;
+
+</script>
 </body>
+
 </html>

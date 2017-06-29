@@ -432,7 +432,7 @@ module.exports = function(opts, callback) {
 
                     console.log('proxyReq','fullpath',themoviedbidx, proxyPath,proxyReq.data);
 
-                    var qs = urlPath.query;
+                    var qs = urlPath.query || {};
                     qs['api_key'] = THEMOVIEDB_API_KEY;
 
                     var target = THEMOVIEDB_BASE_URL + proxyPath + '?' + querystring.stringify(qs);
@@ -470,11 +470,8 @@ module.exports = function(opts, callback) {
                 }
                 else {
                     proxy.web(proxyReq, proxyRes, {
-                        target: {
-                            host: 'localhost',
-                            port: app.get('port')
-                        },
-                        secure: false
+                        target: 'http://localhost:' + app.get('port'),
+                        // secure: false
                     }, function(err) {
                         winston.log('error', err);
                         proxyRes.writeHead(502);

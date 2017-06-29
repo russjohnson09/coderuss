@@ -1,7 +1,7 @@
 <h2>Open Movie Database</h2>
 <div class="col-md-8 col-md-offset-2">
  <div class="form-group">
-  <input type="text" required [(ngModel)]="id_movie" (change)="callMovieService()" class="form-control" placeholder="Enter Movie name ...">
+  <input type="text" required [(ngModel)]="movie.query" (change)="callMovieService()" class="form-control" placeholder="Enter Movie name ...">
   <br><br>
   <h3>Movie Details</h3>
   <br>

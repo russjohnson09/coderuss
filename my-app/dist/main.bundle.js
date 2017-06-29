@@ -153,9 +153,9 @@ var MAINMENU_ROUTES = [
     //full : makes sure the path is absolute path
     // { path: '', redirectTo: '/', pathMatch: 'full' },
     // { path: '', redirectTo: '/weather', pathMatch: 'full' },
-    { path: 'weather', component: __WEBPACK_IMPORTED_MODULE_2__weather_weather_component__["a" /* WeatherComponent */] },
-    { path: 'movie', component: __WEBPACK_IMPORTED_MODULE_3__movie_movie_component__["a" /* MovieComponent */] },
-    { path: 'currency', component: __WEBPACK_IMPORTED_MODULE_1__currency_currency_component__["a" /* CurrencyComponent */] },
+    { path: '#weather', component: __WEBPACK_IMPORTED_MODULE_2__weather_weather_component__["a" /* WeatherComponent */] },
+    { path: '#movie', component: __WEBPACK_IMPORTED_MODULE_3__movie_movie_component__["a" /* MovieComponent */] },
+    { path: '#currency', component: __WEBPACK_IMPORTED_MODULE_1__currency_currency_component__["a" /* CurrencyComponent */] },
     { path: '', component: __WEBPACK_IMPORTED_MODULE_4__index_index_component__["a" /* IndexComponent */] }
 ];
 var CONST_ROUTING = __WEBPACK_IMPORTED_MODULE_0__angular_router__["a" /* RouterModule */].forRoot(MAINMENU_ROUTES);
@@ -224,7 +224,7 @@ var _a;
 /***/ "../../../../../src/app/index/index.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<h2>Hello</h2>\n<div class=\"col-md-8 col-md-offset-2\">\n</div>"
+module.exports = "<h2>Hello</h2>\n<div class=\"col-md-8 col-md-offset-2\">\n    Test 123 123\n</div>"
 
 /***/ }),
 
@@ -314,7 +314,7 @@ MenuComponent = __decorate([
 /***/ "../../../../../src/app/movie/movie.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<h2>Open Movie Database</h2>\n<div class=\"col-md-8 col-md-offset-2\">\n <div class=\"form-group\">\n  <input type=\"text\" required [(ngModel)]=\"id_movie\" (change)=\"callMovieService()\" class=\"form-control\" placeholder=\"Enter Movie name ...\">\n  <br><br>\n  <h3>Movie Details</h3>\n  <br>\n  <p class=\"well lead\">\n      <i> Title :</i> {{ this.mv_Title }} <br>\n      <i> Plot :</i> {{ this.mv_Plot }} <br>\n      <i> Actors :</i> {{ this.mv_Actors }} <br>\n      <i> Directed by :</i> {{ this.mv_Director }} <br>\n      <i> Rated :</i> {{ this.mv_Rated }} <br>\n      <i> Release Date :</i> {{ this.mv_Released }} <br>\n  </p>\n  <p class=\"text-info\">Total # of all the service requests including Weather, Movie, and Currency is :\n      <span class=\"badge\">{{this._sharedService.totReqsMade}}</span>\n  </p>\n </div>\n</div>"
+module.exports = "<h2>Open Movie Database</h2>\n<div class=\"col-md-8 col-md-offset-2\">\n <div class=\"form-group\">\n  <input type=\"text\" required [(ngModel)]=\"movie.query\" (change)=\"callMovieService()\" class=\"form-control\" placeholder=\"Enter Movie name ...\">\n  <br><br>\n  <h3>Movie Details</h3>\n  <br>\n  <p class=\"well lead\">\n      <i> Title :</i> {{ this.mv_Title }} <br>\n      <i> Plot :</i> {{ this.mv_Plot }} <br>\n      <i> Actors :</i> {{ this.mv_Actors }} <br>\n      <i> Directed by :</i> {{ this.mv_Director }} <br>\n      <i> Rated :</i> {{ this.mv_Rated }} <br>\n      <i> Release Date :</i> {{ this.mv_Released }} <br>\n  </p>\n  <p class=\"text-info\">Total # of all the service requests including Weather, Movie, and Currency is :\n      <span class=\"badge\">{{this._sharedService.totReqsMade}}</span>\n  </p>\n </div>\n</div>"
 
 /***/ }),
 
@@ -350,15 +350,18 @@ var MovieComponent = (function () {
     MovieComponent.prototype.ngOnInit = function () {
     };
     MovieComponent.prototype.callMovieService = function () {
-        var _this = this;
-        this._sharedService.findMovie(this.id_movie)
+        var self = this;
+        self._sharedService.findMovie(this.id_movie)
             .subscribe(function (lstresult) {
-            _this.mv_Title = lstresult["Title"];
-            _this.mv_Rated = lstresult["Rated"];
-            _this.mv_Released = lstresult["Released"];
-            _this.mv_Director = lstresult["Director"];
-            _this.mv_Actors = lstresult["Actors"];
-            _this.mv_Plot = lstresult["Plot"];
+            console.log('movie', lstresult);
+            Object.assign(self, lstresult);
+            return;
+            // this.mv_Title = lstresult["Title"];
+            // this.mv_Rated = lstresult["Rated"];
+            // this.mv_Released = lstresult["Released"];
+            // this.mv_Director = lstresult["Director"];
+            // this.mv_Actors = lstresult["Actors"];
+            // this.mv_Plot = lstresult["Plot"];
         }, function (error) {
             console.log("Error. The findMovie result JSON value is as follows:");
             console.log(error);
@@ -410,8 +413,9 @@ var SharedService = (function () {
         this.weatherURL1 = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22";
         this.weatherURL2 = "%2C%20";
         this.weatherURL3 = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
-        this.findMovieURL1 = "http://www.omdbapi.com/?t=";
-        this.findMovieURL2 = "&y=&plot=short&r=json";
+        this.findMovieURL1 = "/proxy/themoviedb/search/movie";
+        this.themoviedb = '/proxy/themoviedb';
+        // findMovieURL2 = "&y=&plot=short&r=json";
         this.currencyURL = "http://api.fixer.io/latest?symbols=";
         this.totReqsMade = 0;
     }
@@ -428,12 +432,11 @@ var SharedService = (function () {
     };
     SharedService.prototype.findMovie = function (movie) {
         this.totReqsMade = this.totReqsMade + 1;
-        return this._http.get(this.findMovieURL1 + movie + this.findMovieURL2)
+        return this._http.get('/')
             .map(function (response) {
             {
                 return response.json();
             }
-            ;
         })
             .catch(function (error) { return __WEBPACK_IMPORTED_MODULE_3_rxjs__["Observable"].throw(error.json().error); });
     };

@@ -1,0 +1,24 @@
+<h2>Open Movie Database</h2>
+<div class="col-md-8 col-md-offset-2">
+    <div class="form-group">
+        <input type="text" required ng-model="movie.query" class="form-control" placeholder="Enter Movie name ...">
+        <button ng-click="searchMovie()" class="btn" type="submit">Search</button>
+        <br><br>
+        <h3>Movie Details</h3>
+        <br>
+        <p >
+
+            <img ng-show="movie.imagePath" ng-src="{{movie.imagePath}}"> <br/>
+            <i> Title :</i> {{ movie.title }} <br>
+            <i> Release Date :</i> {{ movie.release_date }} <br>
+        </p>
+    </div>
+</div>
+
+
+<div>
+  <pre>
+            {{movie | json}}
+
+</pre>
+</div>

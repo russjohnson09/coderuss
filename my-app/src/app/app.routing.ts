@@ -8,9 +8,9 @@ const MAINMENU_ROUTES: Routes = [
     //full : makes sure the path is absolute path
     // { path: '', redirectTo: '/', pathMatch: 'full' },
     // { path: '', redirectTo: '/weather', pathMatch: 'full' },
-    { path: 'weather', component: WeatherComponent },
-    { path: 'movie', component: MovieComponent },
-    { path: 'currency', component: CurrencyComponent } ,
+    { path: '#weather', component: WeatherComponent },
+    { path: '#movie', component: MovieComponent },
+    { path: '#currency', component: CurrencyComponent } ,
     { path: '', component: IndexComponent } 
 
 ];

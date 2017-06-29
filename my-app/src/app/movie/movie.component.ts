@@ -20,16 +20,20 @@ export class MovieComponent implements OnInit {
     ngOnInit() {
     }
  
-    callMovieService() { 
-        this._sharedService.findMovie(this.id_movie)
+    callMovieService() {
+        var self = this;
+        self._sharedService.findMovie(this.id_movie)
             .subscribe(
-            lstresult => { 
-                this.mv_Title = lstresult["Title"];
-                this.mv_Rated = lstresult["Rated"];
-                this.mv_Released = lstresult["Released"];
-                this.mv_Director = lstresult["Director"];
-                this.mv_Actors = lstresult["Actors"];
-                this.mv_Plot = lstresult["Plot"];
+            lstresult => {
+                console.log('movie',lstresult);
+                Object.assign(self,lstresult);
+                return;
+                // this.mv_Title = lstresult["Title"];
+                // this.mv_Rated = lstresult["Rated"];
+                // this.mv_Released = lstresult["Released"];
+                // this.mv_Director = lstresult["Director"];
+                // this.mv_Actors = lstresult["Actors"];
+                // this.mv_Plot = lstresult["Plot"];
             },
             error => {
                 console.log("Error. The findMovie result JSON value is as follows:");

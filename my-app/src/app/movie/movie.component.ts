@@ -26,14 +26,14 @@ export class MovieComponent implements OnInit {
             .subscribe(
             lstresult => {
                 console.log('movie',lstresult);
-                $angular.extend(self,lstresult);
+                Object.assign(self,lstresult);
                 return;
-                this.mv_Title = lstresult["Title"];
-                this.mv_Rated = lstresult["Rated"];
-                this.mv_Released = lstresult["Released"];
-                this.mv_Director = lstresult["Director"];
-                this.mv_Actors = lstresult["Actors"];
-                this.mv_Plot = lstresult["Plot"];
+                // this.mv_Title = lstresult["Title"];
+                // this.mv_Rated = lstresult["Rated"];
+                // this.mv_Released = lstresult["Released"];
+                // this.mv_Director = lstresult["Director"];
+                // this.mv_Actors = lstresult["Actors"];
+                // this.mv_Plot = lstresult["Plot"];
             },
             error => {
                 console.log("Error. The findMovie result JSON value is as follows:");

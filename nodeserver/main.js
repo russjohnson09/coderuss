@@ -353,7 +353,7 @@ module.exports = function(opts, callback) {
                 var proxy_uuid = uuid.v1();
 
                 var url = require('url');
-                var urlPath = url.parse(proxyReq.url, true)
+                var urlPath = url.parse(proxyReq.url, true);
                 var path = urlPath.pathname;
                 var moviedbproxypath = '/proxy/themoviedb';
                 var themoviedbidx = path.indexOf(moviedbproxypath);

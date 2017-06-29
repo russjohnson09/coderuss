@@ -24,6 +24,7 @@ unit tests when a service is not practical or not efficient.
 
 
 # Changelog
+* /angular (ui endpoint) added movie search
 * /v1/ping/eventlogger POST added for lob and potentially others
 * /api/v1/files/tmp added expirationCount to delete after x uses 
 * /postcards/preview

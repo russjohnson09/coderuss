@@ -125,6 +125,10 @@ module.exports = function (opts) {
                 var sha = req.body.head_commit.id;
                 request({
                     method: "POST",
+                    headers: {
+                        "Authorization": "Token "+ GITHUB_CODERUSS_TOKEN,
+                        "content-type": "application/json"
+                    },
                     uri: GITHUB_API_URL + '/repos/russjohnson09/coderuss/statuses/'
                     + sha,
                     body:

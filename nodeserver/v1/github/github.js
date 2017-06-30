@@ -15,13 +15,14 @@ const ObjectID = mongodb.ObjectID;
 
 const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL || 'https://localhost:3000';
 const CODERUSS_ACCESS_TOKEN_URL = CODERUSS_BASE_URL + '/v1/oauth/access_token';
-const CODERUSS_AUTHORIZE_URL = CODERUSS_BASE_URL+ '/v1/oauth/authorize';
+const CODERUSS_AUTHORIZE_URL = CODERUSS_BASE_URL + '/v1/oauth/authorize';
+
+const GITHUB_CODERUSS_TOKEN = process.env.GITHUB_CODERUSS_TOKEN;
 
 
-module.exports = function(opts) {
+module.exports = function (opts) {
 
     var winston = opts.winston;
-
 
 
     const CODERUSS_USER_AGENT = 'CODERUSS';
@@ -49,17 +50,17 @@ module.exports = function(opts) {
 
 
     //db connection setup
-    (function() {
+    (function () {
         mongoose.connect(MONGO_URI);
         db = mongoose.connection;
         db.on("error", console.error.bind(console, "connection error"));
-        db.once("open", function(callback) {
+        db.once("open", function (callback) {
             winston.debug("Connection succeeded.");
         });
     })()
 
     var main_application;
-    MongoClient.connect(MONGO_URI, function(err, db) {
+    MongoClient.connect(MONGO_URI, function (err, db) {
         database = mongo_db = db;
     });
 
@@ -72,7 +73,7 @@ module.exports = function(opts) {
                 'Authorization': 'token ' + access_token_github,
             },
             url: GITHUB_API_URL + '/user',
-        }, function(err, res, body) {
+        }, function (err, res, body) {
             winston.debug(res.statusCode);
             winston.debug(body);
 
@@ -91,9 +92,9 @@ module.exports = function(opts) {
 
 
     //setup routes
-    (function() {
+    (function () {
 
-        router.get('/github/user', function(req, ExpressRes) {
+        router.get('/github/user', function (req, ExpressRes) {
             var sess = req.session;
             var user = req.user;
             if (!user.access_token_github) {
@@ -107,7 +108,7 @@ module.exports = function(opts) {
                     'Authorization': 'token ' + user.access_token_github,
                 },
                 url: GITHUB_API_URL + '/user',
-            }, function(err, res, body) {
+            }, function (err, res, body) {
                 winston.debug(res.statusCode);
                 winston.debug(body);
 
@@ -116,7 +117,42 @@ module.exports = function(opts) {
             });
         });
 
-        router.get('/github/link', function(req, res) {
+        router.post('/github/webhook', function (req, res) {
+
+            console.log('/github/webhook',req.headers,req.body,req.query);
+            // console.log();
+
+            // body = JSON.stringify(body);
+            //
+            // request({
+            //     method: "POST",
+            //     body: body,
+            //     uri: alexaurl
+            // }
+
+            if (req.body && req.body.head_commit) {
+                var sha = req.body.head_commit.id;
+                request({
+                    method: "POST",
+                    uri: GITHUB_API_URL + '/repos/russjohnson09/coderuss/statuses/'
+                    + sha,
+                    body:
+                        JSON.stringify({
+                        "state": "pending",
+                        "target_url": CODERUSS_BASE_URL + "/angular#/review?sha={{sha}}",
+                        "description": "to review",
+                        "context": "coderuss"
+                    })
+                })
+            }
+
+            res.status(201);
+            res.json({
+                "message": "success"
+            })
+        });
+
+        router.get('/github/link', function (req, res) {
             var sess = req.session;
 
             if (req.query.code && req.query.state &&
@@ -124,7 +160,7 @@ module.exports = function(opts) {
                 winston.info('has code');
                 var code = req.query.code;
 
-                addUpdateGithubUser(req.user, code, req.query.state, function(err, user) {
+                addUpdateGithubUser(req.user, code, req.query.state, function (err, user) {
                     if (err) {
                         winston.error(err);
 
@@ -150,7 +186,7 @@ module.exports = function(opts) {
         });
 
 
-        router.get('/coderuss/link', function(req, res) {
+        router.get('/coderuss/link', function (req, res) {
             var sess = req.session;
 
             if (req.query.code && req.query.state &&
@@ -158,7 +194,7 @@ module.exports = function(opts) {
                 winston.info('has code');
                 var code = req.query.code;
 
-                addUpdateCoderussUser(req.user, code, req.query.state, function(err, user) {
+                addUpdateCoderussUser(req.user, code, req.query.state, function (err, user) {
                     if (err) {
                         winston.error(err);
 
@@ -179,7 +215,7 @@ module.exports = function(opts) {
                 sess.coderuss_oauth_state = getToken();
                 var redirect = getCoderussAuthRedirect();
                 redirect += '&state=' + sess.coderuss_oauth_state;
-                redirect += '&redirect_uri='+CODERUSS_BASE_URL + '/v1/coderuss/link';
+                redirect += '&redirect_uri=' + CODERUSS_BASE_URL + '/v1/coderuss/link';
                 winston.info(redirect);
                 return res.redirect(redirect);
             }
@@ -201,7 +237,7 @@ module.exports = function(opts) {
 
     function getCoderussAuthRedirect() {
         var token = getToken();
-        var url = CODERUSS_AUTHORIZE_URL +  '?scope=user,repo&client_id=' +
+        var url = CODERUSS_AUTHORIZE_URL + '?scope=user,repo&client_id=' +
             process.env.CODERUSS_CLIENT_ID;
         return url;
     }
@@ -220,10 +256,10 @@ module.exports = function(opts) {
                 code: code,
                 state: state
             })
-        }, function(error, res, body) {
+        }, function (error, res, body) {
             winston.debug(res.headers);
             winston.debug(res.statusCode);
-            if (res.statusCode.toString().substr(0,1) != '2') {
+            if (res.statusCode.toString().substr(0, 1) != '2') {
                 winston.error('unexected statusCode ' + res.statusCode);
             }
             else {
@@ -243,7 +279,7 @@ module.exports = function(opts) {
                             'Authorization': 'token ' + access_token,
                         },
                         url: CODERUSS_BASE_URL + '/v1/users/me',
-                    }, function(err, res, body) {
+                    }, function (err, res, body) {
                         winston.debug(res.statusCode);
                         winston.debug(body);
 
@@ -259,7 +295,7 @@ module.exports = function(opts) {
                         winston.info(user._id);
                         User.findOne({
                             _id: user._id
-                        }, function(err, result) {
+                        }, function (err, result) {
                             if (err) {
                                 winston.error(err);
                             }
@@ -276,7 +312,7 @@ module.exports = function(opts) {
                                     $set: {
                                         access_token_coderuss: access_token
                                     }
-                                }, function(error, result) {
+                                }, function (error, result) {
                                     if (error) {
                                         winston.error(error);
                                         return callback();
@@ -310,7 +346,7 @@ module.exports = function(opts) {
                 code: code,
                 state: state
             })
-        }, function(error, res, body) {
+        }, function (error, res, body) {
             winston.debug(res.headers);
             winston.debug(res.statusCode);
             if (res.statusCode !== 200) {
@@ -332,7 +368,7 @@ module.exports = function(opts) {
                             'Authorization': 'token ' + access_token_github,
                         },
                         url: GITHUB_API_URL + '/user',
-                    }, function(err, res, body) {
+                    }, function (err, res, body) {
                         winston.debug(res.statusCode);
                         winston.debug(body);
 
@@ -348,7 +384,7 @@ module.exports = function(opts) {
                         winston.info(user._id);
                         User.findOne({
                             _id: user._id
-                        }, function(err, result) {
+                        }, function (err, result) {
                             if (err) {
                                 winston.error(err);
                             }
@@ -365,7 +401,7 @@ module.exports = function(opts) {
                                     $set: {
                                         access_token_github: access_token_github
                                     }
-                                }, function(error, result) {
+                                }, function (error, result) {
                                     if (error) {
                                         winston.error(error);
                                         return callback();

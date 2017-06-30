@@ -17,6 +17,8 @@ const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL || 'https://localhost:30
 const CODERUSS_ACCESS_TOKEN_URL = CODERUSS_BASE_URL + '/v1/oauth/access_token';
 const CODERUSS_AUTHORIZE_URL = CODERUSS_BASE_URL + '/v1/oauth/authorize';
 
+const GITHUB_CODERUSS_TOKEN = process.env.GITHUB_CODERUSS_TOKEN;
+
 
 module.exports = function (opts) {
 
@@ -119,6 +121,30 @@ module.exports = function (opts) {
 
             console.log('/github/webhook',req.headers,req.body);
             // console.log();
+
+            // body = JSON.stringify(body);
+            //
+            // request({
+            //     method: "POST",
+            //     body: body,
+            //     uri: alexaurl
+            // }
+
+            if (req.body && req.body.head_commit) {
+                var sha = req.body.head_commit.id;
+                request({
+                    method: "POST",
+                    uri: GITHUB_API_URL + '/repos/russjohnson09/coderuss/statuses/'
+                    + sha,
+                    body:
+                        JSON.stringify({
+                        "state": "pending",
+                        "target_url": CODERUSS_BASE_URL + "/angular#/review?sha={{sha}}",
+                        "description": "to review",
+                        "context": "coderuss"
+                    })
+                })
+            }
 
             res.status(201);
             res.json({

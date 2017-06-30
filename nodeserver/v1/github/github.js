@@ -127,7 +127,9 @@ module.exports = function (opts) {
                     method: "POST",
                     headers: {
                         "Authorization": "Token "+ GITHUB_CODERUSS_TOKEN,
-                        "content-type": "application/json"
+                        "content-type": "application/json",
+                        'Accept': 'application/json',
+                        'User-Agent': CODERUSS_USER_AGENT,
                     },
                     uri: GITHUB_API_URL + '/repos/russjohnson09/coderuss/statuses/'
                     + sha,

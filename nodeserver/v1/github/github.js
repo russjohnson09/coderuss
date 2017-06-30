@@ -120,15 +120,6 @@ module.exports = function (opts) {
         router.post('/github/webhook', function (req, res) {
 
             console.log('/github/webhook',req.headers,req.body,req.query);
-            // console.log();
-
-            // body = JSON.stringify(body);
-            //
-            // request({
-            //     method: "POST",
-            //     body: body,
-            //     uri: alexaurl
-            // }
 
             if (req.body && req.body.head_commit) {
                 var sha = req.body.head_commit.id;
@@ -143,6 +134,9 @@ module.exports = function (opts) {
                         "description": "to review",
                         "context": "coderuss"
                     })
+                }, function(err,response,body) {
+                    console.log(response.headers);
+                    console.log(body);
                 })
             }
 

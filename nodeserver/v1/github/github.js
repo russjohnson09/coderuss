@@ -119,7 +119,7 @@ module.exports = function (opts) {
 
         router.post('/github/webhook', function (req, res) {
 
-            console.log('/github/webhook',req.headers,req.body);
+            console.log('/github/webhook',req.headers,req.body,req.query);
             // console.log();
 
             // body = JSON.stringify(body);

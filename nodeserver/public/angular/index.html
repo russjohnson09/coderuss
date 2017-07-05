@@ -20,15 +20,33 @@
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
 
 </head>
 
 <body>
-<div ng-app="app" ng-controller="mainController" class="login">
+<div class="container">
 
-    <movie movie="movie" search-movie="searchMovie"></movie>
+<div ng-app="app" class="login">
+
+    <div class="row">
+        <div class="col-md-3">
+            <ul class="nav">
+                <li><a href="#!hello"> Add New Order </a></li>
+                <li><a href="#!test"> Show Order </a></li>
+                <li><a href="#!movie"> Movie Search </a></li>
+
+            </ul>
+        </div>
+        <div class="col-md-9">
+            <div ng-view></div>
+        </div>
+    </div>
+
 
 </div>
+</div>
+
 
 <script>
     //    angular.module('movieDirective', [])
@@ -48,16 +66,37 @@
 
 <script>
 
-    var app = angular.module('app', []);
+    var app = angular.module('app', ['ngRoute']);
+//
+//    app.config(['$locationProvider', function ($locationProvider) {
+//        $locationProvider.html5Mode({
+//            enabled: true,
+//            requireBase: false
+//        });
+//    }]);
+//
+    app.config(function($routeProvider) {
+        console.log('routeProviderConfig',$routeProvider);
+        $routeProvider
+            .when('/movie', {
+                templateUrl: 'templates/movie.html',
+                controller : "movieCtl"
+            })
+            .when("/test", {
+                templateUrl : "templates/test.html"
+            })
+            .when("/hello", {
+                templateUrl : "templates/hello.html"
+            })
+            .when('/', {
+                templateUrl: 'templates/test.html'
+            })
+            .otherwise({
+                redirectTo: '/test'
+            });
+    });
 
-    app.config(['$locationProvider', function ($locationProvider) {
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
-        });
-    }]);
-
-    app.controller('mainController', function ($rootScope, $scope, $location, $http) {
+    app.controller('movieCtl', function ($rootScope, $scope, $location, $http) {
         $scope.formData = {};
 
         $scope.alerts = [];

@@ -1,0 +1,17 @@
+<div>
+    <h1>Git Review {{gitcommit.sha.substr(0,5)}}</h1>
+    <button ng-click="gitcommit.updateCommitStatusPending()">Pending</button>
+    <button ng-click="gitcommit.updateCommitStatusSuccess()">Success</button>
+
+    <pre>
+        {{gitcommit | json}}
+    </pre>
+
+    <div ng-show="gitcommit.getStats()">
+
+        <h1>Stats</h1>
+        <pre>
+            {{gitcommit.getStats() | json}}
+        </pre>
+    </div>
+</div>

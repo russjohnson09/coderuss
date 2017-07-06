@@ -255,6 +255,7 @@ module.exports = function(opts, callback) {
             addLogseneRouter();
             addFaxRouter();
             addPostcardRouter();
+            addProxyRouter();
             addVoiceRouter();
             addTodosRouter();
             addHabitsRouter();
@@ -520,6 +521,15 @@ module.exports = function(opts, callback) {
             app: app
         });
         app.use('/v1/logsene', logsene.router);
+    }
+
+    function addProxyRouter() {
+        var result = require('./v1/proxy/proxy')({
+            winston: mainLogger,
+            app: app,
+            database: database,
+        });
+        app.use('/v1/proxy', result.router);
     }
 
     function addPostcardRouter() {

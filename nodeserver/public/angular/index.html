@@ -20,15 +20,34 @@
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
 
 </head>
 
 <body>
-<div ng-app="app" ng-controller="mainController" class="login">
+<div class="container">
 
-    <movie movie="movie" search-movie="searchMovie"></movie>
+    <div ng-app="app" class="login">
 
+        <div class="row">
+            <div class="col-md-3">
+                <ul class="nav">
+                    <li><a href="#!hello"> Add New Order </a></li>
+                    <li><a href="#!test"> Show Order </a></li>
+                    <li><a href="#!movie"> Movie Search </a></li>
+                    <li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>
+
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <div ng-view></div>
+            </div>
+        </div>
+
+
+    </div>
 </div>
+
 
 <script>
     //    angular.module('movieDirective', [])
@@ -48,16 +67,208 @@
 
 <script>
 
-    var app = angular.module('app', []);
+    var app = angular.module('app', ['ngRoute']);
+    //
+    //    app.config(['$locationProvider', function ($locationProvider) {
+    //        $locationProvider.html5Mode({
+    //            enabled: true,
+    //            requireBase: false
+    //        });
+    //    }]);
+    //
+    app.config(function ($routeProvider) {
+        console.log('routeProviderConfig', $routeProvider);
+        $routeProvider
+            .when('/movie', {
+                templateUrl: 'templates/movie.html',
+                controller: "movieCtl"
+            })
+            .when('/gitreview/:sha', {
+                templateUrl: 'templates/gitreview.html',
+                controller: "gitreviewCtl"
+            })
+            .when("/test", {
+                templateUrl: "templates/test.html"
+            })
+            .when("/hello", {
+                templateUrl: "templates/hello.html"
+            })
+            .when('/', {
+                templateUrl: 'templates/test.html'
+            })
+            .otherwise({
+                redirectTo: '/test'
+            });
+    });
 
-    app.config(['$locationProvider', function ($locationProvider) {
-        $locationProvider.html5Mode({
-            enabled: true,
-            requireBase: false
-        });
+    //http://www.webdeveasy.com/angularjs-data-model/
+    //https://api.github.com/repos/russjohnson09/coderuss/commits/4c20768f288af579519e887674ddcea5300a7d1d
+    app.factory('Gitcommit', ['$http', function ($http) {
+        function Gitcommit(data) {
+            if (data) {
+                this.setData(data);
+            }
+        };
+
+        const GITHUB_API = '/v1/proxy/github';
+
+        Gitcommit.prototype = {
+            setData: function (data) {
+                angular.extend(this, data);
+            },
+            getStats: function () {
+                console.log('getStats', this, this.stats);
+                if (typeof this.stats == 'undefined') {
+                    this.stats = {};
+                    this.populateCommit();
+                }
+
+                return this.stats;
+            },
+            updateCommitStatusPending: function () {
+                var self = this;
+                var url = GITHUB_API
+                    + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
+
+                var data = {
+                    "state": "pending",
+                    "target_url": window.location.origin + self.sha,
+                    "description": "pending",
+                    "context": "coderuss"
+                };
+
+                console.log('updateCommitStatusPending',data);
+
+                $http(
+                    {
+                        method: 'POST',
+                        url: url,
+                        data: JSON.stringify(data),
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+                    console.log('updateCommitStatusPending', response);
+                    if (response.data && response.data) {
+                        self.setData(response.data);
+                    }
+                });
+            },
+            updateCommitStatusSuccess: function () {
+                var self = this;
+                var url = GITHUB_API
+                    + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
+
+                var data = {
+                    "state": "success",
+                    "target_url": window.location.origin + self.sha,
+                    "description": "success description",
+                    "context": "coderuss"
+                };
+
+                console.log('updateCommitStatusPending',data);
+
+                $http(
+                    {
+                        method: 'POST',
+                        url: url,
+                        data: JSON.stringify(data),
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+                    console.log('updateCommitStatusPending', response);
+                    if (response.data && response.data) {
+                        self.setData(response.data);
+                    }
+                });
+            },
+            populateCommit: function () {
+                var self = this;
+                console.log('populateCommit');
+                var url = GITHUB_API
+                    + '/repos/russjohnson09/coderuss/commits/' + self.sha;
+                //X-GitHub-Request-Id
+                //xsrfHeaderName
+                console.log('populateCommit', url);
+
+                $http(
+                    {
+                        method: 'GET',
+                        url: url,
+//                        xsrfHeaderName: 'X-GitHub-Request-Id ',
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+//                        params: {
+////                            _proxy: 1,
+////                            query: $scope.movie.query
+//                        }
+                    }
+                ).then(function (response) {
+                    console.log('populateCommit', response);
+                    if (response.data && response.data) {
+                        self.setData(response.data);
+                    }
+                });
+//                /repos/russjohnson09/coderuss/commits/{{sha}}
+//                $http.get()
+//                    .then(function(data) {
+//                        console.log(data);
+//                });
+            },
+            loadCommitData: function (sha) {
+                var scope = this;
+                $http.get('ourserver/books/' + bookId).success(function (bookData) {
+                    scope.setData(bookData);
+                });
+            },
+            load: function (id) {
+                var scope = this;
+                $http.get('ourserver/books/' + bookId).success(function (bookData) {
+                    scope.setData(bookData);
+                });
+            },
+            delete: function () {
+                $http.delete('ourserver/books/' + bookId);
+            },
+            update: function () {
+                $http.put('ourserver/books/' + bookId, this);
+            },
+            getImageUrl: function (width, height) {
+                return 'our/image/service/' + this.book.id + '/' + width + '/' + height;
+            },
+            isAvailable: function () {
+                if (!this.book.stores || this.book.stores.length === 0) {
+                    return false;
+                }
+                return this.book.stores.some(function (store) {
+                    return store.quantity > 0;
+                });
+            }
+        };
+
+        return Gitcommit;
     }]);
 
-    app.controller('mainController', function ($rootScope, $scope, $location, $http) {
+    app.controller('gitreviewCtl', ['$rootScope', '$scope', '$location', '$http', '$routeParams', 'Gitcommit', function ($rootScope, $scope, $location, $http, $routeParams, Gitcommit) {
+
+        console.log('gitreviewCtl');
+
+//        $scope.sha = $routeParams.sha;
+
+        $scope.gitcommit = new Gitcommit({sha: $routeParams.sha})
+    }]);
+
+    app.controller('movieCtl', function ($rootScope, $scope, $location, $http, $routeParams) {
+
+        $scope.ID = $routeParams.ID;
+
         $scope.formData = {};
 
         $scope.alerts = [];
@@ -114,7 +325,6 @@
                 templateUrl: 'directives/movie.html'
             };
         });
-    ;
 
 </script>
 </body>

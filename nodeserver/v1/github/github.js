@@ -136,7 +136,7 @@ module.exports = function (opts) {
                     body:
                         JSON.stringify({
                         "state": "pending",
-                        "target_url": CODERUSS_BASE_URL + "/angular#/review?sha="+sha,
+                        "target_url": CODERUSS_BASE_URL + "/angular/#!/gitreview/"+sha,
                         "description": "to review",
                         "context": "coderuss"
                     })

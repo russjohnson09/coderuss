@@ -207,7 +207,8 @@ module.exports = function(opts, callback) {
         res.setHeader("x-context", app.get('CONTEXT'));
         // req.session.context = app.get('CONTEXT');
 
-        res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: true });
+        //unsafe cookie allowed for context
+        res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: false });
 
         return next();
     });

@@ -113,7 +113,15 @@
 
         const GITHUB_API = '/v1/proxy/github';
 
+        var context = '';
         Gitcommit.prototype = {
+            setContext: function(val) {
+                context = val;
+            },
+            getContext: function()
+            {
+                return context;
+            },
             setData: function (data) {
                 angular.extend(this, data);
             },
@@ -135,7 +143,7 @@
                     "state": "pending",
                     "target_url": window.location.origin + self.sha,
                     "description": "pending",
-                    "context": "coderuss"
+                    "context": self.getContext()
                 };
 
                 console.log('updateCommitStatusPending',data);
@@ -166,7 +174,7 @@
                     "state": "success",
                     "target_url": window.location.origin + self.sha,
                     "description": "success description",
-                    "context": "coderuss"
+                    "context": self.getContext()
                 };
 
                 console.log('updateCommitStatusPending',data);
@@ -261,13 +269,15 @@
         '$http', '$routeParams', 'Gitcommit',
         function ($rootScope,$cookies, $scope, $location, $http, $routeParams, Gitcommit) {
 
-        console.log('gitreviewCtl');
+            console.log('gitreviewCtl');
 
-        console.log('cookies',$cookies.getAll());
+            console.log('cookies',$cookies.getAll());
 
-//        $scope.sha = $routeParams.sha;
+    //        $scope.sha = $routeParams.sha;
 
-        $scope.gitcommit = new Gitcommit({sha: $routeParams.sha})
+            var gitcommit = $scope.gitcommit = new Gitcommit({sha: $routeParams.sha});
+
+            gitcommit.setContext($cookies.get('context'));
     }]);
 
     app.controller('movieCtl', function ($rootScope, $scope, $location, $http, $routeParams) {

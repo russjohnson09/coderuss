@@ -17,6 +17,7 @@
 
     <script src="/js/ext/jquery-3.2.1.min.js"></script>
     <script src="/bower_components/angular/angular.min.js"></script>
+    <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
 
@@ -67,7 +68,7 @@
 
 <script>
 
-    var app = angular.module('app', ['ngRoute']);
+    var app = angular.module('app', ['ngRoute','ngCookies']);
     //
     //    app.config(['$locationProvider', function ($locationProvider) {
     //        $locationProvider.html5Mode({
@@ -256,9 +257,13 @@
         return Gitcommit;
     }]);
 
-    app.controller('gitreviewCtl', ['$rootScope', '$scope', '$location', '$http', '$routeParams', 'Gitcommit', function ($rootScope, $scope, $location, $http, $routeParams, Gitcommit) {
+    app.controller('gitreviewCtl', ['$rootScope','$cookies', '$scope', '$location',
+        '$http', '$routeParams', 'Gitcommit',
+        function ($rootScope,$cookies, $scope, $location, $http, $routeParams, Gitcommit) {
 
         console.log('gitreviewCtl');
+
+        console.log('cookies',$cookies.getAll());
 
 //        $scope.sha = $routeParams.sha;
 

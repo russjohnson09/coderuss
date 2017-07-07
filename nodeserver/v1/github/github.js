@@ -23,6 +23,7 @@ const GITHUB_CODERUSS_TOKEN = process.env.GITHUB_CODERUSS_TOKEN;
 module.exports = function (opts) {
 
     var winston = opts.winston;
+    var app = opts.app;
 
 
     const CODERUSS_USER_AGENT = 'CODERUSS';
@@ -137,8 +138,8 @@ module.exports = function (opts) {
                         JSON.stringify({
                         "state": "pending",
                         "target_url": CODERUSS_BASE_URL + "/angular/#!/gitreview/"+sha,
-                        "description": "to review",
-                        "context": "coderuss"
+                        "description": "Requires manual checks.",
+                        "context": app.get('CONTEXT')
                     })
                 }, function(err,response,body) {
                     console.log(response.headers);

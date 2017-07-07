@@ -8,7 +8,8 @@ const querystring = require('querystring');
 const passport = require('passport');
 const request = require('request');
 const NODE_ENV = process.env.NODE_ENV || 'dev';
-const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
+const CONTEXT = 'coderuss_' + NODE_ENV;
+const LOGSENE_LOG_TYPE = CONTEXT;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
 const THEMOVIEDB_BASE_URL = process.env.THEMOVIEDB_BASE_URL;
 const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
@@ -124,6 +125,9 @@ module.exports = function(opts, callback) {
 
     app.set('commit', '');
 
+    app.set('CONTEXT',CONTEXT);
+
+
     request.get({
         url: TRAVIS_MASTER_BRANCH
     }, function(error, response, body) {
@@ -179,7 +183,10 @@ module.exports = function(opts, callback) {
         extended: true
     }));
     app.use(bodyParser.json());
-    app.use(require('cookie-parser')());
+
+    const cookieParser  = require('cookie-parser');
+
+    app.use(cookieParser());
 
     var expressSession = require('express-session');
 
@@ -194,6 +201,16 @@ module.exports = function(opts, callback) {
 
     app.use(passport.initialize());
     app.use(passport.session());
+
+
+    app.use(function(req, res, next) {
+        res.setHeader("x-context", app.get('CONTEXT'));
+        // req.session.context = app.get('CONTEXT');
+
+        res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: true });
+
+        return next();
+    });
 
 
     winston.info(root, {
@@ -582,6 +599,7 @@ module.exports = function(opts, callback) {
     function addGithubRouter() {
 
         app.use('/v1', require('./v1/github/github.js')({
+            app: app,
             winston: mainLogger,
             db: mongo_db,
             sessionMiddleware: sessionMiddleware

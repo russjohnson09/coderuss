@@ -8,10 +8,15 @@ const querystring = require('querystring');
 const passport = require('passport');
 const request = require('request');
 const NODE_ENV = process.env.NODE_ENV || 'dev';
-const LOGSENE_LOG_TYPE = 'coderuss_' + NODE_ENV;
+const CONTEXT = 'coderuss_' + NODE_ENV;
+const LOGSENE_LOG_TYPE = CONTEXT;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
 const THEMOVIEDB_BASE_URL = process.env.THEMOVIEDB_BASE_URL;
 const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
+const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
+const jsdom = require('jsdom');
+const { JSDOM } = jsdom;
+
 
 var loopback = require('loopback');
 
@@ -124,6 +129,9 @@ module.exports = function(opts, callback) {
 
     app.set('commit', '');
 
+    app.set('CONTEXT',CONTEXT);
+
+
     request.get({
         url: TRAVIS_MASTER_BRANCH
     }, function(error, response, body) {
@@ -179,7 +187,10 @@ module.exports = function(opts, callback) {
         extended: true
     }));
     app.use(bodyParser.json());
-    app.use(require('cookie-parser')());
+
+    const cookieParser  = require('cookie-parser');
+
+    app.use(cookieParser());
 
     var expressSession = require('express-session');
 
@@ -194,6 +205,17 @@ module.exports = function(opts, callback) {
 
     app.use(passport.initialize());
     app.use(passport.session());
+
+
+    // app.use(function(req, res, next) {
+    //     res.setHeader("x-context", app.get('CONTEXT'));
+    //     // req.session.context = app.get('CONTEXT');
+    //
+    //     //unsafe cookie allowed for context
+    //     res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: false });
+    //
+    //     return next();
+    // });
 
 
     winston.info(root, {
@@ -256,6 +278,7 @@ module.exports = function(opts, callback) {
             addFaxRouter();
             addPostcardRouter();
             addProxyRouter();
+            addShewasprettyRouter();
             addVoiceRouter();
             addTodosRouter();
             addHabitsRouter();
@@ -523,6 +546,89 @@ module.exports = function(opts, callback) {
         app.use('/v1/logsene', logsene.router);
     }
 
+    function addShewasprettyRouter() {
+        var router = express.Router();
+
+        var base_url = "http://myasiantv.online/video/drama/she-was-pretty";
+
+        var getEpisodeUrl = function(episode) {
+            return base_url + '/episode-' + episode;
+        };
+
+        router.get('/', function(req,res) {
+
+            var responseData = [];
+
+            var episodeTotal = 16;
+            var count = 0;
+
+            for (var i = 0; i < episodeTotal; i++) {
+                var episodeNumber = i + 1;
+                (function() {
+                    var episodeUrl = getEpisodeUrl(episodeNumber);
+
+                    var episode = {
+                        episodeNumber: episodeNumber,
+                        episodeUrl: episodeUrl,
+                        episodeTotal: episodeTotal
+                    };
+
+                    responseData.push(episode);
+
+                    (function(episode) {
+                        request({
+                            url: episode.episodeUrl,
+                            method: 'GET'
+                        }, function(e,r,b) {
+                            count++;
+                            dom = new JSDOM(b);
+                            var videoUrl = dom.window.document.querySelector("iframe").src.split('=')[1];
+
+                            episode.videoUrl = videoUrl;
+
+                            console.log('shewasprettycount',count,episode);
+
+
+                            if (count === episodeTotal) {
+                                return res.json(responseData).end();
+                            }
+                        });
+                    })(episode);
+
+                })();
+
+            }
+            return;
+            request({
+                url: getEpisodeUrl(1),
+                method: 'GET'
+            }, function(e,r,b) {
+                // return res.send(b).end();
+                dom = new JSDOM(b);
+                var videoUrl = dom.window.document.querySelector("iframe").src.split('=')[1];
+
+                console.log(videoUrl);
+                return res.send(videoUrl).end();
+
+                jsdom.env({
+                    html: b,
+                    scripts: ['http://code.jquery.com/jquery-1.6.min.js']
+                }, function(err, window){
+                    //Use jQuery just as in a regular HTML page
+                    var $ = window.jQuery;
+
+                    console.log($('title').text());
+                    res.end($('title').text());
+                });
+                // res.send(b).end();
+                // res.json(b)
+            });
+            // res.json(['1']);
+        });
+
+        app.use('/v1/shewaspretty', router);
+    }
+
     function addProxyRouter() {
         var result = require('./v1/proxy/proxy')({
             winston: mainLogger,
@@ -582,6 +688,7 @@ module.exports = function(opts, callback) {
     function addGithubRouter() {
 
         app.use('/v1', require('./v1/github/github.js')({
+            app: app,
             winston: mainLogger,
             db: mongo_db,
             sessionMiddleware: sessionMiddleware

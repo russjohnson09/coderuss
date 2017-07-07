@@ -1,0 +1,13 @@
+<div>
+    <h1>She was pretty</h1>
+
+    <div ng-show="devMode">
+        devMode - {{devMode}}
+        {{episodes}}
+    </div>
+
+    <div ng-repeat="episode in episodes track by $index">
+        <a target="_blank" ng-href="{{episode.videoUrl}}">She Was Pretty - Episode {{episode.episodeNumber}}</a>
+    </div>
+
+</div>

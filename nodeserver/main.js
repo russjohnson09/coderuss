@@ -203,15 +203,15 @@ module.exports = function(opts, callback) {
     app.use(passport.session());
 
 
-    app.use(function(req, res, next) {
-        res.setHeader("x-context", app.get('CONTEXT'));
-        // req.session.context = app.get('CONTEXT');
-
-        //unsafe cookie allowed for context
-        res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: false });
-
-        return next();
-    });
+    // app.use(function(req, res, next) {
+    //     res.setHeader("x-context", app.get('CONTEXT'));
+    //     // req.session.context = app.get('CONTEXT');
+    //
+    //     //unsafe cookie allowed for context
+    //     res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: false });
+    //
+    //     return next();
+    // });
 
 
     winston.info(root, {

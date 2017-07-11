@@ -16,6 +16,9 @@ const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
 const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
+const async = require('async');
+const URL = require('url'); //url package
+const expect = require('chai').expect;
 
 
 var loopback = require('loopback');
@@ -279,6 +282,9 @@ module.exports = function(opts, callback) {
             addPostcardRouter();
             addProxyRouter();
             addShewasprettyRouter();
+
+            addSelftestRouter();
+
             addVoiceRouter();
             addTodosRouter();
             addHabitsRouter();
@@ -544,6 +550,404 @@ module.exports = function(opts, callback) {
             app: app
         });
         app.use('/v1/logsene', logsene.router);
+    }
+
+    function addSelftestRouter() {
+        var router = express.Router();
+
+        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV !== 'dev') {
+            router.post('/selftest/main/run', function (req, res) {
+
+                runDefaultTest(function(testResults) {
+                    res.json({tests:testResults}).end();
+                });
+            });
+
+            router.post('/selftest/main/runfail', function (req, res) {
+
+                runFailTest(function(testResults) {
+                    res.json({tests:testResults}).end();
+                });
+            });
+        }
+        app.use('/v1', router);
+
+
+
+        /**
+         * @param callback callback(testresults) always called
+         */
+        var runFailTest = function(callback)
+        {
+            var headers = {
+                'content-type': 'application/json'
+            };
+
+            var body = JSON.stringify({
+                'test': 1,
+            });
+            var test1 = {
+                name: 'Test 1',
+                description: 'Do post against ping',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    'url': 'http://localhost:3000/v1/ping'
+                },
+                // response: {
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 201,
+                        message: 'status Code must be 201'
+                    },
+                    {
+                        message: 'server.started should be a timestamp',
+                        type: 'body',
+                        path: 'server.started',
+                        expectedType: 'number',
+                        saveParam: 'server.started'
+                    }
+                ]
+                // }
+            };
+
+
+            var body = JSON.stringify({
+                'test': '{{server.started}}',
+            });
+
+            var test2 = {
+                name: 'Test 2',
+                description: 'Confirm server.started is equal on second request.',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    url: 'http://localhost:3000/v1/ping'
+                },
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedType: 'number',
+                        message: 'statusCode is a number'
+                    },
+                    {
+                        type: 'statusCode',
+                        expectedValue: 404,
+                        message: 'statusCode must be 404'
+                    }
+                ]
+            };
+
+            var seriesFunctions = [];
+
+            var testResults = [{testObject:test1},{testObject:test2}];
+
+            var params = {};
+            testResults.forEach(function(testResult) {
+                var test = testResult.testObject;
+                seriesFunctions.push(function(cb)
+                {
+                    test.params = params;
+                    console.log('runTestStep',params,test.params,test);
+                    runTestStep(test,function(tr) {
+                        // console.log(testResult);
+                        // testResults.push(testResult);
+                        Object.assign(testResult,tr);
+                        params = testResult.savedParams;
+                        console.log('runTestStepPost',params);
+
+                        cb(testResult.status == 'failed');
+                    })
+                })
+            });
+
+
+            async.series(seriesFunctions,function(){
+                console.log('async complete',testResults)
+                callback(testResults);
+            })
+        };
+
+        /**
+         * @param callback callback(testresults) always called
+         */
+        var runDefaultTest = function(runDefaultTestCallback)
+        {
+            var headers = {
+                'content-type': 'application/json'
+            };
+
+            var body = JSON.stringify({
+                'test': 1,
+            });
+            var test1 = {
+                name: 'Test 1',
+                description: 'Do post against ping',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    'url': 'http://localhost:3000/v1/ping'
+                },
+                // response: {
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 201,
+                        message: 'status Code must be 201'
+                    },
+                    {
+                        message: 'server.started should be a timestamp',
+                        type: 'body',
+                        path: 'server.started',
+                        expectedType: 'number',
+                        saveParam: 'server.started'
+                    }
+                ]
+                // }
+            };
+
+
+            var body = JSON.stringify({
+                'test': '{{server.started}}',
+            });
+
+            var test2 = {
+                name: 'Test 2',
+                description: 'Confirm server.started is equal on second request.',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    url: 'http://localhost:3000/v1/ping'
+                },
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 201,
+                        expectedType: 'number',
+                        message: 'Status code must be 201'
+                    },
+                    {
+                        type: 'body',
+                        path: 'server.started',
+                        expectedParamValue: 'server.started',
+                        message: 'server.started is the same as previous request'
+                    },
+                    {
+                        type: 'body',
+                        path: 'server.deploytime',
+                        expectedType: 'undefined',
+                        saveParam: 'server.deploytime',
+                        message: 'server.deploytime is not defined'
+
+                    }
+                ]
+            };
+
+            var seriesFunctions = [];
+
+            var testResults = [{testObject:test1},{testObject:test2}];
+
+            var params = {};
+            testResults.forEach(function(testResult) {
+                var test = testResult.testObject;
+                seriesFunctions.push(function(cb)
+                {
+                    test.params = params;
+                    console.log('runTestStep',params,test.params,test);
+                    runTestStep(test,function(tr) {
+                        // console.log(testResult);
+                        // testResults.push(testResult);
+                        Object.assign(testResult,tr);
+                        params = testResult.savedParams;
+                        console.log('runTestStepPost',params);
+
+                        cb(testResult.status == 'failed');
+                    })
+                })
+            });
+
+
+            async.series(seriesFunctions,function(){
+                console.log('async complete',testResults)
+                runDefaultTestCallback(testResults);
+            })
+        };
+
+
+
+        /**
+         * @param testObject json object of test
+         * @param callback callback(testresult) always called
+         */
+        var runTestStep = function(testObject, callback) {
+            // console.log(process.cwd().replace(/\\/g,'/'));
+
+            if (testObject.request.body) {
+                for (var key in testObject.params) {
+                    var regexStr = '{{'+key+'}}';
+                    console.log('replace',key,regexStr,testObject.params[key]);
+                    var regex = new RegExp(regexStr);
+                    testObject.request.body = testObject.request.body
+                        .replace(regex,testObject.params[key]);
+                }
+            }
+
+
+
+            var opts = {};
+
+            Object.assign(opts,testObject.request);
+            console.log(opts,testObject);
+
+
+            parsedRequest(opts,function(parsedData) {
+
+                parsedData.savedParams = parsedData.savedParams || {};
+
+                parsedData.description = testObject.description || '';
+                if (testObject.tests) {
+                    for (idx in testObject.tests) {
+                        var test = testObject.tests[idx];
+
+                        if (parsedData.status === 'failed') {
+                            return callback(parsedData);
+                        }
+
+                        var message = test.message || getDefaultMessage(test);
+                        if (test.type == 'statusCode') {
+                            var val = parsedData.response.statusCode;
+                        }
+                        else if (test.type == 'body') {
+                            var val = getValue(test,parsedData.response.body);
+                        }
+
+                        if (test.saveParam) {
+                            parsedData.savedParams[test.saveParam] = val;
+                        }
+
+                        if (test.expectedType) {
+                            doExpect(parsedData,message,function(message) {
+                                expect(val,message)
+                                    .to.be.a(test.expectedType)
+                            });
+                        }
+                        if (test.expectedValue) {
+                            doExpect(parsedData,message,function(message) {
+                                console.log('doExpect',test,test.message,message);
+                                expect(val,message)
+                                    .to.be.equal(test.expectedValue)
+                            });
+                        }
+                        if (test.expectedParamValue) {
+                            doExpect(parsedData,message,function(message) {
+                                console.log('doExpect',test,test.message,message);
+                                expect(val,message)
+                                    .to.be.equal(testObject.params[test.expectedParamValue]);
+                            });
+                        }
+                    }
+                }
+
+
+                callback(parsedData);
+            });
+        };
+
+        var getValue = function(test,body)
+        {
+            var value;
+            test.path.split('.').forEach(function(key) {
+                if (value !== undefined) {
+                    if (typeof value == 'object') {
+                        value = value[key];
+                    }
+                    else {
+                        return undefined;
+                    }
+                }
+                else {
+                    value = body[key];
+                }
+            });
+
+            return value;
+        }
+
+        var getDefaultMessage = function(test) {
+            return '';
+        }
+
+
+        var doExpect = function(parsedData,message,expectFunc) {
+            var expectTest = {};
+            parsedData.expectTests = parsedData.expectTests || [];
+            parsedData.expectTests.push(expectTest);
+
+            expectTest.message = message;
+
+            try {
+                expectFunc(message);
+                expectTest.status = 'success';
+                parsedData.status = 'success';
+            }
+            catch (e) {
+                expectTest.status = 'failed';
+                parsedData.status = 'failed';
+
+                // expectTest.message = e.message;
+
+                expectTest.error = e;
+
+                expectTest.errorMessage = e.toString();
+
+            }
+
+        };
+
+
+        var parsedRequest = function (opts, parsedCallback) {
+            var parsedData = {};
+            parsedData.rawRequestBody = opts.body;
+
+            parsedData.headers = opts.headers;
+            if (opts.body) {
+                parsedData.body = JSON.parse(opts.body);
+            }
+            parsedData.url = opts.url;
+            parsedData.method = opts.method;
+            parsedData.failedTests = [];
+
+            parsedData.path = (function(urlString) {
+                var urlParsed = URL.parse(urlString,true);
+                console.log('url',urlParsed.path,urlParsed);
+                // var fullpath = url.pathname + url.search;
+
+                return urlParsed.pathname + urlParsed.search;
+            })(opts.url);
+
+            request(opts, function (err, response, body) {
+                parsedData.response = {};
+                parsedData.response.body = null;
+                parsedData.response.rawResponseBody = body;
+                parsedData.response.headers = response.headers;
+                parsedData.response.statusCode = response.statusCode;
+
+                try {
+                    parsedData.response.body = JSON.parse(parsedData.response.rawResponseBody);
+                }
+                catch(e) {
+
+                }
+
+                parsedCallback(parsedData);
+            });
+        };
+
     }
 
     function addShewasprettyRouter() {

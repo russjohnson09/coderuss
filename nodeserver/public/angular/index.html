@@ -9,11 +9,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Optimize mobile viewport -->
 
-    <title>Login</title>
+    <title>Coderuss</title>
 
     <link rel="stylesheet" href="/css/ext/bootstrap.min.css">
     <style>
     </style>
+
+
+    <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
+
 
     <script src="/js/ext/jquery-3.2.1.min.js"></script>
     <script src="/bower_components/angular/angular.min.js"></script>
@@ -88,8 +92,9 @@
                 templateUrl: 'templates/gitreview.html',
                 controller: "gitreviewCtl"
             })
-            .when("/test", {
-                templateUrl: "templates/test.html"
+            .when("/tests", {
+                templateUrl: "templates/tests.html",
+                controller: "testsCtl"
             })
             .when("/hello", {
                 templateUrl: "templates/hello.html"
@@ -105,6 +110,29 @@
                 redirectTo: '/test'
             });
     });
+
+
+    app.directive("preview", function () {
+        function link(scope, element) {
+            var iframe = document.createElement('iframe');
+            var element0 = element[0];
+            element0.appendChild(iframe);
+            var body = iframe.contentDocument.body;
+
+            scope.$watch('content', function () {
+                body.innerHTML = scope.content;
+            });
+        }
+
+        return {
+            link: link,
+            restrict: 'E',
+            scope: {
+                content: '='
+            }
+        };
+    });
+
 
     //http://www.webdeveasy.com/angularjs-data-model/
     //https://api.github.com/repos/russjohnson09/coderuss/commits/4c20768f288af579519e887674ddcea5300a7d1d
@@ -394,6 +422,73 @@
                 templateUrl: 'directives/movie.html'
             };
         });
+
+
+    app.controller('testsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+        '$http', '$routeParams','$sce',
+        function ($rootScope, $cookies, $scope, $location, $http, $routeParams,$sce) {
+
+            var APP_BASE_URL = '';
+
+            $scope.testMain = function()
+            {
+                var url = APP_BASE_URL + '/v1/selftest/main/run';
+                $http(
+                    {
+                        method: 'POST',
+                        url: url,
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+
+                    var result = [];
+                    console.log(response.data);
+                    response.data.tests.forEach(function(test) {
+                        result.push(test);
+                        test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
+
+                    });
+
+                    $scope.tests = result;
+
+                }, function (err) {
+                    console.error(err);
+                });
+            };
+
+            $scope.testFail = function()
+            {
+                var url = APP_BASE_URL + '/v1/selftest/main/runfail';
+                $http(
+                    {
+                        method: 'POST',
+                        url: url,
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+
+                    var result = [];
+                    console.log(response.data);
+                    response.data.tests.forEach(function(test) {
+                        result.push(test);
+                        test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
+
+                    });
+
+                    $scope.tests = result;
+
+                }, function (err) {
+                    console.error(err);
+                });
+            };
+        }]);
+
 
 </script>
 </body>

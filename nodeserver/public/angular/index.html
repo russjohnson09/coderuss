@@ -458,6 +458,35 @@
                     console.error(err);
                 });
             };
+
+            $scope.testFail = function()
+            {
+                var url = APP_BASE_URL + '/v1/selftest/main/runfail';
+                $http(
+                    {
+                        method: 'POST',
+                        url: url,
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+
+                    var result = [];
+                    console.log(response.data);
+                    response.data.tests.forEach(function(test) {
+                        result.push(test);
+                        test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
+
+                    });
+
+                    $scope.tests = result;
+
+                }, function (err) {
+                    console.error(err);
+                });
+            };
         }]);
 
 

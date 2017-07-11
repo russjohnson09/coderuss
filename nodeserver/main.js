@@ -559,13 +559,117 @@ module.exports = function(opts, callback) {
             router.post('/selftest/main/run', function (req, res) {
 
                 runDefaultTest(function(testResults) {
-                    res.json({status:'success',tests:testResults}).end();
+                    res.json({tests:testResults}).end();
+                });
+            });
+
+            router.post('/selftest/main/runfail', function (req, res) {
+
+                runFailTest(function(testResults) {
+                    res.json({tests:testResults}).end();
                 });
             });
         }
         app.use('/v1', router);
 
 
+
+        /**
+         * @param callback callback(testresults) always called
+         */
+        var runFailTest = function(callback)
+        {
+            var headers = {
+                'content-type': 'application/json'
+            };
+
+            var body = JSON.stringify({
+                'test': 1,
+            });
+            var test1 = {
+                name: 'Test 1',
+                description: 'Do post against ping',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    'url': 'http://localhost:3000/v1/ping'
+                },
+                // response: {
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 201,
+                        message: 'status Code must be 201'
+                    },
+                    {
+                        message: 'server.started should be a timestamp',
+                        type: 'body',
+                        path: 'server.started',
+                        expectedType: 'number',
+                        saveParam: 'server.started'
+                    }
+                ]
+                // }
+            };
+
+
+            var body = JSON.stringify({
+                'test': '{{server.started}}',
+            });
+
+            var test2 = {
+                name: 'Test 2',
+                description: 'Confirm server.started is equal on second request.',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    url: 'http://localhost:3000/v1/ping'
+                },
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedType: 'number',
+                        message: 'statusCode is a number'
+                    },
+                    {
+                        type: 'statusCode',
+                        expectedValue: 404,
+                        message: 'statusCode must be 404'
+                    }
+                ]
+            };
+
+            var seriesFunctions = [];
+
+            var testResults = [{testObject:test1},{testObject:test2}];
+
+            var params = {};
+            testResults.forEach(function(testResult) {
+                var test = testResult.testObject;
+                seriesFunctions.push(function(cb)
+                {
+                    test.params = params;
+                    console.log('runTestStep',params,test.params,test);
+                    runTestStep(test,function(tr) {
+                        // console.log(testResult);
+                        // testResults.push(testResult);
+                        Object.assign(testResult,tr);
+                        params = testResult.savedParams;
+                        console.log('runTestStepPost',params);
+
+                        cb(testResult.status == 'failed');
+                    })
+                })
+            });
+
+
+            async.series(seriesFunctions,function(){
+                console.log('async complete',testResults)
+                callback(testResults);
+            })
+        };
 
         /**
          * @param callback callback(testresults) always called
@@ -581,7 +685,7 @@ module.exports = function(opts, callback) {
             });
             var test1 = {
                 name: 'Test 1',
-                description: 'Do a thing',
+                description: 'Do post against ping',
                 request: {
                     headers:headers,
                     body: body,
@@ -592,13 +696,15 @@ module.exports = function(opts, callback) {
                 tests: [
                     {
                         type: 'statusCode',
-                        expectedValue: 200,
+                        expectedValue: 201,
+                        message: 'status Code must be 201'
                     },
                     {
+                        message: 'server.started should be a timestamp',
                         type: 'body',
-                        path: 'server.deploytime',
+                        path: 'server.started',
                         expectedType: 'number',
-                        saveParam: 'server.deploytime'
+                        saveParam: 'server.started'
                     }
                 ]
                 // }
@@ -606,43 +712,60 @@ module.exports = function(opts, callback) {
 
 
             var body = JSON.stringify({
-                'test': '{{server.deploytime}}',
+                'test': '{{server.started}}',
             });
 
             var test2 = {
                 name: 'Test 2',
-                description: 'Do a thing',
+                description: 'Confirm server.started is equal on second request.',
                 request: {
                     headers:headers,
                     body: body,
                     method: 'POST',
-                    'url': 'http://localhost:3000/v1/ping'
+                    url: 'http://localhost:3000/v1/ping'
                 },
                 tests: [
                     {
                         type: 'statusCode',
                         expectedValue: 201,
-                        message: 'Status code must be 200'
+                        expectedType: 'number',
+                        message: 'Status code must be 201'
+                    },
+                    {
+                        type: 'body',
+                        path: 'server.started',
+                        expectedParamValue: 'server.started',
+                        message: 'server.started is the same as previous request'
                     },
                     {
                         type: 'body',
                         path: 'server.deploytime',
-                        expectedType: 'number',
-                        saveParam: 'server.deploytime'
+                        expectedType: 'undefined',
+                        saveParam: 'server.deploytime',
+                        message: 'server.deploytime is not defined'
+
                     }
                 ]
             };
 
             var seriesFunctions = [];
 
-            var testResults = [];
+            var testResults = [{testObject:test1},{testObject:test2}];
 
-            [test1,test2].forEach(function(test) {
+            var params = {};
+            testResults.forEach(function(testResult) {
+                var test = testResult.testObject;
                 seriesFunctions.push(function(cb)
                 {
-                    runTestStep(test,function(testResult) {
-                        console.log(testResult);
-                        testResults.push(testResult);
+                    test.params = params;
+                    console.log('runTestStep',params,test.params,test);
+                    runTestStep(test,function(tr) {
+                        // console.log(testResult);
+                        // testResults.push(testResult);
+                        Object.assign(testResult,tr);
+                        params = testResult.savedParams;
+                        console.log('runTestStepPost',params);
+
                         cb(testResult.status == 'failed');
                     })
                 })
@@ -664,9 +787,13 @@ module.exports = function(opts, callback) {
         var runTestStep = function(testObject, callback) {
             // console.log(process.cwd().replace(/\\/g,'/'));
 
-            if (testObject.body) {
+            if (testObject.request.body) {
                 for (var key in testObject.params) {
-                    testObject.body = testObject.body.replace('/{{'+key+'}}/g',testObject.params[key]);
+                    var regexStr = '{{'+key+'}}';
+                    console.log('replace',key,regexStr,testObject.params[key]);
+                    var regex = new RegExp(regexStr);
+                    testObject.request.body = testObject.request.body
+                        .replace(regex,testObject.params[key]);
                 }
             }
 
@@ -679,8 +806,10 @@ module.exports = function(opts, callback) {
 
 
             parsedRequest(opts,function(parsedData) {
-                // expect(err).to.be.null;
 
+                parsedData.savedParams = parsedData.savedParams || {};
+
+                parsedData.description = testObject.description || '';
                 if (testObject.tests) {
                     for (idx in testObject.tests) {
                         var test = testObject.tests[idx];
@@ -689,12 +818,12 @@ module.exports = function(opts, callback) {
                             return callback(parsedData);
                         }
 
-                        var message = test.message | getDefaultMessage(test);
+                        var message = test.message || getDefaultMessage(test);
                         if (test.type == 'statusCode') {
                             var val = parsedData.response.statusCode;
                         }
                         else if (test.type == 'body') {
-                            var val = getValue(test);
+                            var val = getValue(test,parsedData.response.body);
                         }
 
                         if (test.saveParam) {
@@ -702,15 +831,23 @@ module.exports = function(opts, callback) {
                         }
 
                         if (test.expectedType) {
-                            doExpect(parsedData,function() {
-                                expect(parsedData.response.statusCode,test.message)
+                            doExpect(parsedData,message,function(message) {
+                                expect(val,message)
                                     .to.be.a(test.expectedType)
                             });
                         }
                         if (test.expectedValue) {
-                            doExpect(parsedData,function() {
-                                expect(parsedData.response.statusCode,test.message)
+                            doExpect(parsedData,message,function(message) {
+                                console.log('doExpect',test,test.message,message);
+                                expect(val,message)
                                     .to.be.equal(test.expectedValue)
+                            });
+                        }
+                        if (test.expectedParamValue) {
+                            doExpect(parsedData,message,function(message) {
+                                console.log('doExpect',test,test.message,message);
+                                expect(val,message)
+                                    .to.be.equal(testObject.params[test.expectedParamValue]);
                             });
                         }
                     }
@@ -721,7 +858,7 @@ module.exports = function(opts, callback) {
             });
         };
 
-        var getValue = function()
+        var getValue = function(test,body)
         {
             var value;
             test.path.split('.').forEach(function(key) {
@@ -734,7 +871,7 @@ module.exports = function(opts, callback) {
                     }
                 }
                 else {
-                    value = parsedData.response.body[key];
+                    value = body[key];
                 }
             });
 
@@ -746,13 +883,15 @@ module.exports = function(opts, callback) {
         }
 
 
-        var doExpect = function(parsedData,expectFunc) {
+        var doExpect = function(parsedData,message,expectFunc) {
             var expectTest = {};
             parsedData.expectTests = parsedData.expectTests || [];
             parsedData.expectTests.push(expectTest);
 
+            expectTest.message = message;
+
             try {
-                expectFunc();
+                expectFunc(message);
                 expectTest.status = 'success';
                 parsedData.status = 'success';
             }
@@ -760,9 +899,12 @@ module.exports = function(opts, callback) {
                 expectTest.status = 'failed';
                 parsedData.status = 'failed';
 
-                expectTest.message = e.message;
+                // expectTest.message = e.message;
 
                 expectTest.error = e;
+
+                expectTest.errorMessage = e.toString();
+
             }
 
         };

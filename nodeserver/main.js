@@ -16,6 +16,9 @@ const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
 const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
+const async = require('async');
+const URL = require('url'); //url package
+const expect = require('chai').expect;
 
 
 var loopback = require('loopback');
@@ -279,6 +282,9 @@ module.exports = function(opts, callback) {
             addPostcardRouter();
             addProxyRouter();
             addShewasprettyRouter();
+
+            addSelftestRouter();
+
             addVoiceRouter();
             addTodosRouter();
             addHabitsRouter();
@@ -544,6 +550,262 @@ module.exports = function(opts, callback) {
             app: app
         });
         app.use('/v1/logsene', logsene.router);
+    }
+
+    function addSelftestRouter() {
+        var router = express.Router();
+
+        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV !== 'dev') {
+            router.post('/selftest/main/run', function (req, res) {
+
+                runDefaultTest(function(testResults) {
+                    res.json({status:'success',tests:testResults}).end();
+                });
+            });
+        }
+        app.use('/v1', router);
+
+
+
+        /**
+         * @param callback callback(testresults) always called
+         */
+        var runDefaultTest = function(runDefaultTestCallback)
+        {
+            var headers = {
+                'content-type': 'application/json'
+            };
+
+            var body = JSON.stringify({
+                'test': 1,
+            });
+            var test1 = {
+                name: 'Test 1',
+                description: 'Do a thing',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    'url': 'http://localhost:3000/v1/ping'
+                },
+                // response: {
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 200,
+                    },
+                    {
+                        type: 'body',
+                        path: 'server.deploytime',
+                        expectedType: 'number',
+                        saveParam: 'server.deploytime'
+                    }
+                ]
+                // }
+            };
+
+
+            var body = JSON.stringify({
+                'test': '{{server.deploytime}}',
+            });
+
+            var test2 = {
+                name: 'Test 2',
+                description: 'Do a thing',
+                request: {
+                    headers:headers,
+                    body: body,
+                    method: 'POST',
+                    'url': 'http://localhost:3000/v1/ping'
+                },
+                tests: [
+                    {
+                        type: 'statusCode',
+                        expectedValue: 201,
+                        message: 'Status code must be 200'
+                    },
+                    {
+                        type: 'body',
+                        path: 'server.deploytime',
+                        expectedType: 'number',
+                        saveParam: 'server.deploytime'
+                    }
+                ]
+            };
+
+            var seriesFunctions = [];
+
+            var testResults = [];
+
+            [test1,test2].forEach(function(test) {
+                seriesFunctions.push(function(cb)
+                {
+                    runTestStep(test,function(testResult) {
+                        console.log(testResult);
+                        testResults.push(testResult);
+                        cb(testResult.status == 'failed');
+                    })
+                })
+            });
+
+
+            async.series(seriesFunctions,function(){
+                console.log('async complete',testResults)
+                runDefaultTestCallback(testResults);
+            })
+        };
+
+
+
+        /**
+         * @param testObject json object of test
+         * @param callback callback(testresult) always called
+         */
+        var runTestStep = function(testObject, callback) {
+            // console.log(process.cwd().replace(/\\/g,'/'));
+
+            if (testObject.body) {
+                for (var key in testObject.params) {
+                    testObject.body = testObject.body.replace('/{{'+key+'}}/g',testObject.params[key]);
+                }
+            }
+
+
+
+            var opts = {};
+
+            Object.assign(opts,testObject.request);
+            console.log(opts,testObject);
+
+
+            parsedRequest(opts,function(parsedData) {
+                // expect(err).to.be.null;
+
+                if (testObject.tests) {
+                    for (idx in testObject.tests) {
+                        var test = testObject.tests[idx];
+
+                        if (parsedData.status === 'failed') {
+                            return callback(parsedData);
+                        }
+
+                        var message = test.message | getDefaultMessage(test);
+                        if (test.type == 'statusCode') {
+                            var val = parsedData.response.statusCode;
+                        }
+                        else if (test.type == 'body') {
+                            var val = getValue(test);
+                        }
+
+                        if (test.saveParam) {
+                            parsedData.savedParams[test.saveParam] = val;
+                        }
+
+                        if (test.expectedType) {
+                            doExpect(parsedData,function() {
+                                expect(parsedData.response.statusCode,test.message)
+                                    .to.be.a(test.expectedType)
+                            });
+                        }
+                        if (test.expectedValue) {
+                            doExpect(parsedData,function() {
+                                expect(parsedData.response.statusCode,test.message)
+                                    .to.be.equal(test.expectedValue)
+                            });
+                        }
+                    }
+                }
+
+
+                callback(parsedData);
+            });
+        };
+
+        var getValue = function()
+        {
+            var value;
+            test.path.split('.').forEach(function(key) {
+                if (value !== undefined) {
+                    if (typeof value == 'object') {
+                        value = value[key];
+                    }
+                    else {
+                        return undefined;
+                    }
+                }
+                else {
+                    value = parsedData.response.body[key];
+                }
+            });
+
+            return value;
+        }
+
+        var getDefaultMessage = function(test) {
+            return '';
+        }
+
+
+        var doExpect = function(parsedData,expectFunc) {
+            var expectTest = {};
+            parsedData.expectTests = parsedData.expectTests || [];
+            parsedData.expectTests.push(expectTest);
+
+            try {
+                expectFunc();
+                expectTest.status = 'success';
+                parsedData.status = 'success';
+            }
+            catch (e) {
+                expectTest.status = 'failed';
+                parsedData.status = 'failed';
+
+                expectTest.message = e.message;
+
+                expectTest.error = e;
+            }
+
+        };
+
+
+        var parsedRequest = function (opts, parsedCallback) {
+            var parsedData = {};
+            parsedData.rawRequestBody = opts.body;
+
+            parsedData.headers = opts.headers;
+            if (opts.body) {
+                parsedData.body = JSON.parse(opts.body);
+            }
+            parsedData.url = opts.url;
+            parsedData.method = opts.method;
+            parsedData.failedTests = [];
+
+            parsedData.path = (function(urlString) {
+                var urlParsed = URL.parse(urlString,true);
+                console.log('url',urlParsed.path,urlParsed);
+                // var fullpath = url.pathname + url.search;
+
+                return urlParsed.pathname + urlParsed.search;
+            })(opts.url);
+
+            request(opts, function (err, response, body) {
+                parsedData.response = {};
+                parsedData.response.body = null;
+                parsedData.response.rawResponseBody = body;
+                parsedData.response.headers = response.headers;
+                parsedData.response.statusCode = response.statusCode;
+
+                try {
+                    parsedData.response.body = JSON.parse(parsedData.response.rawResponseBody);
+                }
+                catch(e) {
+
+                }
+
+                parsedCallback(parsedData);
+            });
+        };
+
     }
 
     function addShewasprettyRouter() {

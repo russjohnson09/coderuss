@@ -1,0 +1,99 @@
+<h1>
+    Tests
+</h1>
+
+<button ng-click="testMain()">Test</button>
+
+
+<h1>Current Test Results</h1>
+
+
+<!--<div class="container">-->
+<div class="row">
+    <div class="col-md-12">
+        <!-- begin panel group -->
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+            <!-- panel 1 -->
+            <div ng-repeat="test in tests track by $index">
+                <div ng-class="{'panel-danger': test.status == 'failed', 'panel-default': !(test.status == 'failed')}" class="panel">
+
+
+                    <!--wrap panel heading in span to trigger image change as well as collapse -->
+                    <div
+
+                            class="panel-heading" role="tab" data-toggle="collapse"
+                            data-parent="#accordion" data-target="#collapse{{$index}}" href="" aria-expanded="false"
+                            aria-controls="collapse{{$index}}">
+                        <h4>#{{$index + 1}}. {{test.path}} {{test.method}}
+                            {{test.response.statusCode}}</h4>
+                        <div>{{test.description}}</div>
+
+                        <div ng-show="test.expectTests.length > 0">
+                            <h4>Tests</h4>
+                            <div ng-repeat="expectTest in test.expectTests track by $index">
+                                <div><i ng-show="expectTest.status != 'failed'" class="fa fa-check" style="color:green" aria-hidden="true"></i>
+                                    <i ng-show="expectTest.status == 'failed'" class="fa fa-exclamation-triangle" style="color:red" aria-hidden="true"></i>
+                                    {{expectTest.message}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="collapse{{$index}}" class="panel-collapse collapse" role="tabpanel"
+                         aria-labelledby="headingOne">
+                        <div class="panel-body">
+                            <div class="test">
+                                <div class="request">
+
+                                    <h3 data-toggle="collapse" href="" data-target="#request-body-{{$index}}"
+                                        aria-expanded="false" aria-controls="collapseExample">
+                                        <a href="">Request Body</a>
+                                    </h3>
+                                    <div class="collapse" id="request-body-{{$index}}">
+                                        <div class="request-body">
+                                        <pre>{{test.body | json}}
+                                        </pre>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="response">
+
+                                    <h3 data-toggle="collapse" href="" data-target="#response-body-{{$index}}"
+                                        aria-expanded="false" aria-controls="collapseExample">
+                                        <a href="">Response Body</a>
+                                    </h3>
+                                    <div class="collapse" id="response-body-{{$index}}">
+                                        <div class="response-body">
+                                            <div ng-show="test.response.body">
+                                                <pre>{{test.response.body | json}}</pre>
+                                            </div>
+                                            <div ng-show="!test.response.body">
+                                                <preview content="test.response.rawResponseHtml"></preview>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="full-test-object">
+
+                                    <h3 data-toggle="collapse" href="" data-target="#test-object-{{$index}}"
+                                        aria-expanded="false">
+                                        <a href="">Full Test Object</a>
+                                    </h3>
+                                    <div class="collapse" id="test-object-{{$index}}">
+                                        <pre>{{test | json}}
+                                        </pre>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

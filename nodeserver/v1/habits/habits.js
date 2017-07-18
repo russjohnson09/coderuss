@@ -105,6 +105,14 @@ module.exports = function(opts) {
 
     });
 
+    router.get('/:id/statuses/:date', function(req,res) {
+        var status = {
+            _id: 123,
+            status: 'checked'
+        };
+        return res.status(200).json(status).end();
+    });
+
     router.post('/:id/dates', function(req, res) {
         winston.debug('request params=' + JSON.stringify(req.params));
         winston.debug('request body=' + JSON.stringify(req.body));

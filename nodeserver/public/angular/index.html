@@ -27,6 +27,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
 
+    <script src="/bower_components/moment/moment.js"></script>
+    <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
 </head>
 
 <body>
@@ -35,16 +38,19 @@
     <div ng-app="app" class="login">
 
         <div class="row">
+            <div class="" col-sm-3><a href="#!habits">Habits</a></div>
+
             <div class="col-md-3">
                 <ul class="nav">
                     <li><a href="#!hello"> Add New Order </a></li>
                     <li><a href="#!test"> Show Order </a></li>
                     <li><a href="#!movie"> Movie Search </a></li>
                     <li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>
-
                 </ul>
             </div>
-            <div class="col-md-9">
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
                 <div ng-view></div>
             </div>
         </div>
@@ -84,6 +90,10 @@
     app.config(function ($routeProvider) {
         console.log('routeProviderConfig', $routeProvider);
         $routeProvider
+            .when("/habits", {
+                templateUrl: "templates/habits.html",
+                controller: "habitsCtl"
+            })
             .when('/movie', {
                 templateUrl: 'templates/movie.html',
                 controller: "movieCtl"
@@ -110,6 +120,189 @@
                 redirectTo: '/test'
             });
     });
+
+    (function addHabitsCtl() {
+        app.factory('Habit', ['$http', '$q', function ($http, $q) {
+            function Habit(data) {
+                if (data) {
+                    this.setData(data);
+                }
+            };
+
+            var baseurl = '';
+
+            Habit.prototype = {
+                setData: function (data) {
+                    angular.extend(this, data);
+                },
+                getJSON: function () {
+                    return JSON.stringify(this.getJSONObject());
+                },
+                getJSONObject: function () {
+                    return {
+                        text: this.text,
+                    }
+                },
+                getHabits: function () {
+                    console.log('get habits')
+                    var self = this;
+                    var url = baseurl + '/v1/habits';
+                    return $q(function (resolve, reject) {
+                        $http(
+                            {
+                                method: 'GET',
+                                url: url,
+                                headers: {
+                                    'cache-control': 'no-cache'
+                                },
+                            }
+                        ).then(function (response) {
+                            var habits = [];
+                            if (response.data) {
+                                for (var i in response.data) {
+                                    habits.push(new Habit(response.data[i]));
+                                }
+                                resolve(habits);
+                            }
+                        });
+                    })
+                },
+                add: function () {
+                    var self = this;
+                    var url = baseurl + '/v1/habits';
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            data: self.getJSON(),
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+                        if (response.data && response.data) {
+                            self.setData(response.data);
+                        }
+                    });
+                },
+                getStatus: function () {
+                    return this._status;
+                },
+                populateCheckedStatus: function (i) {
+                    var self = this;
+                    var day = moment().startOf('week').add(i, 'days');
+                    var dayStr = day.format('YYYY-MM-DD');
+                    var url = baseurl + '/v1/habits/' + self._id + '/statuses/'
+                        + dayStr;
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url,
+                            headers: {},
+                        }
+                    ).then(function (response) {
+                        self._checkedStatus = response.data.status;
+                    });
+                },
+                getCheckedStatus: function (i) {
+                    var self = this;
+
+                    if (self._checkedStatus === undefined) {
+                        self._checkedStatus = 'loading';
+                        self.populateCheckedStatus(i);
+                    }
+
+                    return self._checkedStatus;
+                },
+                delete: function () {
+                    var self = this;
+                    this._status = 'deleted';
+                    var url = baseurl + '/v1/habits/' + self._id;
+                    $http(
+                        {
+                            method: 'DELETE',
+                            url: url,
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+                    });
+                }
+            };
+
+            return Habit;
+        }]);
+
+
+        app.controller('habitsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Habit',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit) {
+
+                var HabitService = new Habit();
+
+                $scope.habits = [
+//                    new Habit({
+//                        'id': 1,
+//                        'description': 'exercise',
+//                    })
+                ];
+
+                $scope.weekdays = [
+                    {
+                        name: 'Sunday',
+                        shortname: 'Sun'
+                    },
+                    {
+                        name: 'Monday',
+                        shortname: 'Mon'
+
+                    },
+                    {
+                        name: 'Tuesday',
+                        shortname: 'Tues'
+
+                    },
+                    {
+                        name: 'Wednesday',
+                        shortname: 'Web'
+                    },
+                    {
+                        name: 'Thursday',
+                        shortname: 'Thurs'
+                    },
+                    {
+                        name: 'Friday',
+                        shortname: 'Fri'
+                    },
+                    {
+                        name: 'Saturday',
+                        shortname: 'Sat'
+                    },
+                ];
+
+                HabitService.getHabits().then(function (habits) {
+                    $scope.habits = habits;
+                });
+
+
+                $scope.newhabit = new Habit({});
+
+                $scope.addHabit = function () {
+                    $scope.habits.push($scope.newhabit);
+                    $scope.newhabit.add();
+                    $scope.newhabit = new Habit({});
+                };
+
+                console.log($scope.habits);
+
+
+            }]);
+
+
+    })();
 
 
     app.directive("preview", function () {
@@ -357,7 +550,7 @@
             ).then(function (response) {
                 console.log(url, response);
                 $scope.episodes = response.data;
-            },function(err) {
+            }, function (err) {
                 console.error(err);
             });
         }]);
@@ -425,13 +618,12 @@
 
 
     app.controller('testsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams','$sce',
-        function ($rootScope, $cookies, $scope, $location, $http, $routeParams,$sce) {
+        '$http', '$routeParams', '$sce',
+        function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
 
             var APP_BASE_URL = '';
 
-            $scope.testMain = function()
-            {
+            $scope.testMain = function () {
                 var url = APP_BASE_URL + '/v1/selftest/main/run';
                 $http(
                     {
@@ -446,7 +638,7 @@
 
                     var result = [];
                     console.log(response.data);
-                    response.data.tests.forEach(function(test) {
+                    response.data.tests.forEach(function (test) {
                         result.push(test);
                         test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
 
@@ -459,8 +651,7 @@
                 });
             };
 
-            $scope.testFail = function()
-            {
+            $scope.testFail = function () {
                 var url = APP_BASE_URL + '/v1/selftest/main/runfail';
                 $http(
                     {
@@ -475,7 +666,7 @@
 
                     var result = [];
                     console.log(response.data);
-                    response.data.tests.forEach(function(test) {
+                    response.data.tests.forEach(function (test) {
                         result.push(test);
                         test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
 

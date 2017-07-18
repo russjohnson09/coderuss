@@ -1,0 +1,27 @@
+<div ng-repeat="habit in habits track by $index">
+    <div class="row habit" ng-show="habit.getStatus() !== 'deleted'">
+        <div class="col-sm-2">{{habit.text}}</div>
+        <div class="col-sm-8 habit-week habit-week-current">
+            <span ng-repeat="day in weekdays track by $index">
+                    <span>{{day.shortname}}</span>
+                    <span>
+                        <i ng-show="habit.getCheckedStatus($index) == 'checked'" class="fa fa-check" aria-hidden="true"></i>
+                        <i ng-show="habit.getCheckedStatus($index) == 'notchecked'" class="fa fa-times" aria-hidden="true"></i>
+                    </span>
+            </span>
+        </div>
+        <div class="btn-group col-sm-2">
+            <button class="btn btn-danger" ng-click="habit.delete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div>
+    <form ng-submit="addHabit()">
+        <input ng-model="newhabit.text">
+        <button type="submit" class="btn">Add</button>
+    </form>
+</div>
+
+
+<div ng-show="newhabit.text == 'devmode'">{{habits}}</div>

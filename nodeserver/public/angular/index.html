@@ -61,6 +61,10 @@
             </div>
         </div>
 
+        <div ng-show="devMode" class="user">
+            {{user}}
+        </div>
+
 
     </div>
 </div>
@@ -96,6 +100,10 @@
     app.config(function ($routeProvider) {
         console.log('routeProviderConfig', $routeProvider);
         $routeProvider
+            .when("/login", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
             .when("/habits", {
                 templateUrl: "templates/habits.html",
                 controller: "habitsCtl"
@@ -112,20 +120,83 @@
                 templateUrl: "templates/tests.html",
                 controller: "testsCtl"
             })
-            .when("/hello", {
-                templateUrl: "templates/hello.html"
+            .when("/profile", {
+                templateUrl: "templates/profile.html",
+                controller: "profileCtl"
             })
             .when('/shewaspretty', {
                 templateUrl: 'templates/shewaspretty.html',
                 controller: "shewasprettyCtl"
             })
-            .when('/', {
-                templateUrl: 'templates/test.html'
-            })
             .otherwise({
-                redirectTo: '/test'
+                redirectTo: '/profile'
             });
     });
+
+    app.factory('User', ['$http', '$q', function ($http, $q) {
+        function User(data) {
+            if (data) {
+                this.setData(data);
+            }
+        };
+
+        var baseurl = '';
+
+        User.prototype = {
+            setData: function (data) {
+                angular.extend(this,{dates: {}}, data);
+            },
+            getCurrentUser: function () {
+                var self = this;
+                return $q(function(resolve) {
+                    var url = baseurl + '/v1/users/me';
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url,
+                            headers: {},
+                        }
+                    ).then(function (response) {
+                        var user = new User(response.data);
+                        resolve(user);
+                    });
+                });
+
+            }
+        };
+
+        return User;
+    }]);
+
+
+    (function addProfileCtl() {
+        app.controller('profileCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+
+            }])
+    })();
+
+
+    (function addLoginCtl() {
+        app.controller('loginCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Habit','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit, hotkeys) {
+                $scope.login = function()
+                {
+                    $http.post('/v1/login', $scope.formData).then(
+                        function (res) {
+                            if (res.status === 201) {
+                                $location.path('/');
+                            }
+                        },
+                        function (res) {
+                            console.log(res.status);
+                        });
+                };
+
+            }])
+    })();
 
     (function addHabitsCtl() {
         app.factory('Habit', ['$http', '$q', function ($http, $q) {
@@ -268,13 +339,18 @@
             return Habit;
         }]);
 
-
         app.controller('habitsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'Habit','hotkeys',
+            '$http', '$routeParams', 'Habit','hotkeys','User',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
-            hotkeys) {
+            hotkeys,
+            User) {
 
                 var HabitService = new Habit();
+                var UserService = new User();
+
+                UserService.getCurrentUser().then(function(user) {
+                    $rootScope.user = user;
+                });
 
                 $scope.habits = [
 //                    new Habit({

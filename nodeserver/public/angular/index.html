@@ -89,6 +89,7 @@
 <script>
 
     var app = angular.module('app', ['ngRoute', 'ngCookies','cfp.hotkeys']);
+
     //
     //    app.config(['$locationProvider', function ($locationProvider) {
     //        $locationProvider.html5Mode({
@@ -98,7 +99,23 @@
     //    }]);
     //
     app.config(function ($routeProvider) {
+//        var UserService = new User();
         console.log('routeProviderConfig', $routeProvider);
+        var userResolve = {
+            _user: function(User) {
+//                        return 'test';
+                console.log('resolve profile');
+                var UserService = new User();
+                console.log(UserService);
+                return new Promise(function(resolve) {
+                    UserService.getCurrentUser().then(function(user) {
+                        console.log(user);
+                        resolve(user);
+                    });
+//                            setTimeout(resolve,10000)
+                })
+            }
+        };
         $routeProvider
             .when("/login", {
                 templateUrl: "templates/login.html",
@@ -109,7 +126,8 @@
             })
             .when("/habits", {
                 templateUrl: "templates/habits.html",
-                controller: "habitsCtl"
+                controller: "habitsCtl",
+                resolve: userResolve,
             })
             .when('/movie', {
                 templateUrl: 'templates/movie.html',
@@ -125,7 +143,8 @@
             })
             .when("/profile", {
                 templateUrl: "templates/profile.html",
-                controller: "profileCtl"
+                controller: "profileCtl",
+                resolve: userResolve,
             })
             .when('/shewaspretty', {
                 templateUrl: 'templates/shewaspretty.html',
@@ -140,6 +159,20 @@
             });
     });
 
+    app.run(function($rootScope,LoggedInService) {
+        $rootScope.$on("$routeChangeStart", function(event, next, current) {
+            console.log(event,next,current);
+        });
+        $rootScope.$on("$routeChangeSuccess", function(event, next, current) {
+            console.log(event,next,current);
+//            var user = LoggedInService.getLoggedInUser();
+//            console.log(user);
+//            $rootScope.currentuser = user;
+
+            // handle route changes
+        });
+    });
+
 
     (function addHelloCtl() {
         app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
@@ -148,6 +181,24 @@
                 $scope.hello = {};
             }])
     })();
+
+    app.factory('LoggedInService', ['$http', '$q', function ($http, $q) {
+
+        var loggedInUser = null;
+
+        var service ={
+            setLoggedInUser: function(u) {
+                loggedInUser = u;
+                console.log(loggedInUser)
+            },
+            getLoggedInUser: function() {
+                return loggedInUser;
+            },
+        };
+
+        return service;
+
+    }]);
 
     app.factory('User', ['$http', '$q', function ($http, $q) {
         function User(data) {
@@ -158,7 +209,9 @@
 
         var baseurl = '';
 
+
         User.prototype = {
+
             setData: function (data) {
                 angular.extend(this,{dates: {}}, data);
             },
@@ -186,24 +239,31 @@
 
 
     (function addProfileCtl() {
-        app.controller('profileCtl', ['$rootScope', '$cookies', '$scope', '$location',
+        app.controller('profileCtl', ['_user','$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams','hotkeys',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
-
+            function (_user,$rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+                $scope._user = _user;
+                console.log($scope._user);
             }])
     })();
 
 
     (function addLoginCtl() {
         app.controller('loginCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'Habit','hotkeys',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit, hotkeys) {
+            '$http', '$routeParams', 'User','hotkeys','LoggedInService',
+            function ($rootScope, $cookies, $scope, $location, $http,
+                      $routeParams, User, hotkeys,LoggedInService) {
+                var UserService = new User();
                 $scope.login = function()
                 {
                     $http.post('/v1/login', $scope.formData).then(
                         function (res) {
                             if (res.status === 201) {
-                                $location.path('/');
+                                console.log(res.data);
+                                UserService.getCurrentUser().then(function(user) {
+                                    LoggedInService.setLoggedInUser(user);
+                                    $location.path('/');
+                                });
                             }
                         },
                         function (res) {
@@ -355,12 +415,13 @@
             return Habit;
         }]);
 
-        app.controller('habitsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+        app.controller('habitsCtl', ['_user','$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'Habit','hotkeys','User',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
+            function (_user,$rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
             hotkeys,
             User) {
-
+                $scope._user = _user;
+                console.log($scope._user);
                 var HabitService = new Habit();
                 var UserService = new User();
 

@@ -19,13 +19,21 @@
     <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
 
 
-    <script src="/js/ext/jquery-3.2.1.min.js"></script>
+    <!--<script src="/js/ext/jquery-3.2.1.min.js"></script>-->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+
     <script src="/bower_components/angular/angular.min.js"></script>
     <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
+
+    <script src="/bower_components/moment/moment.js"></script>
+    <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
+    <script src="/bower_components/angular-hotkeys/build/hotkeys.js"></script>
+    <link rel="stylesheet" href="/bower_components/angular-hotkeys/build/hotkeys.css">
 
 </head>
 
@@ -35,18 +43,26 @@
     <div ng-app="app" class="login">
 
         <div class="row">
-            <div class="col-md-3">
-                <ul class="nav">
-                    <li><a href="#!hello"> Add New Order </a></li>
-                    <li><a href="#!test"> Show Order </a></li>
-                    <li><a href="#!movie"> Movie Search </a></li>
-                    <li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>
+            <div class="col-sm-1"><a href="#!habits">Habits</a></div>
+            <div class="col-sm-1"><a href="#!login">Login</a></div>
+            <!--<div class="col-md-3">-->
+                <!--<ul class="nav">-->
+                    <!--<li><a href="#!hello"> Add New Order </a></li>-->
+                    <!--<li><a href="#!test"> Show Order </a></li>-->
+                    <!--<li><a href="#!movie"> Movie Search </a></li>-->
+                    <!--<li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>-->
+                <!--</ul>-->
+            <!--</div>-->
+        </div>
 
-                </ul>
-            </div>
-            <div class="col-md-9">
+        <div class="row">
+            <div class="col-sm-12">
                 <div ng-view></div>
             </div>
+        </div>
+
+        <div ng-show="devMode" class="user">
+            {{user}}
         </div>
 
 
@@ -72,7 +88,7 @@
 
 <script>
 
-    var app = angular.module('app', ['ngRoute', 'ngCookies']);
+    var app = angular.module('app', ['ngRoute', 'ngCookies','cfp.hotkeys']);
     //
     //    app.config(['$locationProvider', function ($locationProvider) {
     //        $locationProvider.html5Mode({
@@ -84,6 +100,14 @@
     app.config(function ($routeProvider) {
         console.log('routeProviderConfig', $routeProvider);
         $routeProvider
+            .when("/login", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
+            .when("/habits", {
+                templateUrl: "templates/habits.html",
+                controller: "habitsCtl"
+            })
             .when('/movie', {
                 templateUrl: 'templates/movie.html',
                 controller: "movieCtl"
@@ -96,20 +120,299 @@
                 templateUrl: "templates/tests.html",
                 controller: "testsCtl"
             })
-            .when("/hello", {
-                templateUrl: "templates/hello.html"
+            .when("/profile", {
+                templateUrl: "templates/profile.html",
+                controller: "profileCtl"
             })
             .when('/shewaspretty', {
                 templateUrl: 'templates/shewaspretty.html',
                 controller: "shewasprettyCtl"
             })
-            .when('/', {
-                templateUrl: 'templates/test.html'
+            .when('/hello', {
+                templateUrl: 'templates/hello.html',
+                controller: "helloCtl"
             })
             .otherwise({
-                redirectTo: '/test'
+                redirectTo: '/profile'
             });
     });
+
+
+    (function addHelloCtl() {
+        app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+                $scope.hello = {};
+            }])
+    })();
+
+    app.factory('User', ['$http', '$q', function ($http, $q) {
+        function User(data) {
+            if (data) {
+                this.setData(data);
+            }
+        };
+
+        var baseurl = '';
+
+        User.prototype = {
+            setData: function (data) {
+                angular.extend(this,{dates: {}}, data);
+            },
+            getCurrentUser: function () {
+                var self = this;
+                return $q(function(resolve) {
+                    var url = baseurl + '/v1/users/me';
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url,
+                            headers: {},
+                        }
+                    ).then(function (response) {
+                        var user = new User(response.data);
+                        resolve(user);
+                    });
+                });
+
+            }
+        };
+
+        return User;
+    }]);
+
+
+    (function addProfileCtl() {
+        app.controller('profileCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+
+            }])
+    })();
+
+
+    (function addLoginCtl() {
+        app.controller('loginCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Habit','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit, hotkeys) {
+                $scope.login = function()
+                {
+                    $http.post('/v1/login', $scope.formData).then(
+                        function (res) {
+                            if (res.status === 201) {
+                                $location.path('/');
+                            }
+                        },
+                        function (res) {
+                            console.log(res.status);
+                        });
+                };
+
+            }])
+    })();
+
+    (function addHabitsCtl() {
+        app.factory('Habit', ['$http', '$q', function ($http, $q) {
+            function Habit(data) {
+                if (data) {
+                    this.setData(data);
+                }
+            };
+
+            var baseurl = '';
+
+            Habit.prototype = {
+                setData: function (data) {
+                    angular.extend(this,{dates: {}}, data);
+                },
+                getJSON: function () {
+                    return JSON.stringify(this.getJSONObject());
+                },
+                getJSONObject: function () {
+                    return {
+                        text: this.text,
+                    }
+                },
+                getHabits: function () {
+                    console.log('get habits')
+                    var self = this;
+                    var url = baseurl + '/v1/habits';
+                    return $q(function (resolve, reject) {
+                        $http(
+                            {
+                                method: 'GET',
+                                url: url,
+                                headers: {
+                                    'cache-control': 'no-cache'
+                                },
+                            }
+                        ).then(function (response) {
+                            var habits = [];
+                            if (response.data) {
+                                for (var i in response.data) {
+                                    habits.push(new Habit(response.data[i]));
+                                }
+                                resolve(habits);
+                            }
+                        });
+                    })
+                },
+                add: function () {
+                    var self = this;
+                    return $q(function(resolve) {
+                        var url = baseurl + '/v1/habits';
+                        $http(
+                            {
+                                method: 'POST',
+                                url: url,
+                                data: self.getJSON(),
+                                headers: {
+                                    'content-type': 'application/json',
+                                    'cache-control': 'no-cache'
+                                },
+                            }
+                        ).then(function (response) {
+                            if (response.data && response.data) {
+                                self.setData(response.data);
+                                resolve(self);
+                            }
+                        });
+                    });
+
+                },
+                getStatus: function () {
+                    return this._status;
+                },
+                updateDate: function(date)
+                {
+                    var self = this;
+                    var status;
+                    if (self.getDate(date).status !== 'complete') {
+                        status = 'complete';
+                    }
+                    else {
+                        status = 'incomplete';
+                    }
+                    var url = baseurl + '/v1/habits/' + self._id + '/dates/' + date;
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            headers: {},
+                            data: {
+                                status: status
+                            }
+                        }
+                    ).then(function (response) {
+                        self.dates[date] = response.data;
+                    });
+                },
+                populateDate: function (date) {
+                    var self = this;
+                    var url = baseurl + '/v1/habits/' + self._id + '/dates/'
+                        + date;
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url,
+                            headers: {},
+                        }
+                    ).then(function (response) {
+                        self.dates[date] = response.data;
+                    });
+                },
+                getDate: function (date) {
+                    var self = this;
+
+                    if (self.dates[date] === undefined) {
+                        self.dates[date] = 'loading';
+                        self.populateDate(date);
+                    }
+
+                    return self.dates[date];
+                },
+                delete: function () {
+                    var self = this;
+                    this._status = 'deleted';
+                    var url = baseurl + '/v1/habits/' + self._id;
+                    $http(
+                        {
+                            method: 'DELETE',
+                            url: url,
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+                    });
+                }
+            };
+
+            return Habit;
+        }]);
+
+        app.controller('habitsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Habit','hotkeys','User',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
+            hotkeys,
+            User) {
+
+                var HabitService = new Habit();
+                var UserService = new User();
+
+                UserService.getCurrentUser().then(function(user) {
+                    $rootScope.user = user;
+                });
+
+                $scope.habits = [
+//                    new Habit({
+//                        'id': 1,
+//                        'description': 'exercise',
+//                    })
+                ];
+                $scope.devMode = false;
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function() {
+                            $scope.devMode = true;
+                        }
+                    })
+                    // you can chain these methods for ease of use:
+//                    .add ({...});
+
+
+                //https://momentjs.com/docs/#/displaying/
+                $scope.weekdays = [];
+                var startOfWeek = moment().startOf('week');
+                for(var i = 0;i < 7; i++) {
+                    $scope.weekdays.push(moment(startOfWeek).add(i,'days'));
+                }
+
+                HabitService.getHabits().then(function (habits) {
+                    $scope.habits = habits;
+                });
+
+
+                $scope.newhabit = new Habit({});
+
+                $scope.addHabit = function () {
+                    $scope.newhabit.add().then(function(habit) {
+                        $scope.habits.push(habit);
+                    });
+                    $scope.newhabit = new Habit({});
+                };
+
+                console.log($scope.habits);
+
+
+            }]);
+
+
+    })();
 
 
     app.directive("preview", function () {
@@ -357,7 +660,7 @@
             ).then(function (response) {
                 console.log(url, response);
                 $scope.episodes = response.data;
-            },function(err) {
+            }, function (err) {
                 console.error(err);
             });
         }]);
@@ -425,13 +728,12 @@
 
 
     app.controller('testsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams','$sce',
-        function ($rootScope, $cookies, $scope, $location, $http, $routeParams,$sce) {
+        '$http', '$routeParams', '$sce',
+        function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
 
             var APP_BASE_URL = '';
 
-            $scope.testMain = function()
-            {
+            $scope.testMain = function () {
                 var url = APP_BASE_URL + '/v1/selftest/main/run';
                 $http(
                     {
@@ -446,7 +748,7 @@
 
                     var result = [];
                     console.log(response.data);
-                    response.data.tests.forEach(function(test) {
+                    response.data.tests.forEach(function (test) {
                         result.push(test);
                         test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
 
@@ -459,8 +761,7 @@
                 });
             };
 
-            $scope.testFail = function()
-            {
+            $scope.testFail = function () {
                 var url = APP_BASE_URL + '/v1/selftest/main/runfail';
                 $http(
                     {
@@ -475,7 +776,7 @@
 
                     var result = [];
                     console.log(response.data);
-                    response.data.tests.forEach(function(test) {
+                    response.data.tests.forEach(function (test) {
                         result.push(test);
                         test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
 

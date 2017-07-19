@@ -1,0 +1,41 @@
+<div ng-show="habit.getStatus() !== 'deleted'" ng-repeat="habit in habits track by $index">
+    <div class="habit">
+        <div class="row habit">
+            <div class="col-sm-2"><a href="" ng-click="habit.gotoDetails()">{{habit.text}}</a></div>
+        </div>
+        <div class="row habit-week">
+            <!--https://stackoverflow.com/questions/16390370/how-can-i-get-a-bootstrap-column-to-span-multiple-rows-->
+
+            <div class="col-sm-1 habit-week habit-week-current" ng-repeat="day in weekdays track by $index">
+                    <div ng-click="habit.updateDate(day.format('YYYY-MM-DD'))">
+                        {{day.format('ddd')}}
+                            <br/>
+                        <i ng-show="habit.getDate(day.format('YYYY-MM-DD')).status == 'complete'" class="fa fa-check"
+                           aria-hidden="true"></i>
+                        <i ng-show="habit.getDate(day.format('YYYY-MM-DD')).status != 'complete'" class="fa fa-times"
+                           aria-hidden="true"></i>
+                    </div>
+            </div>
+            <div class="btn-group col-sm-2">
+                <button ng-show="devMode" class="btn btn-danger" ng-click="habit.delete()">Delete</button>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<div>
+    <form ng-submit="addHabit()">
+        <input ng-model="newhabit.text">
+        <button type="submit" class="btn">Add</button>
+    </form>
+</div>
+
+
+<div ng-show="devMode">{{habits}}</div>
+
+
+<div ng-show="devMode">{{user}}</div>
+

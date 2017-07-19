@@ -105,13 +105,73 @@ module.exports = function(opts) {
 
     });
 
-    router.post('/:id/dates', function(req, res) {
-        winston.debug('request params=' + JSON.stringify(req.params));
-        winston.debug('request body=' + JSON.stringify(req.body));
+    function getHabit(req,res,next) {
+        var habit_id = ObjectID(req.params.id);
+        Habit.findOne({_id:habit_id,user_id:req.user_id},function(err,habit) {
+            if (!habit) {
+                return res.status(404).end();
+            }
+            else {
+                req.habit = habit;
+                next();
+            }
+        })
+    }
+
+    router.get('/:id/dates/:date', getHabit, function(req,res) {
+        var obj = {
+            habit_id: req.habit._id,
+            date: req.params.date,
+        };
+
+        HabitDate.findOne(obj, function(err, habitdate) {
+            if (err)
+            {
+                winston.err(err);
+            }
+            if (habitdate) {
+                return res.json(habitdate).end();
+            }
+            else {
+                obj.status = 'incomplete';
+                HabitDate.insertOne(obj, function(error, result) {
+                    obj._id = result.insertedId;
+                    res.json(obj).end();
+                });
+            }
+        });
 
 
-        res.status(201).end();
-        return;
+    });
+
+    router.post('/:id/dates/:date',getHabit, function(req, res) {
+        var obj = {
+            habit_id: req.habit._id,
+            date: req.params.date
+        };
+
+        HabitDate.findOne(obj, function(err, habitdate) {
+            if (err)
+            {
+                winston.err(err);
+            }
+            if (habitdate) {
+                Object.assign(habitdate,{status:req.body.status});
+                HabitDate.updateOne({_id:habitdate._id},
+                    {$set:{status:habitdate.status}},
+                function(error, result) {
+                    return res.json(habitdate).end();
+                });
+
+            }
+            else {
+                obj.status = req.body.status;
+                HabitDate.insertOne(obj, function(error, result) {
+                    obj._id = result.insertedId;
+                    res.json(obj).end();
+                });
+            }
+        });
     });
     
     var validateDates = function(dates)
@@ -182,7 +242,7 @@ module.exports = function(opts) {
             winston.debug(result.result);
         });
 
-        res.status(201).end();
+        res.end();
     });
 
 

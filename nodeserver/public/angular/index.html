@@ -19,7 +19,9 @@
     <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
 
 
-    <script src="/js/ext/jquery-3.2.1.min.js"></script>
+    <!--<script src="/js/ext/jquery-3.2.1.min.js"></script>-->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+
     <script src="/bower_components/angular/angular.min.js"></script>
     <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
@@ -30,6 +32,9 @@
     <script src="/bower_components/moment/moment.js"></script>
     <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
 
+    <script src="/bower_components/angular-hotkeys/build/hotkeys.js"></script>
+    <link rel="stylesheet" href="/bower_components/angular-hotkeys/build/hotkeys.css">
+
 </head>
 
 <body>
@@ -38,17 +43,18 @@
     <div ng-app="app" class="login">
 
         <div class="row">
-            <div class="" col-sm-3><a href="#!habits">Habits</a></div>
-
-            <div class="col-md-3">
-                <ul class="nav">
-                    <li><a href="#!hello"> Add New Order </a></li>
-                    <li><a href="#!test"> Show Order </a></li>
-                    <li><a href="#!movie"> Movie Search </a></li>
-                    <li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>
-                </ul>
-            </div>
+            <div class="col-sm-1"><a href="#!habits">Habits</a></div>
+            <div class="col-sm-1"><a href="#!login">Login</a></div>
+            <!--<div class="col-md-3">-->
+                <!--<ul class="nav">-->
+                    <!--<li><a href="#!hello"> Add New Order </a></li>-->
+                    <!--<li><a href="#!test"> Show Order </a></li>-->
+                    <!--<li><a href="#!movie"> Movie Search </a></li>-->
+                    <!--<li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>-->
+                <!--</ul>-->
+            <!--</div>-->
         </div>
+
         <div class="row">
             <div class="col-sm-12">
                 <div ng-view></div>
@@ -78,7 +84,7 @@
 
 <script>
 
-    var app = angular.module('app', ['ngRoute', 'ngCookies']);
+    var app = angular.module('app', ['ngRoute', 'ngCookies','cfp.hotkeys']);
     //
     //    app.config(['$locationProvider', function ($locationProvider) {
     //        $locationProvider.html5Mode({
@@ -133,7 +139,7 @@
 
             Habit.prototype = {
                 setData: function (data) {
-                    angular.extend(this, data);
+                    angular.extend(this,{dates: {}}, data);
                 },
                 getJSON: function () {
                     return JSON.stringify(this.getJSONObject());
@@ -169,32 +175,58 @@
                 },
                 add: function () {
                     var self = this;
-                    var url = baseurl + '/v1/habits';
-                    $http(
-                        {
-                            method: 'POST',
-                            url: url,
-                            data: self.getJSON(),
-                            headers: {
-                                'content-type': 'application/json',
-                                'cache-control': 'no-cache'
-                            },
-                        }
-                    ).then(function (response) {
-                        if (response.data && response.data) {
-                            self.setData(response.data);
-                        }
+                    return $q(function(resolve) {
+                        var url = baseurl + '/v1/habits';
+                        $http(
+                            {
+                                method: 'POST',
+                                url: url,
+                                data: self.getJSON(),
+                                headers: {
+                                    'content-type': 'application/json',
+                                    'cache-control': 'no-cache'
+                                },
+                            }
+                        ).then(function (response) {
+                            if (response.data && response.data) {
+                                self.setData(response.data);
+                                resolve(self);
+                            }
+                        });
                     });
+
                 },
                 getStatus: function () {
                     return this._status;
                 },
-                populateCheckedStatus: function (i) {
+                updateDate: function(date)
+                {
                     var self = this;
-                    var day = moment().startOf('week').add(i, 'days');
-                    var dayStr = day.format('YYYY-MM-DD');
-                    var url = baseurl + '/v1/habits/' + self._id + '/statuses/'
-                        + dayStr;
+                    var status;
+                    if (self.getDate(date).status !== 'complete') {
+                        status = 'complete';
+                    }
+                    else {
+                        status = 'incomplete';
+                    }
+                    var url = baseurl + '/v1/habits/' + self._id + '/dates/' + date;
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            headers: {},
+                            data: {
+                                status: status
+                            }
+                        }
+                    ).then(function (response) {
+                        self.dates[date] = response.data;
+                    });
+                },
+                populateDate: function (date) {
+                    var self = this;
+                    var url = baseurl + '/v1/habits/' + self._id + '/dates/'
+                        + date;
                     $http(
                         {
                             method: 'GET',
@@ -202,18 +234,18 @@
                             headers: {},
                         }
                     ).then(function (response) {
-                        self._checkedStatus = response.data.status;
+                        self.dates[date] = response.data;
                     });
                 },
-                getCheckedStatus: function (i) {
+                getDate: function (date) {
                     var self = this;
 
-                    if (self._checkedStatus === undefined) {
-                        self._checkedStatus = 'loading';
-                        self.populateCheckedStatus(i);
+                    if (self.dates[date] === undefined) {
+                        self.dates[date] = 'loading';
+                        self.populateDate(date);
                     }
 
-                    return self._checkedStatus;
+                    return self.dates[date];
                 },
                 delete: function () {
                     var self = this;
@@ -238,8 +270,9 @@
 
 
         app.controller('habitsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'Habit',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit) {
+            '$http', '$routeParams', 'Habit','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
+            hotkeys) {
 
                 var HabitService = new Habit();
 
@@ -249,39 +282,26 @@
 //                        'description': 'exercise',
 //                    })
                 ];
+                $scope.devMode = false;
 
-                $scope.weekdays = [
-                    {
-                        name: 'Sunday',
-                        shortname: 'Sun'
-                    },
-                    {
-                        name: 'Monday',
-                        shortname: 'Mon'
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function() {
+                            $scope.devMode = true;
+                        }
+                    })
+                    // you can chain these methods for ease of use:
+//                    .add ({...});
 
-                    },
-                    {
-                        name: 'Tuesday',
-                        shortname: 'Tues'
 
-                    },
-                    {
-                        name: 'Wednesday',
-                        shortname: 'Web'
-                    },
-                    {
-                        name: 'Thursday',
-                        shortname: 'Thurs'
-                    },
-                    {
-                        name: 'Friday',
-                        shortname: 'Fri'
-                    },
-                    {
-                        name: 'Saturday',
-                        shortname: 'Sat'
-                    },
-                ];
+                //https://momentjs.com/docs/#/displaying/
+                $scope.weekdays = [];
+                var startOfWeek = moment().startOf('week');
+                for(var i = 0;i < 7; i++) {
+                    $scope.weekdays.push(moment(startOfWeek).add(i,'days'));
+                }
 
                 HabitService.getHabits().then(function (habits) {
                     $scope.habits = habits;
@@ -291,8 +311,9 @@
                 $scope.newhabit = new Habit({});
 
                 $scope.addHabit = function () {
-                    $scope.habits.push($scope.newhabit);
-                    $scope.newhabit.add();
+                    $scope.newhabit.add().then(function(habit) {
+                        $scope.habits.push(habit);
+                    });
                     $scope.newhabit = new Habit({});
                 };
 

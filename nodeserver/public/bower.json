@@ -11,6 +11,7 @@
     "angular": "angularjs#^1.6.4",
     "bootstrap": "^3.3.7",
     "react": "^15.6.1",
-    "angular-cookies": "^1.6.5"
+    "angular-cookies": "^1.6.5",
+    "angular-hotkeys": "chieffancypants/angular-hotkeys#^1.7.0"
   }
 }

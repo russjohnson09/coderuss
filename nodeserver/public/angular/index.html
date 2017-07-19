@@ -128,10 +128,23 @@
                 templateUrl: 'templates/shewaspretty.html',
                 controller: "shewasprettyCtl"
             })
+            .when('/hello', {
+                templateUrl: 'templates/hello.html',
+                controller: "helloCtl"
+            })
             .otherwise({
                 redirectTo: '/profile'
             });
     });
+
+
+    (function addHelloCtl() {
+        app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+                $scope.hello = {};
+            }])
+    })();
 
     app.factory('User', ['$http', '$q', function ($http, $q) {
         function User(data) {

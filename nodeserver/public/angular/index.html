@@ -66,6 +66,9 @@
                            aria-haspopup="true" aria-expanded="false">{{getCurrentUser().username}} <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="#!/habits">My Habits</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
                             <li><a href="#!/logout">Logout</a></li>
                         </ul>
                     </li>
@@ -306,6 +309,11 @@
 
         User.prototype.setData = function(data) {
             angular.extend(this, data);
+        };
+
+        User.prototype.isAdmin = function()
+        {
+            return this.is_admin === 1;
         };
 
         User.prototype.getLevel = function()

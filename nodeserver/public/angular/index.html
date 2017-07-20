@@ -4,6 +4,8 @@
 <html>
 
 <head>
+
+    <base href="/angular/">
     <!-- META -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,23 +39,69 @@
 
 </head>
 
-<body>
-<div class="container">
+<body ng-app="app" ng-cloak>
 
-    <div ng-app="app" class="login">
-
-        <div class="row">
-            <div class="col-sm-1"><a href="#!habits">Habits</a></div>
-            <div class="col-sm-1"><a href="#!login">Login</a></div>
-            <!--<div class="col-md-3">-->
-                <!--<ul class="nav">-->
-                    <!--<li><a href="#!hello"> Add New Order </a></li>-->
-                    <!--<li><a href="#!test"> Show Order </a></li>-->
-                    <!--<li><a href="#!movie"> Movie Search </a></li>-->
-                    <!--<li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>-->
-                <!--</ul>-->
-            <!--</div>-->
+<nav ng-controller="navbarCtl" class="navbar navbar-default">
+    <div class="container-fluid" ng-cloak>
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <!--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">-->
+                <!--<span class="sr-only">Toggle navigation</span>-->
+                <!--<span class="icon-bar"></span>-->
+                <!--<span class="icon-bar"></span>-->
+                <!--<span class="icon-bar"></span>-->
+            <!--</button>-->
+            <a class="navbar-brand" href="/angular">coderuss</a>
         </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+            <ul class="nav navbar-nav">
+                <!--<li ng-class="{active: isActive('/habits')}"><a href="#!/habits">habits</a></li>-->
+            </ul>
+
+            <div ng-show="getCurrentUser().isLoaded()">
+                <ul class="nav navbar-nav navbar-right " ng-show="(getCurrentUser().isLoggedIn())">
+                    <li class="dropdown">
+                        <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-haspopup="true" aria-expanded="false">{{getCurrentUser().username}} <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#!/habits">My Habits</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
+                            <li><a href="#!/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right " ng-show="!(getCurrentUser().isLoggedIn())">
+                    <li ng-class="{active: isActive('/signin')}"><a href="#!/signin">sign in</a></li>
+                    <li ng-class="{active: isActive('/signup')}"><a href="#!/signup">sign up</a></li>
+                </ul>
+            </div>
+
+    </div><!-- /.container-fluid -->
+</nav>
+
+
+<div class="container">
+        <!--<nav class="collapse navbar-collapse" ng-controller="navbarCtl">-->
+            <!--<ul class="nav navbar-nav">-->
+                <!--<li ng-class="{ active: isActive('/habits')}"><a href="#!habits">Habits</a></li>-->
+                <!--<li ng-class="{ active: isActive('/login')}"><a href="#!login">Login</a></li>-->
+            <!--</ul>-->
+        <!--</nav>-->
+        <!--<div class="row">-->
+            <!--<div class="col-sm-1"><a href="#!habits">Habits</a></div>-->
+            <!--<div class="col-sm-1"><a href="#!login">Login</a></div>-->
+            <!--&lt;!&ndash;<div class="col-md-3">&ndash;&gt;-->
+                <!--&lt;!&ndash;<ul class="nav">&ndash;&gt;-->
+                    <!--&lt;!&ndash;<li><a href="#!hello"> Add New Order </a></li>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<li><a href="#!test"> Show Order </a></li>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<li><a href="#!movie"> Movie Search </a></li>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>&ndash;&gt;-->
+                <!--&lt;!&ndash;</ul>&ndash;&gt;-->
+            <!--&lt;!&ndash;</div>&ndash;&gt;-->
+        <!--</div>-->
 
         <div class="row">
             <div class="col-sm-12">
@@ -65,8 +113,6 @@
             {{user}}
         </div>
 
-
-    </div>
 </div>
 
 
@@ -98,7 +144,7 @@
     //        });
     //    }]);
     //
-    app.config(function ($routeProvider) {
+    app.config(function ($routeProvider,$locationProvider) {
 //        var UserService = new User();
         console.log('routeProviderConfig', $routeProvider);
         var userResolve = {
@@ -120,6 +166,21 @@
             .when("/login", {
                 templateUrl: "templates/login.html",
                 controller: "loginCtl"
+            })
+            .when("/signin", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
+            .when("/signup", {
+                templateUrl: "templates/signup.html",
+                controller: "signupCtl"
+            })
+            .when("/logout", {
+                controller: "logoutCtl",
+                templateUrl: "templates/logout.html"
+            })
+            .when('anchors', {
+                templateUrl: 'templates/anchors.html'
             })
             .when("/habits", {
                 templateUrl: "templates/habits.html",
@@ -152,8 +213,11 @@
                 controller: "helloCtl"
             })
             .otherwise({
-                redirectTo: '/profile'
+                redirectTo: '/'
             });
+
+//        $locationProvider.html5Mode(true);
+
     });
 
     app.run(function($rootScope,LoggedInService) {
@@ -169,6 +233,40 @@
             // handle route changes
         });
     });
+
+    (function addLogoutCtl() {
+        app.controller('logoutCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys','UserService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,UserService) {
+                $scope.isActive = function(path) {
+                    return path === $location.path();
+                };
+
+                UserService.logout().then(function(data) {
+                    console.log(data);
+                    $location.path('/signin');
+                });
+            }])
+    })();
+
+    (function addNavbarCtl() {
+        app.controller('navbarCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys','UserService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,UserService) {
+                $scope.isActive = function(path) {
+                    return path === $location.path();
+                };
+
+                $scope.getCurrentUser = UserService.getCurrentUser;
+
+//                UserService.getCurrentUser().then(function(user) {
+//                    console.log('navbarCtl',user);
+//                    $scope._user = user;
+//                }, function(err) {
+//                    console.log(e);
+//                });
+            }])
+    })();
 
 
     (function addHelloCtl() {
@@ -197,7 +295,123 @@
 
     }]);
 
-    app.factory('User', ['$http', '$q', function ($http, $q) {
+    app.factory('UserService', ['$http', '$q', function ($http, $q) {
+
+        var service = {};
+
+        var baseurl = '';
+
+        function User(data) {
+            if (data) {
+                this.setData(data);
+            }
+        };
+
+        User.prototype.setData = function(data) {
+            angular.extend(this, data);
+        };
+
+        User.prototype.isAdmin = function()
+        {
+            return this.is_admin === 1;
+        };
+
+        User.prototype.getLevel = function()
+        {
+            if (this._id == 'anon') {
+                return 'anon';
+            }
+            else {
+                return 'consumer';
+            }
+        };
+
+        User.prototype.isLoaded = function()
+        {
+            return this._id;
+        };
+
+        User.prototype.isLoggedIn = function() {
+            return this.getLevel() !== 'anon';
+        };
+
+        service.loginForm = function(formData)
+        {
+            return $q(function(resolve,reject) {
+                $http.post('/v1/login', formData).then(
+                    function (res) {
+                        if (res.status === 201) {
+                            return service.populateCurrentUser().then(resolve);
+                        }
+                    },
+                    function (res) {
+                        console.log(res.status);
+                    });
+            })
+
+        };
+
+        service.logout = function() {
+            return $q(function(resolve,reject) {
+                $http({
+                    'method': 'POST',
+                    'url': '/v1/logout'
+                }).then(function(response) {
+                        service.setCurrentUserToAnon();
+                        resolve(response.data);
+                    },
+                    reject
+                )
+            });
+        };
+
+        service.setCurrentUserToAnon = function()
+        {
+            service._user = service.getAnonUser();
+        };
+
+        service.getAnonUser = function()
+        {
+            return new User({_id: 'anon'});
+        };
+
+
+        service.populateCurrentUser = function() {
+            if (service._user == undefined) {
+                service._user = new User({});
+            }
+            var url = baseurl + '/v1/users/me';
+
+            return $q(function(resolve) {
+                $http(
+                    {
+                        method: 'GET',
+                        url: url,
+                        headers: {},
+                    }
+                ).then(function (response) {
+                    service._user = new User(response.data);
+                    resolve(service._user);
+                }, function() {
+                    console.log('populateCurrentUser');
+                    service.setCurrentUserToAnon();
+                    resolve(service._user);
+                });
+            })
+        };
+
+        service.getCurrentUser = function () {
+            if (service._user == undefined) {
+                service.populateCurrentUser();
+            }
+            return service._user;
+
+        };
+
+        return service;
+    }]);
+
+        app.factory('User', ['$http', '$q', function ($http, $q) {
         function User(data) {
             if (data) {
                 this.setData(data);
@@ -247,27 +461,28 @@
 
     (function addLoginCtl() {
         app.controller('loginCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'User','hotkeys','LoggedInService',
+            '$http', '$routeParams', 'UserService','hotkeys','LoggedInService',
             function ($rootScope, $cookies, $scope, $location, $http,
-                      $routeParams, User, hotkeys,LoggedInService) {
-                var UserService = new User();
+                      $routeParams, UserService, hotkeys,LoggedInService) {
                 $scope.login = function()
                 {
-                    $http.post('/v1/login', $scope.formData).then(
-                        function (res) {
-                            if (res.status === 201) {
-                                console.log(res.data);
-                                UserService.getCurrentUser().then(function(user) {
-                                    LoggedInService.setLoggedInUser(user);
-                                    $location.path('/');
-                                });
-                            }
-                        },
-                        function (res) {
-                            console.log(res.status);
-                        });
+                    UserService.loginForm($scope.formData).then(function() {
+                        $location.path('/profile');
+                    });
                 };
+            }]);
 
+        app.controller('signupCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'UserService','hotkeys','LoggedInService',
+            function ($rootScope, $cookies, $scope, $location, $http,
+                      $routeParams, UserService, hotkeys,LoggedInService) {
+                $scope.formData = {};
+                $scope.login = function()
+                {
+                    UserService.loginForm($scope.formData).then(function() {
+                        $location.path('/profile');
+                    });
+                };
             }])
     })();
 

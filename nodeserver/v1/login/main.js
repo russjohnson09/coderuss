@@ -436,6 +436,12 @@ module.exports = function(opts) {
             res.redirect('/');
         });
 
+    router.post('/logout',
+        function(req, res) {
+            req.logout();
+            res.json({message:'Successfully logged out.'}).status(200);
+        });
+
     router.get('/profile',
         function(req, res) {
             winston.debug(req.isAuthenticated());

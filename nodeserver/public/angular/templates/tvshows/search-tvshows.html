@@ -1,0 +1,29 @@
+<h1>TV Shows</h1>
+<form ng-submit="search()">
+    <input ng-model="searchstring">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+
+<div class="tvshows">
+    <!--style="border-bottom:1px solid black" -->
+    <div class="tvshow row" ng-repeat="tvshow in tvshows track by $index">
+        <div class="col-sm-3"><div style="font-size:20px">{{tvshow.show.name}}</div>
+            <img style="width:100%" ng-src="{{tvshow.show.image.original}}">
+        </div>
+        <!--<div class="col-sm-3">-->
+            <!--<img style="width:100%" ng-src="{{tvshow.show.image.original}}">-->
+        <!--</div>-->
+        <div class="col-sm-5" ng-bind-html="tvshow.show.summary"></div>
+
+        <div ng-show="!tvshow.isWatching()" class="col-sm-2">
+            <button ng-click="tvshow.addToUserList()" class="btn btn-primary">Add To My List</button>
+        </div>
+        <!--<div class="col-sm-10"></div>-->
+    </div>
+</div>
+
+
+<div ng-show="devMode">
+    <pre>{{tvshows | json}}</pre>
+</div>

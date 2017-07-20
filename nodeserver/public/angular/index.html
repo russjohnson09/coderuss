@@ -37,6 +37,8 @@
     <script src="/bower_components/angular-hotkeys/build/hotkeys.js"></script>
     <link rel="stylesheet" href="/bower_components/angular-hotkeys/build/hotkeys.css">
 
+    <script src="/bower_components/angular-sanitize/angular-sanitize.js"></script>
+
 </head>
 
 <body ng-app="app" ng-cloak>
@@ -65,7 +67,9 @@
                         <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button"
                            aria-haspopup="true" aria-expanded="false">{{getCurrentUser().username}} <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li><a href="#!/habits">My Habits</a></li>
+                            <li><a href="#!/profile">Profile</a></li>
+                            <li><a href="#!/habits">Habits</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/tvshows">TV</a></li>
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
@@ -84,25 +88,6 @@
 
 
 <div class="container">
-        <!--<nav class="collapse navbar-collapse" ng-controller="navbarCtl">-->
-            <!--<ul class="nav navbar-nav">-->
-                <!--<li ng-class="{ active: isActive('/habits')}"><a href="#!habits">Habits</a></li>-->
-                <!--<li ng-class="{ active: isActive('/login')}"><a href="#!login">Login</a></li>-->
-            <!--</ul>-->
-        <!--</nav>-->
-        <!--<div class="row">-->
-            <!--<div class="col-sm-1"><a href="#!habits">Habits</a></div>-->
-            <!--<div class="col-sm-1"><a href="#!login">Login</a></div>-->
-            <!--&lt;!&ndash;<div class="col-md-3">&ndash;&gt;-->
-                <!--&lt;!&ndash;<ul class="nav">&ndash;&gt;-->
-                    <!--&lt;!&ndash;<li><a href="#!hello"> Add New Order </a></li>&ndash;&gt;-->
-                    <!--&lt;!&ndash;<li><a href="#!test"> Show Order </a></li>&ndash;&gt;-->
-                    <!--&lt;!&ndash;<li><a href="#!movie"> Movie Search </a></li>&ndash;&gt;-->
-                    <!--&lt;!&ndash;<li><a href="#!gitreview/4c20768f288af579519e887674ddcea5300a7d1d"> Git Review </a></li>&ndash;&gt;-->
-                <!--&lt;!&ndash;</ul>&ndash;&gt;-->
-            <!--&lt;!&ndash;</div>&ndash;&gt;-->
-        <!--</div>-->
-
         <div class="row">
             <div class="col-sm-12">
                 <div ng-view></div>
@@ -115,41 +100,15 @@
 
 </div>
 
-
-<script>
-    //    angular.module('movieDirective', [])
-    //        .controller('Controller', ['$scope', function($scope) {
-    //            $scope.customer = {
-    //                name: 'Naomi',
-    //                address: '1600 Amphitheatre'
-    //            };
-    //        }])
-    //        .directive('myCustomer', function() {
-    //            return {
-    //                restrict: 'E',
-    //                templateUrl: 'my-customer.html'
-    //            };
-    //        });
-</script>
-
 <script>
 
-    var app = angular.module('app', ['ngRoute', 'ngCookies','cfp.hotkeys']);
+    var app = angular.module('app',
+        ['ngRoute', 'ngCookies','cfp.hotkeys','ngSanitize']);
 
-    //
-    //    app.config(['$locationProvider', function ($locationProvider) {
-    //        $locationProvider.html5Mode({
-    //            enabled: true,
-    //            requireBase: false
-    //        });
-    //    }]);
-    //
     app.config(function ($routeProvider,$locationProvider) {
-//        var UserService = new User();
         console.log('routeProviderConfig', $routeProvider);
         var userResolve = {
             _user: function(User) {
-//                        return 'test';
                 console.log('resolve profile');
                 var UserService = new User();
                 console.log(UserService);
@@ -158,7 +117,6 @@
                         console.log(user);
                         resolve(user);
                     });
-//                            setTimeout(resolve,10000)
                 })
             }
         };
@@ -179,7 +137,7 @@
                 controller: "logoutCtl",
                 templateUrl: "templates/logout.html"
             })
-            .when('anchors', {
+            .when('/anchors', {
                 templateUrl: 'templates/anchors.html'
             })
             .when("/habits", {
@@ -199,6 +157,16 @@
                 templateUrl: "templates/tests.html",
                 controller: "testsCtl"
             })
+            .when("/tvshows", {
+                templateUrl: "templates/tvshows/tvshows.html",
+                controller: "tvshowsCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/search", {
+                templateUrl: "templates/tvshows/search-tvshows.html",
+                controller: "tvshowsCtl",
+                resolve: userResolve,
+            })
             .when("/profile", {
                 templateUrl: "templates/profile.html",
                 controller: "profileCtl",
@@ -215,9 +183,6 @@
             .otherwise({
                 redirectTo: '/'
             });
-
-//        $locationProvider.html5Mode(true);
-
     });
 
     app.run(function($rootScope,LoggedInService) {
@@ -226,13 +191,115 @@
         });
         $rootScope.$on("$routeChangeSuccess", function(event, next, current) {
             console.log(event,next,current);
-//            var user = LoggedInService.getLoggedInUser();
-//            console.log(user);
-//            $rootScope.currentuser = user;
-
-            // handle route changes
         });
     });
+
+    (function addTvshowRoute() {
+
+        app.factory('TvshowService', ['$http', '$q', function ($http, $q) {
+
+            var service = {};
+
+            var baseurl = 'http://api.tvmaze.com';
+
+            var apibaseurl = '';
+
+            function Tvshow(data) {
+                if (data) {
+                    this.setData(data);
+                }
+            };
+
+            Tvshow.prototype = {
+                setData: function(data) {
+                    angular.extend(this, data);
+                },
+                addToUserList: function() {
+                    console.log('added tv show to list',this);
+                }
+            };
+
+            service.search = function(searchstring)
+            {
+                var url = baseurl + '/search/shows';
+                return $q(function(resolve,reject) {
+                    $http(
+                        {
+                            method: 'GET',
+                            params: {
+                                q: searchstring
+                            },
+                            url: url
+                        }).then(
+                        function (res) {
+                            var tvshows = [];
+                            for (var i in res.data) {
+                                var tvshow = new Tvshow(res.data[i]);
+
+                                tvshows.push(tvshow);
+                            }
+                            resolve(tvshows);
+                        },
+                        function (res) {
+                            console.error(res);
+                        });
+                })
+
+            };
+
+            return service;
+        }]);
+
+
+        app.controller('searchTvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys','UserService', 'TvshowService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      UserService, TvshowService) {
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function() {
+                            $scope.devMode = !$scope.devMode;
+                        }
+                    });
+
+                $scope.search = function()
+                {
+                    console.log('tvshowsCtl','search',$scope.searchstring);
+                    TvshowService.search($scope.searchstring).then(function(tvshows){
+                        $scope.tvshows = tvshows;
+
+                    });
+                }
+            }])
+
+
+        app.controller('tvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams','hotkeys','UserService', 'TvshowService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      UserService, TvshowService) {
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function() {
+                            $scope.devMode = !$scope.devMode;
+                        }
+                    });
+
+                $scope.search = function()
+                {
+                    console.log('tvshowsCtl','search',$scope.searchstring);
+                    TvshowService.search($scope.searchstring).then(function(tvshows){
+                        $scope.tvshows = tvshows;
+
+                    });
+                }
+            }])
+    })();
 
     (function addLogoutCtl() {
         app.controller('logoutCtl', ['$rootScope', '$cookies', '$scope', '$location',
@@ -250,6 +317,7 @@
     })();
 
     (function addNavbarCtl() {
+
         app.controller('navbarCtl', ['$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams','hotkeys','UserService',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,UserService) {
@@ -654,9 +722,9 @@
                         combo: 'd e v',
                         description: 'Dev mode',
                         callback: function() {
-                            $scope.devMode = true;
+                            $scope.devMode = !$scope.devMode;
                         }
-                    })
+                    });
                     // you can chain these methods for ease of use:
 //                    .add ({...});
 

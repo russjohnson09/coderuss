@@ -12,6 +12,7 @@
     "bootstrap": "^3.3.7",
     "react": "^15.6.1",
     "angular-cookies": "^1.6.5",
-    "angular-hotkeys": "chieffancypants/angular-hotkeys#^1.7.0"
+    "angular-hotkeys": "chieffancypants/angular-hotkeys#^1.7.0",
+    "angular-sanitize": "^1.6.5"
   }
 }

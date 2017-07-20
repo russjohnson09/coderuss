@@ -1,0 +1,14 @@
+<h1>TV Shows</h1>
+<a ng-href="#!/tvshows/search">Add New TV Shows</a>
+
+
+<div class="tvshows">
+    <div class="tvshow" ng-repeat="tvshow in tvshows track by $index">
+
+    </div>
+</div>
+
+
+<div ng-show="devMode">
+    <pre>{{tvshows | json}}</pre>
+</div>

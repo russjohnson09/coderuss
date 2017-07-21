@@ -172,7 +172,7 @@
             })
             .when("/tvshows/search", {
                 templateUrl: "templates/tvshows/search-tvshows.html",
-                controller: "tvshowsCtl",
+                controller: "searchTvshowsCtl",
                 resolve: userResolve,
             })
             .when("/profile", {
@@ -234,11 +234,10 @@
 
         (function addTvshowRoute() {
 
-        app.factory('TvshowService', ['$http', '$q','ErrorService', function ($http, $q,ErrorService) {
+        app.factory('TvshowService', ['$http', '$q','$timeout','ErrorService',
+            function ($http, $q, $timeout,ErrorService) {
 
             var service = {};
-
-//            var baseurl = 'http://api.tvmaze.com';
 
             var baseurl = '/v1/proxy/tvmaze';
             var apibaseurl = '';
@@ -254,7 +253,34 @@
                     angular.extend(this, data);
                 },
                 addToUserList: function() {
-                    console.log('added tv show to list',this);
+                    var self = this;
+                    self._status = 'updating';
+                    var data = self.getCreateObject();
+
+                    $http({
+                        method: 'POST',
+                        data: data,
+                        url: apibaseurl + '/v1/users/me/tvshows'
+                    }).then(function(res) {
+                        self._status = '';
+                    }, ErrorService.handleHttpError);
+                },
+                getCreateObject: function() {
+                    var self = this;
+                    return {
+                        tvmaze_id: self.id
+                    };
+                },
+                removeFromMyList: function() {
+                    var self = this;
+                    self._status = 'deleted';
+                    console.log(self,self._api);
+                    $http({
+                        method: 'DELETE',
+                        url: apibaseurl + '/v1/users/me/tvshows/' + self._api._id
+                    }).then(function(res) {
+                        self._status = 'deleted';
+                    }, ErrorService.handleHttpError);
                 }
             };
 
@@ -277,11 +303,116 @@
                     function (res) {
                         var tvshows = [];
                         for (var i in res.data) {
-                            var tvshow = new Tvshow(res.data[i]);
-
+                            var tvshow = new Tvshow(res.data[i].show);
                             tvshows.push(tvshow);
                         }
-                        Object.assign(result,{status:'success',data: tvshows});
+                        $timeout(function() {
+                            Object.assign(result,{status:'success',data: tvshows});
+                        },0)
+                    },
+                    ErrorService.handleHttpError);
+
+                return result;
+            };
+
+            function ApiTvshow(data) {
+                if (data) {
+                    this.setData(data);
+                }
+            };
+
+            ApiTvshow.prototype = {
+                setData: function(data) {
+                    angular.extend(this, data);
+                },
+                getShow: function()
+                {
+                    var result = {};
+                    return result;
+                    var self = this;
+                    if (!self._show) {
+                        self._show = {
+                            status: 'loading',
+                            data: {},
+                        };
+                    }
+
+                    $timeout(function() {
+//                        console.log('result',result);
+//                        return;
+//                        var tvshow = new Tvshow({t:1});
+//                        console.log('getShow');
+//                        result.status = 'success';
+                        return;
+                        Object.assign(result,{status:'success',data: tvshow});
+                    },2000);
+
+                    console.log('result');
+
+                    return self._show;
+
+                    var url = baseurl + '/shows/' + id;
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url
+                        }).then(
+                        function (res) {
+                            var tvshow = new Tvshow(res.data);
+                            Object.assign(result,{status:'success',data: tvshow});
+                        },
+                        ErrorService.handleHttpError);
+                }
+
+            };
+
+            service.getMyTvShows = function()
+            {
+                var result = {
+                    status: 'loading',
+                    data: [],
+                };
+
+                var url = apibaseurl + '/v1/users/me/tvshows';
+                $http(
+                    {
+                        method: 'GET',
+                        url: url
+                    }).then(
+                    function (res) {
+
+                        var apiTvshows = [];
+                        for (var i in res.data) {
+                            var apiTvshow = new ApiTvshow(res.data[i]);
+                            apiTvshows.push(apiTvshow);
+                        }
+                        $timeout(function() {
+                            Object.assign(result,{status:'success',data: apiTvshows});
+                        },0);
+                    },
+                    ErrorService.handleHttpError);
+
+                return result;
+            };
+
+            service.getTvshowById = function(id)
+            {
+                var result = {
+                    status: 'loading',
+                    data: {},
+                };
+
+//                return result;
+
+                var url = baseurl + '/shows/' + id;
+                $http(
+                    {
+                        method: 'GET',
+                        url: url
+                    }).then(
+                    function (res) {
+                        var tvshow = new Tvshow(res.data);
+                        Object.assign(result,{status:'success',data: tvshow});
                     },
                     ErrorService.handleHttpError);
 
@@ -305,6 +436,10 @@
                             $scope.devMode = !$scope.devMode;
                         }
                     });
+
+                $scope.search = function() {
+                    $scope.tvshows = TvshowService.getTvShowsBySearchString($scope.searchstring);
+                }
             }]);
 
 
@@ -322,11 +457,7 @@
                         }
                     });
 
-                $scope.search = function()
-                {
-                    $scope.tvshows = TvshowService.getTvShowsBySearchString($scope.searchstring);
-                    console.log($scope.tvshows);
-                };
+                $scope.tvshows = TvshowService.getMyTvShows();
 
             }])
     })();
@@ -788,6 +919,39 @@
 
     })();
 
+
+    app.directive('tvshowDisplay', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                tvshow: '=tvshow',
+
+            },
+            templateUrl: 'templates/tvshows/_tvshow-display.html'
+        };
+    });
+
+    app.directive('apiTvshowDisplay', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                apiTvshow: '=apiTvshow',
+
+            },
+            templateUrl: 'templates/tvshows/_api-tvshow-display.html'
+        };
+    });
+
+    app.directive('tvshowSearchItem', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                tvshow: '=tvshow',
+
+            },
+            templateUrl: 'templates/tvshows/_tvshow-search-item.html'
+        };
+    });
 
     app.directive("preview", function () {
         function link(scope, element) {

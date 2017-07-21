@@ -1,0 +1,14 @@
+<pre ng-if="false">{{tvshow | json}}</pre>
+<div class="row">
+    <div class="col-sm-3"><div style="font-size:20px">{{tvshow.name}}</div>
+        <img style="width:100%" ng-src="{{tvshow.image.original}}">
+    </div>
+    <!--<div class="col-sm-3">-->
+    <!--<img style="width:100%" ng-src="{{tvshow.show.image.original}}">-->
+    <!--</div>-->
+    <div class="col-sm-5" ng-bind-html="tvshow.summary"></div>
+
+    <div ng-show="!tvshow.isWatching()" class="col-sm-2">
+        <button ng-click="tvshow.addToUserList()" class="btn btn-primary">Add To My List</button>
+    </div>
+</div>

@@ -1,0 +1,129 @@
+<h1>Your Show Status</h1>
+<a ng-href="#!/tvshows/search">Add New TV Shows</a>
+
+
+<div ng-if="devMode">
+    <pre>{{apiTvshowsCollection | json}}</pre>
+</div>
+<table class="table table-striped table-bordered">
+    <thead>
+    <thead>
+    <tr>
+        <th>Show</th>
+        <th>Previous Episode</th>
+        <th>Next Episode</th>
+        <th>Status</th>
+        <!--<th></th>-->
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="apiTvshow in apiTvshowsCollection.data track by $index" tvshow-tds
+        tvshow="apiTvshow.getShow()">
+        <!--<td>{{apiTvshow.getShow() || json}}</td>-->
+
+        <!--<tvshow-tds dev-mode="devMode" tvshow="apiTvshow.getShow()"></tvshow-tds>-->
+    </tr>
+    </tbody>
+</table>
+
+<table class="table table-striped table-bordered">
+    <thead>
+    <tr>
+        <th>Show</th>
+        <th>Previous Episode</th>
+        <th>Next Episode</th>
+        <th>Status</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr data-key="0">
+        <td data-title="Show"><a href="/shows/290/adventure-time">Adventure Time</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/1239884/adventure-time-8x27-whispers"
+                                             title="8x27: Whispers">Jul 20, 2017</a></td>
+        <td data-title="Next Episode"><a href="/episodes/1239885/adventure-time-8x28-three-buckets"
+                                         title="8x28: Three Buckets">Jul 21, 2017</a></td>
+        <td data-title="Status">Running</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=290">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    <tr data-key="1">
+        <td data-title="Show"><a href="/shows/82/game-of-thrones">Game of Thrones</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/937256/game-of-thrones-7x01-dragonstone"
+                                             title="7x01: Dragonstone">Jul 16, 2017</a></td>
+        <td data-title="Next Episode"><a href="/episodes/1221410/game-of-thrones-7x02-stormborn"
+                                         title="7x02: Stormborn">Jul 23, 2017</a></td>
+        <td data-title="Status">Running</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=82">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    <tr data-key="2">
+        <td data-title="Show"><a href="/shows/1615/steven-universe">Steven Universe</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/1164923/steven-universe-5x04-lars-head"
+                                             title="5x04: Lars' Head">May 29, 2017</a></td>
+        <td data-title="Next Episode"></td>
+        <td data-title="Status">Running</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=1615">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    <tr data-key="3">
+        <td data-title="Show"><a href="/shows/1603/samurai-jack">Samurai Jack</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/1112941/samurai-jack-5x10-episode-ci"
+                                             title="5x10: Episode CI">May 20, 2017</a></td>
+        <td data-title="Next Episode"></td>
+        <td data-title="Status">Ended</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=1603">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    <tr data-key="4">
+        <td data-title="Show"><a href="/shows/216/rick-and-morty">Rick and Morty</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/1119144/rick-and-morty-3x01-the-rickshank-rickdemption"
+                                             title="3x01: The Rickshank Rickdemption">Apr 1, 2017</a></td>
+        <td data-title="Next Episode"><a href="/episodes/1144079/rick-and-morty-3x02-rickmancing-the-stone"
+                                         title="3x02: Rickmancing the Stone">Jul 30, 2017</a></td>
+        <td data-title="Status">Running</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=216">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    <tr data-key="5">
+        <td data-title="Show"><a href="/shows/184/bojack-horseman">BoJack Horseman</a></td>
+        <td data-title="Previous Episode"><a href="/episodes/872197/bojack-horseman-3x12-that-went-well"
+                                             title="3x12: That Went Well">Jul 22, 2016</a></td>
+        <td data-title="Next Episode"><a href="/episodes/1245532/bojack-horseman-4x01-tba" title="4x01: TBA">Sep 8,
+            2017</a></td>
+        <td data-title="Status">Running</td>
+        <td data-title="Watchlist"><a href="/watch/show?show_id=184">
+                    <span class="fa-stack fa-lg watchlist-icon">
+                        <i class="fa fa-list-ul fa-stack-1x"></i>
+
+                        <i class="fa fa-eye fa-stack-1x"></i>
+                    </span>
+            <span class="show-for-small-only"> Manage</span></a></td>
+    </tr>
+    </tbody>
+</table>

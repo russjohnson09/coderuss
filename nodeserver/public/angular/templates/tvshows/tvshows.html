@@ -4,24 +4,16 @@
 
 <div class="tvshows">
     <!--style="border-bottom:1px solid black" -->
-    <div ng-if="'loading' === tvshows.status">
+    <div ng-if="'loading' === apiTvshowsCollection.status">
         <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
         <span class="sr-only">Loading...</span>
     </div>
-    <div class="tvshow row" ng-repeat="apiTvshow in tvshows.data track by $index">
-        <!--<pre>{{apiTvshow | json}}</pre>-->
-        <api-tvshow-display api-tvshow="apiTvshow"></api-tvshow-display>
-
-        <!--<div ng-if="'loading' == tvshow.status">-->
-            <!--<i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>-->
-            <!--<span class="sr-only">Loading...</span>-->
-        <!--</div>-->
-        <!--<div ng-if="'loading' !== tvshow.status">-->
-        <!--</div>-->
+    <div class="tvshow" ng-repeat="apiTvshow in apiTvshowsCollection.data track by $index">
+        <api-tvshow-display dev-mode="devMode" api-tvshow="apiTvshow"></api-tvshow-display>
     </div>
 </div>
 
 
 <div ng-if="devMode">
-    <pre>{{tvshows | json}}</pre>
+    <pre>{{apiTvshowsCollection | json}}</pre>
 </div>

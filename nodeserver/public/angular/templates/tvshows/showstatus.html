@@ -1,0 +1,28 @@
+<h1>Your Show Status</h1>
+<a ng-href="#!/tvshows/search">Add New TV Shows</a>
+
+<div class="json" ng-if="devMode">
+    <json-formatter json="apiTvshowsCollection" open="1"></json-formatter>
+    <!--<pre>{{apiTvshowsCollection | json}}</pre>-->
+</div>
+<table class="table table-striped table-bordered">
+    <thead>
+    <thead>
+    <tr>
+        <th>Show</th>
+        <th>Previous Episode</th>
+        <th>Next Episode</th>
+        <th>Status</th>
+        <!--<th></th>-->
+    </tr>
+    </thead>
+    <tbody>
+    <tr dev-mode="devMode" ng-repeat="apiTvshow in apiTvshowsCollection.data track by $index" tvshow-tds
+        tvshow="apiTvshow.getShow()">
+
+        <!--<td>{{apiTvshow.getShow() || json}}</td>-->
+
+        <!--<tvshow-tds dev-mode="devMode" tvshow="apiTvshow.getShow()"></tvshow-tds>-->
+    </tr>
+    </tbody>
+</table>

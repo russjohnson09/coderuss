@@ -1,25 +1,19 @@
 <h1>TV Shows</h1>
+<a ng-href="#!/tvshows/showstatus">View My TV Shows</a>
+
 <form ng-submit="search()">
     <input ng-model="searchstring">
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
-
 <div class="tvshows">
     <!--style="border-bottom:1px solid black" -->
-    <div class="tvshow row" ng-repeat="tvshow in tvshows track by $index">
-        <div class="col-sm-3"><div style="font-size:20px">{{tvshow.show.name}}</div>
-            <img style="width:100%" ng-src="{{tvshow.show.image.original}}">
-        </div>
-        <!--<div class="col-sm-3">-->
-            <!--<img style="width:100%" ng-src="{{tvshow.show.image.original}}">-->
-        <!--</div>-->
-        <div class="col-sm-5" ng-bind-html="tvshow.show.summary"></div>
-
-        <div ng-show="!tvshow.isWatching()" class="col-sm-2">
-            <button ng-click="tvshow.addToUserList()" class="btn btn-primary">Add To My List</button>
-        </div>
-        <!--<div class="col-sm-10"></div>-->
+    <div ng-if="'loading' === tvshows.status">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+        <span class="sr-only">Loading...</span>
+    </div>
+    <div class="tvshow" ng-repeat="tvshow in tvshows.data track by $index">
+        <tvshow-search-item tvshow="tvshow"></tvshow-search-item>
     </div>
 </div>
 

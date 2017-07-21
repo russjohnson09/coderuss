@@ -14,7 +14,25 @@
     <title>Coderuss</title>
 
     <link rel="stylesheet" href="/css/ext/bootstrap.min.css">
+
     <style>
+        .tvshow-image {
+            max-width: 100%;
+            max-height: 400px;
+        }
+        .json {
+            display: block;
+            padding: 9.5px;
+            margin: 0 0 10px;
+            font-size: 13px;
+            line-height: 1.42857143;
+            color: #333;
+            word-break: break-all;
+            word-wrap: break-word;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 
 
@@ -39,6 +57,14 @@
 
     <script src="/bower_components/angular-sanitize/angular-sanitize.js"></script>
 
+    <link href="/bower_components/noty/lib/noty.css" rel="stylesheet">
+    <script src="/bower_components/noty/lib/noty.js"></script>
+
+
+    <link href="/bower_components/json-formatter/dist/json-formatter.css" rel="stylesheet">
+    <script src="/bower_components/json-formatter/dist/json-formatter.js"></script>
+
+
 </head>
 
 <body ng-app="app" ng-cloak>
@@ -48,72 +74,78 @@
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
             <!--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">-->
-                <!--<span class="sr-only">Toggle navigation</span>-->
-                <!--<span class="icon-bar"></span>-->
-                <!--<span class="icon-bar"></span>-->
-                <!--<span class="icon-bar"></span>-->
+            <!--<span class="sr-only">Toggle navigation</span>-->
+            <!--<span class="icon-bar"></span>-->
+            <!--<span class="icon-bar"></span>-->
+            <!--<span class="icon-bar"></span>-->
             <!--</button>-->
             <a class="navbar-brand" href="/angular">coderuss</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
-            <ul class="nav navbar-nav">
-                <!--<li ng-class="{active: isActive('/habits')}"><a href="#!/habits">habits</a></li>-->
-            </ul>
+        <ul class="nav navbar-nav">
+            <!--<li ng-class="{active: isActive('/habits')}"><a href="#!/habits">habits</a></li>-->
+        </ul>
 
-            <div ng-show="getCurrentUser().isLoaded()">
-                <ul class="nav navbar-nav navbar-right " ng-show="(getCurrentUser().isLoggedIn())">
-                    <li class="dropdown">
-                        <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                           aria-haspopup="true" aria-expanded="false">{{getCurrentUser().username}} <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#!/profile">Profile</a></li>
-                            <li><a href="#!/habits">Habits</a></li>
-                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/tvshows">TV</a></li>
-                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
-                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
-                            <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
-                            <li><a href="#!/logout">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right " ng-show="!(getCurrentUser().isLoggedIn())">
-                    <li ng-class="{active: isActive('/signin')}"><a href="#!/signin">sign in</a></li>
-                    <li ng-class="{active: isActive('/signup')}"><a href="#!/signup">sign up</a></li>
-                </ul>
-            </div>
+        <div ng-show="getCurrentUser().isLoaded()">
+            <ul class="nav navbar-nav navbar-right " ng-show="(getCurrentUser().isLoggedIn())">
+                <li class="dropdown">
+                    <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                       aria-haspopup="true" aria-expanded="false">{{getCurrentUser().username}} <span
+                            class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#!/profile">Profile</a></li>
+                        <li><a href="#!/habits">Habits</a></li>
+                        <li ng-show="true"><a href="#!/tvshows/showstatus">TV</a></li>
+                        <!--<li ng-show="getCurrentUser().isAdmin()"><a href="#!/tvshows">TV</a></li>-->
+                        <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
+                        <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
+                        <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
+                        <li ng-show="getCurrentUser().isAdmin()">
+                            <a href="#!/gitreview/4c20768f288af579519e887674ddcea5300a7d1d">
+                                Git Review
+                            </a></li>
+                        <li><a href="#!/logout">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right " ng-show="!(getCurrentUser().isLoggedIn())">
+                <li ng-class="{active: isActive('/signin')}"><a href="#!/signin">sign in</a></li>
+                <li ng-class="{active: isActive('/signup')}"><a href="#!/signup">sign up</a></li>
+            </ul>
+        </div>
 
     </div><!-- /.container-fluid -->
 </nav>
 
 
 <div class="container">
-        <div class="row">
-            <div class="col-sm-12">
-                <div ng-view></div>
-            </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div ng-view></div>
         </div>
+    </div>
 
-        <div ng-show="devMode" class="user">
-            {{user}}
-        </div>
+    <div ng-show="devMode" class="user">
+        {{user}}
+    </div>
 
 </div>
 
 <script>
 
     var app = angular.module('app',
-        ['ngRoute', 'ngCookies','cfp.hotkeys','ngSanitize']);
+        ['ngRoute', 'ngCookies', 'cfp.hotkeys', 'ngSanitize', 'jsonFormatter']);
 
-    app.config(function ($routeProvider,$locationProvider) {
+    app.config(function ($routeProvider, $locationProvider) {
         console.log('routeProviderConfig', $routeProvider);
         var userResolve = {
-            _user: function(User) {
+            _user: function (User) {
                 console.log('resolve profile');
                 var UserService = new User();
                 console.log(UserService);
-                return new Promise(function(resolve) {
-                    UserService.getCurrentUser().then(function(user) {
+                return new Promise(function (resolve) {
+                    UserService.getCurrentUser().then(function (user) {
                         console.log(user);
                         resolve(user);
                     });
@@ -164,7 +196,12 @@
             })
             .when("/tvshows/search", {
                 templateUrl: "templates/tvshows/search-tvshows.html",
-                controller: "tvshowsCtl",
+                controller: "searchTvshowsCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/showstatus", {
+                templateUrl: "templates/tvshows/showstatus.html",
+                controller: "tvshowsShowstatusCtl",
                 resolve: userResolve,
             })
             .when("/profile", {
@@ -185,44 +222,175 @@
             });
     });
 
-    app.run(function($rootScope,LoggedInService) {
-        $rootScope.$on("$routeChangeStart", function(event, next, current) {
-            console.log(event,next,current);
+    app.run(function ($rootScope, LoggedInService) {
+        $rootScope.$on("$routeChangeStart", function (event, next, current) {
+            console.log(event, next, current);
         });
-        $rootScope.$on("$routeChangeSuccess", function(event, next, current) {
-            console.log(event,next,current);
+        $rootScope.$on("$routeChangeSuccess", function (event, next, current) {
+            console.log(event, next, current);
         });
     });
 
+    app.factory('ErrorService', ['$http', '$q', function ($http, $q) {
+
+        var service = {};
+
+        service.handleHttpError = function (res) {
+            console.log('handleHttpError', res);
+            var message = res.status + ': ';
+            if (res.data) {
+                if (res.data.message) {
+                    message += res.data.message;
+                }
+                else {
+                    message += res.data;
+                }
+            }
+
+            else {
+
+            }
+            new Noty({
+                text: message,
+                animation: {},
+                type: 'error'
+            }).show();
+        };
+
+        return service;
+    }]);
+
     (function addTvshowRoute() {
 
-        app.factory('TvshowService', ['$http', '$q', function ($http, $q) {
+        app.factory('TvshowService', ['$http', '$q', '$timeout', 'ErrorService',
+            function ($http, $q, $timeout, ErrorService) {
 
-            var service = {};
+                var service = {};
 
-            var baseurl = 'http://api.tvmaze.com';
+                var baseurl = '/v1/proxy/tvmaze';
+                var apibaseurl = '';
 
-            var apibaseurl = '';
+                function Tvshow(data) {
+                    if (data) {
+                        this.setData(data);
+                    }
+                };
 
-            function Tvshow(data) {
-                if (data) {
-                    this.setData(data);
-                }
-            };
+                Tvshow.prototype = {
+                    setData: function (data) {
+                        angular.extend(this, data);
+                    },
+                    addToUserList: function () {
+                        var self = this;
+                        self._status = 'updating';
+                        var data = self.getCreateObject();
 
-            Tvshow.prototype = {
-                setData: function(data) {
-                    angular.extend(this, data);
-                },
-                addToUserList: function() {
-                    console.log('added tv show to list',this);
-                }
-            };
+                        $http({
+                            method: 'POST',
+                            data: data,
+                            url: apibaseurl + '/v3/users/me/tvshows'
+                        }).then(function (res) {
+                            self._status = '';
+                            new Noty({
+                                text: 'Added "' + self.name + '"',
+                                type: 'success',
+                                timeout: 1000
+                            }).show();
+                        }, ErrorService.handleHttpError);
+                    },
+                    getCreateObject: function () {
+                        var self = this;
+                        return {
+                            tvmaze_id: self.id
+                        };
+                    },
+                    getEpisodeIdFromHref: function(href)
+                    {
+                        return href.split('/').pop();
+                    },
+                    getNextEpisode: function() {
+                        var self = this;
+                        if (!self._nextEpisode) {
+                            self._nextEpisode = new Episode({
+                                _status: 'loading'
+                            });
+                            if (!self._links || ! self._links.nextepisode) {
+                                self._nextEpisode._status = 'null';
+                            }
+                            else {
+                                var id = self.getEpisodeIdFromHref(self._links.nextepisode.href);
+                                var url = baseurl + '/episodes/' + id;
 
-            service.search = function(searchstring)
-            {
-                var url = baseurl + '/search/shows';
-                return $q(function(resolve,reject) {
+                                $http({
+                                    method: 'GET',
+                                    url: url
+                                }).then(function (res) {
+//                                    self._nextEpisode = {
+//                                        _status: 'success'
+//                                    };
+                                    Object.assign(self._nextEpisode,{'_status': 'success'},
+                                        res.data);
+
+                                }, ErrorService.handleHttpError);
+                            }
+
+                        }
+                        return self._nextEpisode;
+                    },
+                    getPreviousEpisode: function() {
+                        var self = this;
+                        if (!self._previousEpisode) {
+                            self._previousEpisode = new Episode({
+                                _status: 'loading'
+                            });
+                            if (!self._links || ! self._links.previousepisode) {
+                                self._previousEpisode._status = 'null';
+                            }
+                            else {
+                                var id = self.getEpisodeIdFromHref(self._links.previousepisode.href);
+                                var url = baseurl + '/episodes/' + id;
+
+                                $http({
+                                    method: 'GET',
+                                    url: url
+                                }).then(function (res) {
+
+                                    Object.assign(self._previousEpisode,{'_status': 'success'},
+                                        res.data);
+
+                                }, ErrorService.handleHttpError);
+                            }
+
+                        }
+                        return self._previousEpisode;
+                    },
+
+                };
+
+
+                function Episode(data) {
+                    if (data) {
+                        this.setData(data);
+                    }
+                };
+
+                Episode.prototype = {
+                    setData: function (data) {
+                        angular.extend(this, data);
+                    },
+                    getHumanReadableAirStamp: function()
+                    {
+                        return moment(this.airstamp).tz(moment.tz.guess()).format('MMMM Do YYYY, h:mm:ss a z');
+                    }
+                };
+
+                service.getTvShowsBySearchString = function (searchstring) {
+                    var result = {
+                        status: 'loading',
+                        data: null,
+                    };
+
+                    var url = baseurl + '/search/shows';
                     $http(
                         {
                             method: 'GET',
@@ -234,25 +402,153 @@
                         function (res) {
                             var tvshows = [];
                             for (var i in res.data) {
-                                var tvshow = new Tvshow(res.data[i]);
-
+                                var tvshow = new Tvshow(res.data[i].show);
                                 tvshows.push(tvshow);
                             }
-                            resolve(tvshows);
+                            $timeout(function () {
+                                Object.assign(result, {status: 'success', data: tvshows});
+                            }, 0)
                         },
+                        ErrorService.handleHttpError);
+
+                    return result;
+                };
+
+                function ApiTvshow(data) {
+                    if (data) {
+                        this.setData(data);
+                    }
+                };
+
+                ApiTvshow.prototype = {
+                    setData: function (data) {
+                        angular.extend(this, data);
+                    },
+                    removeFromMyList: function () {
+                        var self = this;
+
+                        self._status = 'deleted';
+
+                        console.log('removeFromMyList', self, self._id);
+                        $http({
+                            method: 'DELETE',
+                            url: apibaseurl + '/v3/users/me/tvshows/' + self._id
+                        }).then(function (res) {
+                            self._status = 'deleted';
+                        }, ErrorService.handleHttpError);
+                    },
+                    getShow: function () {
+                        var self = this;
+                        if (!self._show) {
+                            self._show = new Tvshow({_status: 'loading'});
+
+                            var url = baseurl + '/shows/' + self.tvmaze_id;
+                            $http(
+                                {
+                                    method: 'GET',
+                                    url: url
+                                }).then(
+                                function (res) {
+                                    var tvshow = new Tvshow(res.data);
+                                    self._show = tvshow;
+                                },
+                                ErrorService.handleHttpError);
+
+//                        $timeout(function() {
+//                            Object.assign(self._show,{status:'success',data: 'test'});
+//                        },2000);
+                        }
+                        ;
+
+                        console.log('getShow', self);
+
+                        return self._show;
+
+
+                        console.log('result');
+
+                        return self._show;
+                    }
+
+                };
+
+                service.getMyTvShows = function () {
+                    var result = {
+                        status: 'loading',
+                        data: [],
+                    };
+
+                    var url = apibaseurl + '/v3/users/me/tvshows';
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url
+                        }).then(
                         function (res) {
-                            console.error(res);
-                        });
-                })
 
-            };
+                            var apiTvshows = [];
+                            for (var i in res.data) {
+                                var apiTvshow = new ApiTvshow(res.data[i]);
+                                apiTvshows.push(apiTvshow);
+                            }
+                            $timeout(function () {
+                                Object.assign(result, {status: 'success', data: apiTvshows});
+                            }, 0);
+                        },
+                        ErrorService.handleHttpError);
 
-            return service;
-        }]);
+                    return result;
+                };
+
+                service.getTvshowById = function (id) {
+                    var result = {
+                        status: 'loading',
+                        data: {},
+                    };
+
+//                return result;
+
+                    var url = baseurl + '/shows/' + id;
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url
+                        }).then(
+                        function (res) {
+                            var tvshow = new Tvshow(res.data);
+                            Object.assign(result, {status: 'success', data: tvshow});
+                        },
+                        ErrorService.handleHttpError);
+
+                    return result;
+                };
+
+                return service;
+            }]);
+
+
+        app.controller('tvshowsShowstatusCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'hotkeys', 'UserService', 'TvshowService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      UserService, TvshowService) {
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function () {
+                            $scope.devMode = !$scope.devMode;
+                        }
+                    });
+
+                $scope.apiTvshowsCollection = TvshowService.getMyTvShows();
+
+
+            }]);
 
 
         app.controller('searchTvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys','UserService', 'TvshowService',
+            '$http', '$routeParams', 'hotkeys', 'UserService', 'TvshowService',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
                       UserService, TvshowService) {
 
@@ -260,24 +556,19 @@
                     .add({
                         combo: 'd e v',
                         description: 'Dev mode',
-                        callback: function() {
+                        callback: function () {
                             $scope.devMode = !$scope.devMode;
                         }
                     });
 
-                $scope.search = function()
-                {
-                    console.log('tvshowsCtl','search',$scope.searchstring);
-                    TvshowService.search($scope.searchstring).then(function(tvshows){
-                        $scope.tvshows = tvshows;
-
-                    });
+                $scope.search = function () {
+                    $scope.tvshows = TvshowService.getTvShowsBySearchString($scope.searchstring);
                 }
-            }])
+            }]);
 
 
         app.controller('tvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys','UserService', 'TvshowService',
+            '$http', '$routeParams', 'hotkeys', 'UserService', 'TvshowService',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
                       UserService, TvshowService) {
 
@@ -285,31 +576,25 @@
                     .add({
                         combo: 'd e v',
                         description: 'Dev mode',
-                        callback: function() {
+                        callback: function () {
                             $scope.devMode = !$scope.devMode;
                         }
                     });
 
-                $scope.search = function()
-                {
-                    console.log('tvshowsCtl','search',$scope.searchstring);
-                    TvshowService.search($scope.searchstring).then(function(tvshows){
-                        $scope.tvshows = tvshows;
+                $scope.apiTvshowsCollection = TvshowService.getMyTvShows();
 
-                    });
-                }
             }])
     })();
 
     (function addLogoutCtl() {
         app.controller('logoutCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys','UserService',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,UserService) {
-                $scope.isActive = function(path) {
+            '$http', '$routeParams', 'hotkeys', 'UserService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys, UserService) {
+                $scope.isActive = function (path) {
                     return path === $location.path();
                 };
 
-                UserService.logout().then(function(data) {
+                UserService.logout().then(function (data) {
                     console.log(data);
                     $location.path('/signin');
                 });
@@ -319,9 +604,9 @@
     (function addNavbarCtl() {
 
         app.controller('navbarCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys','UserService',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,UserService) {
-                $scope.isActive = function(path) {
+            '$http', '$routeParams', 'hotkeys', 'UserService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys, UserService) {
+                $scope.isActive = function (path) {
                     return path === $location.path();
                 };
 
@@ -339,7 +624,7 @@
 
     (function addHelloCtl() {
         app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys',
+            '$http', '$routeParams', 'hotkeys',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
                 $scope.hello = {};
             }])
@@ -349,12 +634,12 @@
 
         var loggedInUser = null;
 
-        var service ={
-            setLoggedInUser: function(u) {
+        var service = {
+            setLoggedInUser: function (u) {
                 loggedInUser = u;
                 console.log(loggedInUser)
             },
-            getLoggedInUser: function() {
+            getLoggedInUser: function () {
                 return loggedInUser;
             },
         };
@@ -375,17 +660,15 @@
             }
         };
 
-        User.prototype.setData = function(data) {
+        User.prototype.setData = function (data) {
             angular.extend(this, data);
         };
 
-        User.prototype.isAdmin = function()
-        {
+        User.prototype.isAdmin = function () {
             return this.is_admin === 1;
         };
 
-        User.prototype.getLevel = function()
-        {
+        User.prototype.getLevel = function () {
             if (this._id == 'anon') {
                 return 'anon';
             }
@@ -394,18 +677,16 @@
             }
         };
 
-        User.prototype.isLoaded = function()
-        {
+        User.prototype.isLoaded = function () {
             return this._id;
         };
 
-        User.prototype.isLoggedIn = function() {
+        User.prototype.isLoggedIn = function () {
             return this.getLevel() !== 'anon';
         };
 
-        service.loginForm = function(formData)
-        {
-            return $q(function(resolve,reject) {
+        service.loginForm = function (formData) {
+            return $q(function (resolve, reject) {
                 $http.post('/v1/login', formData).then(
                     function (res) {
                         if (res.status === 201) {
@@ -419,12 +700,12 @@
 
         };
 
-        service.logout = function() {
-            return $q(function(resolve,reject) {
+        service.logout = function () {
+            return $q(function (resolve, reject) {
                 $http({
                     'method': 'POST',
                     'url': '/v1/logout'
-                }).then(function(response) {
+                }).then(function (response) {
                         service.setCurrentUserToAnon();
                         resolve(response.data);
                     },
@@ -433,24 +714,22 @@
             });
         };
 
-        service.setCurrentUserToAnon = function()
-        {
+        service.setCurrentUserToAnon = function () {
             service._user = service.getAnonUser();
         };
 
-        service.getAnonUser = function()
-        {
+        service.getAnonUser = function () {
             return new User({_id: 'anon'});
         };
 
 
-        service.populateCurrentUser = function() {
+        service.populateCurrentUser = function () {
             if (service._user == undefined) {
                 service._user = new User({});
             }
             var url = baseurl + '/v1/users/me';
 
-            return $q(function(resolve) {
+            return $q(function (resolve) {
                 $http(
                     {
                         method: 'GET',
@@ -460,7 +739,7 @@
                 ).then(function (response) {
                     service._user = new User(response.data);
                     resolve(service._user);
-                }, function() {
+                }, function () {
                     console.log('populateCurrentUser');
                     service.setCurrentUserToAnon();
                     resolve(service._user);
@@ -479,7 +758,7 @@
         return service;
     }]);
 
-        app.factory('User', ['$http', '$q', function ($http, $q) {
+    app.factory('User', ['$http', '$q', function ($http, $q) {
         function User(data) {
             if (data) {
                 this.setData(data);
@@ -492,11 +771,11 @@
         User.prototype = {
 
             setData: function (data) {
-                angular.extend(this,{dates: {}}, data);
+                angular.extend(this, {dates: {}}, data);
             },
             getCurrentUser: function () {
                 var self = this;
-                return $q(function(resolve) {
+                return $q(function (resolve) {
                     var url = baseurl + '/v1/users/me';
                     $http(
                         {
@@ -518,9 +797,9 @@
 
 
     (function addProfileCtl() {
-        app.controller('profileCtl', ['_user','$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams','hotkeys',
-            function (_user,$rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+        app.controller('profileCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'hotkeys',
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
                 $scope._user = _user;
                 console.log($scope._user);
             }])
@@ -529,25 +808,23 @@
 
     (function addLoginCtl() {
         app.controller('loginCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'UserService','hotkeys','LoggedInService',
+            '$http', '$routeParams', 'UserService', 'hotkeys', 'LoggedInService',
             function ($rootScope, $cookies, $scope, $location, $http,
-                      $routeParams, UserService, hotkeys,LoggedInService) {
-                $scope.login = function()
-                {
-                    UserService.loginForm($scope.formData).then(function() {
+                      $routeParams, UserService, hotkeys, LoggedInService) {
+                $scope.login = function () {
+                    UserService.loginForm($scope.formData).then(function () {
                         $location.path('/profile');
                     });
                 };
             }]);
 
         app.controller('signupCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'UserService','hotkeys','LoggedInService',
+            '$http', '$routeParams', 'UserService', 'hotkeys', 'LoggedInService',
             function ($rootScope, $cookies, $scope, $location, $http,
-                      $routeParams, UserService, hotkeys,LoggedInService) {
+                      $routeParams, UserService, hotkeys, LoggedInService) {
                 $scope.formData = {};
-                $scope.login = function()
-                {
-                    UserService.loginForm($scope.formData).then(function() {
+                $scope.login = function () {
+                    UserService.loginForm($scope.formData).then(function () {
                         $location.path('/profile');
                     });
                 };
@@ -566,7 +843,7 @@
 
             Habit.prototype = {
                 setData: function (data) {
-                    angular.extend(this,{dates: {}}, data);
+                    angular.extend(this, {dates: {}}, data);
                 },
                 getJSON: function () {
                     return JSON.stringify(this.getJSONObject());
@@ -602,7 +879,7 @@
                 },
                 add: function () {
                     var self = this;
-                    return $q(function(resolve) {
+                    return $q(function (resolve) {
                         var url = baseurl + '/v1/habits';
                         $http(
                             {
@@ -626,8 +903,7 @@
                 getStatus: function () {
                     return this._status;
                 },
-                updateDate: function(date)
-                {
+                updateDate: function (date) {
                     var self = this;
                     var status;
                     if (self.getDate(date).status !== 'complete') {
@@ -695,45 +971,38 @@
             return Habit;
         }]);
 
-        app.controller('habitsCtl', ['_user','$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'Habit','hotkeys','User',
-            function (_user,$rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
-            hotkeys,
-            User) {
+        app.controller('habitsCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Habit', 'hotkeys', 'User',
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, Habit,
+                      hotkeys,
+                      User) {
                 $scope._user = _user;
                 console.log($scope._user);
                 var HabitService = new Habit();
                 var UserService = new User();
 
-                UserService.getCurrentUser().then(function(user) {
+                UserService.getCurrentUser().then(function (user) {
                     $rootScope.user = user;
                 });
 
-                $scope.habits = [
-//                    new Habit({
-//                        'id': 1,
-//                        'description': 'exercise',
-//                    })
-                ];
+                $scope.habits = [];
                 $scope.devMode = false;
 
                 hotkeys.bindTo($scope)
                     .add({
                         combo: 'd e v',
                         description: 'Dev mode',
-                        callback: function() {
+                        callback: function () {
                             $scope.devMode = !$scope.devMode;
                         }
                     });
-                    // you can chain these methods for ease of use:
-//                    .add ({...});
 
 
                 //https://momentjs.com/docs/#/displaying/
                 $scope.weekdays = [];
                 var startOfWeek = moment().startOf('week');
-                for(var i = 0;i < 7; i++) {
-                    $scope.weekdays.push(moment(startOfWeek).add(i,'days'));
+                for (var i = 0; i < 7; i++) {
+                    $scope.weekdays.push(moment(startOfWeek).add(i, 'days'));
                 }
 
                 HabitService.getHabits().then(function (habits) {
@@ -744,7 +1013,7 @@
                 $scope.newhabit = new Habit({});
 
                 $scope.addHabit = function () {
-                    $scope.newhabit.add().then(function(habit) {
+                    $scope.newhabit.add().then(function (habit) {
                         $scope.habits.push(habit);
                     });
                     $scope.newhabit = new Habit({});
@@ -758,6 +1027,73 @@
 
     })();
 
+    app.directive('loadingIcon', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                obj: '=obj',
+
+            },
+            templateUrl: 'templates/_loading-icon.html'
+        };
+    });
+
+    app.directive('tvshowDisplay', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                tvshow: '=tvshow',
+
+            },
+            templateUrl: 'templates/tvshows/_tvshow-display.html'
+        };
+    });
+
+    app.directive('apiTvshowDisplay', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                apiTvshow: '=apiTvshow',
+                devMode: '=devMode'
+
+            },
+            templateUrl: 'templates/tvshows/_api-tvshow-display.html'
+        };
+    });
+
+    app.directive('tvshowTds', function () {
+        return {
+            restrict: 'A',
+            scope: {
+                tvshow: '=tvshow',
+                devMode: '=devMode'
+            },
+            templateUrl: 'templates/tvshows/_tvshow-tds.html'
+        };
+    });
+
+    app.directive('tvshowListItem', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                tvshow: '=tvshow',
+                devMode: '=devMode',
+                remove: '=remove'
+            },
+            templateUrl: 'templates/tvshows/_tvshow-list-item.html'
+        };
+    });
+
+    app.directive('tvshowSearchItem', function () {
+        return {
+            restrict: 'E',
+            scope: {
+                tvshow: '=tvshow',
+
+            },
+            templateUrl: 'templates/tvshows/_tvshow-search-item.html'
+        };
+    });
 
     app.directive("preview", function () {
         function link(scope, element) {

@@ -19,6 +19,8 @@ const { JSDOM } = jsdom;
 const async = require('async');
 const URL = require('url'); //url package
 const expect = require('chai').expect;
+var ObjectID = require('mongodb').ObjectID;
+
 
 
 var loopback = require('loopback');
@@ -282,6 +284,7 @@ module.exports = function(opts, callback) {
             addPostcardRouter();
             addProxyRouter();
             addShewasprettyRouter();
+            addTvShowsRouter();
 
             addSelftestRouter();
 
@@ -950,6 +953,97 @@ module.exports = function(opts, callback) {
 
     }
 
+    function addTvShowsRouter() {
+
+        var db = database;
+        var Tvshow = db.collection('tvshow');
+
+        var router = express.Router();
+
+        router.use(function(req, res, next) {
+            if (req.user) {
+                req.user_id = req.user._id;
+                next();
+            }
+            else {
+                return res.status(401).json({'message': 'Not authorized.'});
+            }
+        });
+
+        router.get('/', function(req,res) {
+            var query = {
+                "user_id": req.user_id
+            };
+            Tvshow.find(query).sort({
+                "created": -1,
+            }).toArray((function(err, results) {
+                if (err) {
+                    mainLogger.log('error', err);
+                    return res.status(500).json({'message': err.message});
+                }
+
+                res.setHeader('content-type', 'application/json; charset=utf-8');
+                res.json(results);
+            }));
+        });
+
+        var getTvShowHandler = function(req,res,next) {
+            var filter = {
+                user_id: req.user_id,
+                tvmaze_id: req.body.tvmaze_id
+            };
+            Tvshow.findOne(filter, function(err,habit) {
+                if (err) {
+                    mainLogger.log('error', err);
+                    return res.status(500).json({
+                        error: error
+                    })
+                }
+                if (habit) {
+                    return res.json(habit).end();
+                }
+                else {
+                    next();
+                }
+            });
+        };
+
+        router.post('/', getTvShowHandler, function(req,res) {
+            var obj = {
+                created: Date.now(),
+                user_id: req.user_id,
+                tvmaze_id: req.body.tvmaze_id
+            };
+
+            Tvshow.insertOne(obj, function(error, result) {
+                if (error) {
+                    winston.error(error);
+                    return res.status(500).json({
+                        error: error
+                    })
+                }
+                obj._id = result.insertedId;
+                res.json(obj);
+            });
+        });
+
+
+        router.delete('/:id', function(req,res) {
+            Tvshow.remove({
+                _id: ObjectID(req.params.id),
+                user_id: req.user_id
+            }, {
+                w: 1
+            }, function(error, result) {
+                res.end();
+            });
+        });
+
+
+        app.use('/v3/users/me/tvshows', router);
+    }
+
+
     function addShewasprettyRouter() {
         var router = express.Router();
 
@@ -1002,32 +1096,6 @@ module.exports = function(opts, callback) {
                 })();
 
             }
-            return;
-            request({
-                url: getEpisodeUrl(1),
-                method: 'GET'
-            }, function(e,r,b) {
-                // return res.send(b).end();
-                dom = new JSDOM(b);
-                var videoUrl = dom.window.document.querySelector("iframe").src.split('=')[1];
-
-                console.log(videoUrl);
-                return res.send(videoUrl).end();
-
-                jsdom.env({
-                    html: b,
-                    scripts: ['http://code.jquery.com/jquery-1.6.min.js']
-                }, function(err, window){
-                    //Use jQuery just as in a regular HTML page
-                    var $ = window.jQuery;
-
-                    console.log($('title').text());
-                    res.end($('title').text());
-                });
-                // res.send(b).end();
-                // res.json(b)
-            });
-            // res.json(['1']);
         });
 
         app.use('/v1/shewaspretty', router);

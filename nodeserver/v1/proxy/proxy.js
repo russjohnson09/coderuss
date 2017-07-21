@@ -9,6 +9,8 @@ const POSTCARD_COST = 1;
 
 const GITHUB_CODERUSS_TOKEN = process.env.GITHUB_CODERUSS_TOKEN || '';
 
+const TVMAZE_API_URL = 'http://api.tvmaze.com';
+
 module.exports = function(opts) {
     var module = {};
     var router = express.Router();
@@ -39,23 +41,43 @@ module.exports = function(opts) {
     //     res.json({status:1}).end();
     // });
 
-    router.get('/github:path(*)', function(req, res) {
+    var getProxy = function(req,res)
+    {
         delete req.headers['referer'];
         delete req.headers['host'];
         req.headers['accept-encoding'] = 'deflate';
-        // console.log('/github:path(*)',req.headers);
+
+        var proxy = req.params.proxy;
+        var url;
+        if ('github' === proxy) {
+           url = GITHUB_API_URL;
+        }
+        else if ('tvmaze' === proxy) {
+           url = TVMAZE_API_URL;
+        }
+        url += req.params.path;
+        console.log('GET',req.headers,url,req.query);
         r({
             method: 'GET',
             headers: req.headers,
-            url: GITHUB_API_URL + req.params.path,
+            url: url,
+            qs: req.query
         }, function (err, proxyResponse, proxyBody) {
+
             if (err) {
                 return res.status(500).send(err).end();
             }
-            res.set(proxyResponse.headers);
-            return res.status(proxyResponse.statusCode).send(proxyBody).end();
+            // console.log('GET',proxyBody,proxyResponse.statusCode,proxyResponse.headers);
+
+            // 'transfer-encoding': 'chunked' error
+            // res.set(proxyResponse.headers);
+            return res
+                .status(proxyResponse.statusCode)
+                .send(proxyBody).end();
         });
-    });
+    };
+
+    router.get('/:proxy(github|tvmaze):path(*)', getProxy);
 
 
     router.post('/github:path(*)', function(req, res) {

@@ -1040,7 +1040,7 @@ module.exports = function(opts, callback) {
         });
 
 
-        app.use('/v1/users/me/tvshows', router);
+        app.use('/v3/users/me/tvshows', router);
     }
 
 

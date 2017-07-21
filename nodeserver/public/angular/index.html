@@ -288,7 +288,7 @@
                         $http({
                             method: 'POST',
                             data: data,
-                            url: apibaseurl + '/v1/users/me/tvshows'
+                            url: apibaseurl + '/v3/users/me/tvshows'
                         }).then(function (res) {
                             self._status = '';
                             new Noty({
@@ -432,7 +432,7 @@
                         console.log('removeFromMyList', self, self._id);
                         $http({
                             method: 'DELETE',
-                            url: apibaseurl + '/v1/users/me/tvshows/' + self._id
+                            url: apibaseurl + '/v3/users/me/tvshows/' + self._id
                         }).then(function (res) {
                             self._status = 'deleted';
                         }, ErrorService.handleHttpError);
@@ -478,7 +478,7 @@
                         data: [],
                     };
 
-                    var url = apibaseurl + '/v1/users/me/tvshows';
+                    var url = apibaseurl + '/v3/users/me/tvshows';
                     $http(
                         {
                             method: 'GET',

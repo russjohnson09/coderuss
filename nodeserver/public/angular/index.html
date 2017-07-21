@@ -39,6 +39,10 @@
 
     <script src="/bower_components/angular-sanitize/angular-sanitize.js"></script>
 
+    <link href="/bower_components/noty/lib/noty.css" rel="stylesheet">
+    <script src="/bower_components/noty/lib/noty.js"></script>
+
+
 </head>
 
 <body ng-app="app" ng-cloak>
@@ -73,6 +77,10 @@
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
                             <li ng-show="getCurrentUser().isAdmin()"><a href="#!/hello">Hello</a></li>
+                            <li ng-show="getCurrentUser().isAdmin()">
+                                <a href="#!/gitreview/4c20768f288af579519e887674ddcea5300a7d1d">
+                                    Git Review
+                                </a></li>
                             <li><a href="#!/logout">Logout</a></li>
                         </ul>
                     </li>
@@ -194,14 +202,45 @@
         });
     });
 
-    (function addTvshowRoute() {
+    app.factory('ErrorService', ['$http', '$q', function ($http, $q) {
 
-        app.factory('TvshowService', ['$http', '$q', function ($http, $q) {
+        var service = {};
+
+        service.handleHttpError = function(res)
+        {
+            console.log('handleHttpError',res);
+            var message = res.status + ': ';
+            if (res.data) {
+                if (res.data.message) {
+                    message += res.data.message;
+                }
+                else {
+                    message += res.data;
+                }
+            }
+
+            else {
+
+            }
+            new Noty({
+                text: message,
+                animation: {},
+                type: 'error'
+            }).show();
+        };
+
+        return service;
+    }]);
+
+        (function addTvshowRoute() {
+
+        app.factory('TvshowService', ['$http', '$q','ErrorService', function ($http, $q,ErrorService) {
 
             var service = {};
 
-            var baseurl = 'http://api.tvmaze.com';
+//            var baseurl = 'http://api.tvmaze.com';
 
+            var baseurl = '/v1/proxy/tvmaze';
             var apibaseurl = '';
 
             function Tvshow(data) {
@@ -219,32 +258,34 @@
                 }
             };
 
-            service.search = function(searchstring)
+            service.getTvShowsBySearchString = function(searchstring)
             {
+                var result = {
+                    status: 'loading',
+                    data: null,
+                };
+
                 var url = baseurl + '/search/shows';
-                return $q(function(resolve,reject) {
-                    $http(
-                        {
-                            method: 'GET',
-                            params: {
-                                q: searchstring
-                            },
-                            url: url
-                        }).then(
-                        function (res) {
-                            var tvshows = [];
-                            for (var i in res.data) {
-                                var tvshow = new Tvshow(res.data[i]);
-
-                                tvshows.push(tvshow);
-                            }
-                            resolve(tvshows);
+                $http(
+                    {
+                        method: 'GET',
+                        params: {
+                            q: searchstring
                         },
-                        function (res) {
-                            console.error(res);
-                        });
-                })
+                        url: url
+                    }).then(
+                    function (res) {
+                        var tvshows = [];
+                        for (var i in res.data) {
+                            var tvshow = new Tvshow(res.data[i]);
 
+                            tvshows.push(tvshow);
+                        }
+                        Object.assign(result,{status:'success',data: tvshows});
+                    },
+                    ErrorService.handleHttpError);
+
+                return result;
             };
 
             return service;
@@ -264,16 +305,7 @@
                             $scope.devMode = !$scope.devMode;
                         }
                     });
-
-                $scope.search = function()
-                {
-                    console.log('tvshowsCtl','search',$scope.searchstring);
-                    TvshowService.search($scope.searchstring).then(function(tvshows){
-                        $scope.tvshows = tvshows;
-
-                    });
-                }
-            }])
+            }]);
 
 
         app.controller('tvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
@@ -292,12 +324,10 @@
 
                 $scope.search = function()
                 {
-                    console.log('tvshowsCtl','search',$scope.searchstring);
-                    TvshowService.search($scope.searchstring).then(function(tvshows){
-                        $scope.tvshows = tvshows;
+                    $scope.tvshows = TvshowService.getTvShowsBySearchString($scope.searchstring);
+                    console.log($scope.tvshows);
+                };
 
-                    });
-                }
             }])
     })();
 

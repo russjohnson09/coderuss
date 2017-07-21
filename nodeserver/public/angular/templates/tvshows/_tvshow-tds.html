@@ -1,12 +1,20 @@
+
+
 <td>
     {{tvshow.name}}
+    <div class="json" ng-if="devMode">
+        <json-formatter json="tvshow" open="1"></json-formatter>
+    </div>
 </td>
 <td>
-    pe
+    {{tvshow.getPreviousEpisode().getHumanReadableAirStamp()}}
 </td>
 <td>
-    ne
+    <loading-icon obj="tvshow.getNextEpisode()"></loading-icon>
+    <div ng-if="tvshow.getNextEpisode().airstamp">
+        {{tvshow.getNextEpisode().getHumanReadableAirStamp()}}
+    </div>
 </td>
 <td>
-    status
+    {{tvshow.status}}
 </td>

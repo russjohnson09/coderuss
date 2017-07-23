@@ -1,0 +1,111 @@
+<h1>Postcards</h1>
+
+<div ng-if="devMode">
+    <button class="btn btn-lg btn-primary btn-block" ng-click="populateTestData()">test</button>
+</div>
+
+<div ng-repeat="(key, val) in postcard.to">
+    <div class="form-group">
+        <label for="body">To {{key}}</label>
+        <input class="form-control" name="body" ng-model="postcard.to[key]" required>
+    </div>
+</div>
+
+<div ng-repeat="(key, val) in postcard.from">
+    <div class="form-group">
+        <label for="body">From {{key}}</label>
+        <input class="form-control" name="body" ng-model="postcard.from[key]" required>
+    </div>
+</div>
+
+<label for="selectedTemplate">Template</label>
+<select ng-model="selectedTemplate" ng-options="template.value as template.label for template in templates">
+</select>
+
+<div ng-if="selectedTemplate.name=='birthday'">
+    <div class="form-group">
+        <label for="body">Name</label>
+        <input class="form-control"
+                  ng-model="postcard.data.front_to_name">
+        </input>
+    </div>
+
+
+
+    <div class="form-group">
+        <label for="back_body">Message</label>
+        <textarea class="form-control" name="back_body"
+                  ng-model="postcard.data.back_body"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="signature">Signature</label>
+        <input class="form-control" name="signature" ng-model="postcard.data.back_from_name"
+        >
+    </div>
+</div>
+
+<button class="btn btn-lg btn-primary btn-block" ng-click="postcardPreview()">Preview</button>
+
+
+<div ng-show="postcardCheckout.status == 'preview'">
+    <div>
+        <h1>Front</h1>
+        <a ng-href={{preview.front_src}}><img ng-src="{{preview.front_src}}"></a>
+    </div>
+    <div>
+        <h1>Back</h1>
+        <a ng-href={{preview.back_src}}><img ng-src="{{preview.back_src}}"></a>
+    </div>
+    <div>
+        <button class="btn btn-lg btn-primary btn-block" ng-click="submitCompletePostcard()">Complete</button>
+    </div>
+</div>
+
+<div ng-if="devMode">
+    <pre><json-formatter json="postcard" open="1"></json-formatter></pre>
+</div>
+
+<!--<input ng-model="postcard.data.back.body">-->
+<!--<input ng-model="postcard.data.back.from_name">-->
+
+
+<!--<input ng-model="postcard.data.front.to_name">-->
+
+
+<!--<div class="col-sm-5" ng-bind-html="selectedpostcard.front"></div>-->
+
+
+
+<!--<div class="row">-->
+    <!--<div class="">-->
+        <!--<div class="iframe-thumbnail">-->
+            <!--<iframe-->
+                    <!--frameborder="0"-->
+                    <!--ng-src="/angular/templates/postcards/postcardtemplates/_birthday_front.html">-->
+            <!--</iframe>-->
+        <!--</div>-->
+
+<!--<div class="iframe-thumbnail">-->
+    <!--<iframe-->
+            <!--frameborder="0"-->
+            <!--ng-src="/angular/templates/postcards/postcardtemplates/_birthday_back.html">-->
+    <!--</iframe>-->
+<!--</div>-->
+    <!--</div>-->
+    <!--<div class="col-sm-6">-->
+
+        <!--<div class="iframe-thumbnail col-sm-2">-->
+            <!--<iframe-->
+                    <!--frameborder="0"-->
+                    <!--ng-src="/angular/templates/postcards/postcardtemplates/_birthday_back.html">-->
+            <!--</iframe>-->
+        <!--</div>-->
+    <!--</div>-->
+
+<!--</div>-->
+
+
+<div class="row">
+
+</div>

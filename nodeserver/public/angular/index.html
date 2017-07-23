@@ -30,8 +30,28 @@
             word-break: break-all;
             word-wrap: break-word;
             background-color: #f5f5f5;
-            border: 1px solid #ccc;
+            /*border: 1px solid #ccc;*/
             border-radius: 4px;
+        }
+
+        .row .iframe-thumbnail {
+            max-height: 200px;
+        }
+
+        .iframe-thumbnail iframe {
+            width: 1440px;
+            height: 900px;
+        }
+
+        .iframe-thumbnail {
+            position: relative;
+            -ms-zoom: 0.25;
+            -moz-transform: scale(0.25);
+            -moz-transform-origin: 0 0;
+            -o-transform: scale(0.25);
+            -o-transform-origin: 0 0;
+            -webkit-transform: scale(0.25);
+            -webkit-transform-origin: 0 0;
         }
     </style>
 
@@ -97,6 +117,7 @@
                         <li><a href="#!/profile">Profile</a></li>
                         <li><a href="#!/habits">Habits</a></li>
                         <li ng-show="true"><a href="#!/tvshows/showstatus">TV</a></li>
+                        <li ng-show="getCurrentUser().isAdmin()"><a href="#!/postcards">Postcards</a></li>
                         <!--<li ng-show="getCurrentUser().isAdmin()"><a href="#!/tvshows">TV</a></li>-->
                         <li ng-show="getCurrentUser().isAdmin()"><a href="#!/users">Users</a></li>
                         <li ng-show="getCurrentUser().isAdmin()"><a href="#!/shewaspretty">She was pretty</a></li>
@@ -177,6 +198,11 @@
                 controller: "habitsCtl",
                 resolve: userResolve,
             })
+            .when("/postcards", {
+                templateUrl: "templates/postcards/postcards.html",
+                controller: "postcardsCtl",
+                resolve: userResolve,
+            })
             .when('/movie', {
                 templateUrl: 'templates/movie.html',
                 controller: "movieCtl"
@@ -242,13 +268,17 @@
                 if (res.data.message) {
                     message += res.data.message;
                 }
-                else {
-                    message += res.data;
+                else if (res.data.error) {
+                    if (res.data.error.message) {
+                        message += res.data.error.message;
+                    }
                 }
-            }
-
-            else {
-
+                else if (res.data.meta && res.data.meta.message) {
+                    message += res.data.meta.message;
+                }
+                else {
+                    message += JSON.stringify(res.data);
+                }
             }
             new Noty({
                 text: message,
@@ -796,12 +826,244 @@
     }]);
 
 
+    (function addPostcards() {
+
+
+//        app.directive("preview", function () {
+//            function link(scope, element) {
+//                var iframe = document.createElement('iframe');
+//                var element0 = element[0];
+//                element0.appendChild(iframe);
+//                var body = iframe.contentDocument.body;
+//
+//                scope.$watch('content', function () {
+//                    body.innerHTML = scope.content;
+//                });
+//            }
+//
+//            return {
+//                link: link,
+//                restrict: 'E',
+//                scope: {
+//                    content: '='
+//                }
+//            };
+//        });
+
+//        app.directive('postcardPreview', function () {
+//            return {
+//                restrict: 'E',
+//                scope: {
+//                    url: '=url',
+//                    data: '=data'
+//                },
+//                link: function(scope, element, attrs) {
+//
+//                    scope.getContentUrl = function() {
+//                        return scope.url;
+//                    }
+//                },
+//                template: '<div ng-include="getContentUrl()"></div>'
+//            };
+//        });
+
+        app.controller('postcardsCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'hotkeys','$timeout',
+            'ErrorService',
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      $timeout,
+                      ErrorService) {
+                $scope._user = _user;
+
+                $scope.getTemplate = function(callback) {
+                    $http.get($scope.selectedTemplate.front).then(function successCallback(res) {
+                        $scope.postcard.front = res.data;
+                        $http.get($scope.selectedTemplate.back).then(function successCallback(res) {
+                            $scope.postcard.back = res.data;
+                            callback();
+                        });
+                    });
+                };
+
+                $scope.postcardCheckout = {
+                    status: 'incomplete'
+                };
+
+                $scope.populateTestData = function()
+                {
+
+                    $scope.postcard.to = {
+                        name: 'Joe',
+                        address_line1: 'Detroit',
+                        address_city: 'Detroit',
+                        address_state: 'MI',
+                        address_zip: 48339,
+                    };
+                    $scope.postcard.from = {
+                        name: 'Joe',
+                        address_line1: 'Detroit',
+                        address_city: 'Detroit',
+                        address_state: 'MI',
+                        address_zip: 48339,
+                    };
+                };
+
+                $scope.preview = {};
+
+                $scope.postcardPreview = function() {
+
+                    $scope.getTemplate(function() {
+
+                        $http.post('/v1/postcards/preview', $scope.postcard, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(function successCallback(res) {
+                                new Noty({
+                                    text: JSON.stringify(res.data, null, '  '),
+                                    animation: {}
+                                }).show();
+                                if (res.status === 200) {
+                                    $timeout(function () {
+                                        $scope.preview.front_src = res.data.thumbnails[0].large;
+                                        $scope.preview.back_src = res.data.thumbnails[1].large;
+                                        $scope.postcardCheckout.status = 'preview';
+                                    }, 8000)
+                                }
+                            },
+                            ErrorService.handleHttpError);
+                    });
+//                        function errorCallback(res) {
+//                            new Noty({
+//                                text: JSON.stringify(res.data, null, '  '),
+//                                animation: {}
+//                            }).show();
+//                        });
+                };
+
+                $scope.submitCompletePostcard = function() {
+                    $scope.preview = {};
+
+                    if ($scope.isSubmitted) {
+                        return;
+                    }
+                    $scope.isSubmitted = true;
+
+                    $http.post('/v1/postcards', $scope.postcard, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(function successCallback(res) {
+                            new Noty({
+                                text: JSON.stringify(res.data, null, '  '),
+                                animation: {}
+                            }).show();
+                            if (res.status === 200) {
+                                $timeout(function() {
+                                    console.log($scope);
+                                    $scope.preview.front_src = res.data.thumbnails[0].large;
+                                    $scope.preview.back_src = res.data.thumbnails[1].large;
+                                    console.log($scope.preview);
+                                }, 8000)
+                            }
+                        },
+                        ErrorService.handleHttpError);
+                };
+
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function () {
+                            $scope.devMode = !$scope.devMode;
+                        }
+                    });
+
+
+                $scope.templates = [{
+                    value: {
+                        name: 'birthday',
+                        front: '/angular/templates/postcards/postcardtemplates/_birthday_front.html',
+                        back: '/angular/templates/postcards/postcardtemplates/_birthday_back.html'
+                    },
+//                    value: '/angular/templates/postcards/postcardtemplates/_birthday',
+                    'label': 'Birthday'
+                },
+//                    {
+//                    value: 'postcard',
+//                    'label': 'Postcard'
+//                },
+                ];
+
+                $scope.postcard = {
+//                    description: 'Demo Postcard job',
+                    to: {
+                        name: null,
+                        address_line1: null,
+                        address_city: null,
+                        address_state: null,
+                        address_zip: null,
+                    },
+                    from: {
+                        name: null,
+                        address_line1: null,
+                        address_city: null,
+                        address_state: null,
+                        address_zip: null,
+                    },
+                    front: null,
+                    back: null,
+                    data: {
+                        front_to_name: '',
+                        back_body: '',
+                        back_from_name: ''
+                    },
+//                    _front: '/angular/templates/postcards/postcardtemplates/_birthday_front.html',
+//                    _back: '/angular/templates/postcards/postcardtemplates/_birthday_front.html'
+                };
+            }])
+    })();
+
+
+
     (function addProfileCtl() {
         app.controller('profileCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys',
             function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
                 $scope._user = _user;
-                console.log($scope._user);
+
+                hotkeys.bindTo($scope)
+                    .add({
+                        combo: 'd e v',
+                        description: 'Dev mode',
+                        callback: function () {
+                            $scope.devMode = !$scope.devMode;
+                        }
+                    });
+
+
+                $scope.addDollar = function() {
+
+                    $http.post('/v1/users/' + $scope._user._id + '/inc', {
+                        inc: 1
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(function successCallback(res) {
+                            new Noty({
+                                text: JSON.stringify(res.data, null, '  '),
+                                animation: {}
+                            }).show();
+                        },
+                        function errorCallback(res) {
+                            new Noty({
+                                text: JSON.stringify(res.data, null, '  '),
+                                animation: {}
+                            }).show();
+                        });
+                };
             }])
     })();
 
@@ -1089,11 +1351,11 @@
             restrict: 'E',
             scope: {
                 tvshow: '=tvshow',
-
             },
             templateUrl: 'templates/tvshows/_tvshow-search-item.html'
         };
     });
+
 
     app.directive("preview", function () {
         function link(scope, element) {

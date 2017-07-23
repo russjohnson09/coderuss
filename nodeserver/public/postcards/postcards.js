@@ -112,7 +112,7 @@ validationApp.controller('mainController', function($rootScope, $scope, $locatio
 				callback();
 			});
 		});
-	}
+	};
 
 	$scope.postcardPreview = function() {
 		$scope.preview = {};

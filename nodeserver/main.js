@@ -957,6 +957,7 @@ module.exports = function(opts, callback) {
 
         var db = database;
         var Tvshow = db.collection('tvshow');
+        var Notification = db.collection('notification');
 
         var router = express.Router();
 
@@ -970,7 +971,59 @@ module.exports = function(opts, callback) {
             }
         });
 
-        router.get('/', function(req,res) {
+
+        router.get('/notifications', function(req,res) {
+            var query = {
+                "user_id": req.user_id
+            };
+            Notification.find(query).sort({
+                "created": -1,
+            }).toArray((function(err, results) {
+                if (err) {
+                    mainLogger.log('error', err);
+                    return res.status(500).json({'message': err.message});
+                }
+
+                res.setHeader('content-type', 'application/json; charset=utf-8');
+                res.json(results);
+            }));
+        });
+
+        router.post('/notifications', function(req,res) {
+            var systemFields = {
+                created: Date.now(),
+                user_id: req.user_id,
+                // tvmaze_id: req.body.tvmaze_id
+            };
+
+            var obj = req.body;
+
+            Object.assign(obj,systemFields);
+
+            Notification.insertOne(obj, function(error, result) {
+                if (error) {
+                    winston.error(error);
+                    return res.status(500).json({
+                        error: error
+                    })
+                }
+                obj._id = result.insertedId;
+                res.json(obj);
+            });
+        });
+
+        router.delete('/notifications/:id', function(req,res) {
+            Notification.remove({
+                _id: ObjectID(req.params.id),
+                user_id: req.user_id
+            }, {
+                w: 1
+            }, function(error, result) {
+                res.end();
+            });
+        });
+
+        router.get('/tvshows', function(req,res) {
             var query = {
                 "user_id": req.user_id
             };
@@ -1008,7 +1061,7 @@ module.exports = function(opts, callback) {
             });
         };
 
-        router.post('/', getTvShowHandler, function(req,res) {
+        router.post('/tvshows', getTvShowHandler, function(req,res) {
             var obj = {
                 created: Date.now(),
                 user_id: req.user_id,
@@ -1028,7 +1081,7 @@ module.exports = function(opts, callback) {
         });
 
 
-        router.delete('/:id', function(req,res) {
+        router.delete('/tvshows/:id', function(req,res) {
             Tvshow.remove({
                 _id: ObjectID(req.params.id),
                 user_id: req.user_id
@@ -1040,7 +1093,7 @@ module.exports = function(opts, callback) {
         });
 
 
-        app.use('/v3/users/me/tvshows', router);
+        app.use('/v3/users/me', router);
     }
 
 

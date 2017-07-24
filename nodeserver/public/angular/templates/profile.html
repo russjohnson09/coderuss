@@ -8,11 +8,21 @@
     Funds: {{_user.dollars_available || 0}}
 </div>
 
+<div ng-repeat="notification in notifications track by $index">
+    <div>{{notification.message}}</div>
+</div>
+
 
 <div ng-if="devMode">
     <div>
         <button class="btn btn-lg btn-primary btn-block" ng-click="addDollar()">Add a dollar</button>
     </div>
+
+    <div>
+        <button class="btn btn-lg btn-primary btn-block" ng-click="addTestNotification()">Add Test Notification</button>
+    </div>
+
+    <pre><json-formatter json="notifications" open="1"></json-formatter></pre>
 
     <pre><json-formatter json="_user" open="1"></json-formatter></pre>
 </div>

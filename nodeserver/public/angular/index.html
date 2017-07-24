@@ -244,7 +244,7 @@
                 controller: "helloCtl"
             })
             .otherwise({
-                redirectTo: '/'
+                redirectTo: '/profile'
             });
     });
 
@@ -1041,6 +1041,27 @@
                             $scope.devMode = !$scope.devMode;
                         }
                     });
+
+                $http({
+                    'method': 'GET',
+                    'url': '/v3/users/me/notifications'
+                }).then(function(res) {
+                    $scope.notifications = res.data;
+                });
+
+                $scope.addTestNotification = function()
+                {
+                    $http({
+                        'method': 'POST',
+                        data: {
+                            message: 'hello world',
+                            created: 'ignored field'
+                        },
+                        'url': '/v3/users/me/notifications'
+                    }).then(function(res) {
+                        $scope.notifications = res.data;
+                    });
+                };
 
 
                 $scope.addDollar = function() {

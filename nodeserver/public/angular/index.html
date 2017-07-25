@@ -82,6 +82,8 @@
     <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
+    <script src="/js/ext/sinon-2.3.8.js"></script>
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
 
@@ -725,9 +727,63 @@
 
     (function addHelloCtl() {
         app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'hotkeys',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+            '$http', '$routeParams', 'hotkeys','$interval',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+            $interval) {
                 $scope.hello = {};
+
+                $scope.time = moment();
+
+                var clock = sinon.useFakeTimers(Date.now());
+
+                var updateCount = 0;
+
+                $interval(function() {
+                    updateCount++;
+                    console.log(updateCount);
+//                    if ((updateCount % (60*60)) == 0) {
+//                        console.log('updated time');
+//                    }
+                    $scope.time = moment();
+                },1000);
+
+                setInterval(function() {
+                    console.log(1);
+                },1000);
+
+
+                $scope.freeze = function()
+                {
+                    clock = sinon.useFakeTimers(Date.now());
+
+                    setInterval(function() {
+                        console.log('freeze',1);
+                    },1000);
+                };
+
+                $scope.increaseTimeSeconds = function(seconds)
+                {
+                    if (!clock) {
+                        clock = sinon.useFakeTimers(Date.now());
+                    }
+                    while(seconds > 0) {
+                        if (seconds % (60*60) == 0) {
+                            console.log('tick',seconds);
+                        }
+                        clock.tick(1000);
+                        $scope.time = moment();
+                        seconds--;
+                    }
+                };
+
+                $scope.restore = function()
+                {
+                    if (clock) {
+                        clock.restore();
+                        clock = null;
+                    }
+                }
+
             }])
     })();
 

@@ -6,4 +6,16 @@
     </textarea>
 
     <pre style="font-size:35px">{{hello.text}}</pre>
+
+    <div>
+        <button class="btn btn-primary" ng-click="restore()">Restore Time</button>
+
+        <button class="btn btn-primary" ng-click="increaseTimeSeconds(86400)">+1 day</button>
+
+        <button class="btn btn-primary" ng-click="freeze()">Freeze</button>
+    </div>
+
+    <div>
+        {{time}}
+    </div>
 </div>

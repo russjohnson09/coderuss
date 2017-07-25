@@ -377,8 +377,8 @@ module.exports = function(opts, callback) {
 
         var uuid = require('node-uuid');
 
-        var httpServer = http.createServer(
-            function(req, res) {
+
+        var doProxyReq = function(req, res) {
                 proxyLogger.debug('proxyrequest', req.headers);
                 var proxyReq = req;
                 var proxyRes = res;
@@ -516,6 +516,20 @@ module.exports = function(opts, callback) {
                         }
                     });
 
+                }
+            }
+
+        var httpServer = http.createServer(
+            function(req,res) {
+                console.log(req.headers);
+                if (req.headers['x-set-timeout']) {
+                    var timeout = parseInt(req.headers['x-set-timeout']) || 0;
+                    setTimeout(function() {
+                        doProxyReq(req,res);
+                    },timeout);
+                }
+                else {
+                    doProxyReq(req,res);
                 }
             }
         ).listen(PORT, function() {

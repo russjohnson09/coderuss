@@ -53,6 +53,22 @@
             -webkit-transform: scale(0.25);
             -webkit-transform-origin: 0 0;
         }
+
+        i.danger {
+            color: #d9534f
+        }
+
+        i.cr-panel-icon {
+            font-size:20px;
+            /*float:right;*/
+        }
+
+        .cr-panel-icon {
+            font-size:20px;
+            float:right;
+        }
+
+
     </style>
 
 
@@ -231,7 +247,7 @@
                 resolve: userResolve,
             })
             .when("/profile", {
-                templateUrl: "templates/profile.html",
+                templateUrl: "templates/profile/profile.html",
                 controller: "profileCtl",
                 resolve: userResolve,
             })
@@ -291,6 +307,62 @@
     }]);
 
     (function addTvshowRoute() {
+
+        app.directive('tvshowDisplay', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    tvshow: '=tvshow',
+
+                },
+                templateUrl: 'templates/tvshows/_tvshow-display.html'
+            };
+        });
+
+        app.directive('apiTvshowDisplay', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    apiTvshow: '=apiTvshow',
+                    devMode: '=devMode'
+
+                },
+                templateUrl: 'templates/tvshows/_api-tvshow-display.html'
+            };
+        });
+
+        app.directive('tvshowTds', function () {
+            return {
+                restrict: 'A',
+                scope: {
+                    tvshow: '=tvshow',
+                    devMode: '=devMode'
+                },
+                templateUrl: 'templates/tvshows/_tvshow-tds.html'
+            };
+        });
+
+        app.directive('tvshowListItem', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    tvshow: '=tvshow',
+                    devMode: '=devMode',
+                    remove: '=remove'
+                },
+                templateUrl: 'templates/tvshows/_tvshow-list-item.html'
+            };
+        });
+
+        app.directive('tvshowSearchItem', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    tvshow: '=tvshow',
+                },
+                templateUrl: 'templates/tvshows/_tvshow-search-item.html'
+            };
+        });
 
         app.factory('TvshowService', ['$http', '$q', '$timeout', 'ErrorService',
             function ($http, $q, $timeout, ErrorService) {
@@ -651,7 +723,6 @@
             }])
     })();
 
-
     (function addHelloCtl() {
         app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys',
@@ -828,46 +899,8 @@
 
     (function addPostcards() {
 
-
-//        app.directive("preview", function () {
-//            function link(scope, element) {
-//                var iframe = document.createElement('iframe');
-//                var element0 = element[0];
-//                element0.appendChild(iframe);
-//                var body = iframe.contentDocument.body;
-//
-//                scope.$watch('content', function () {
-//                    body.innerHTML = scope.content;
-//                });
-//            }
-//
-//            return {
-//                link: link,
-//                restrict: 'E',
-//                scope: {
-//                    content: '='
-//                }
-//            };
-//        });
-
-//        app.directive('postcardPreview', function () {
-//            return {
-//                restrict: 'E',
-//                scope: {
-//                    url: '=url',
-//                    data: '=data'
-//                },
-//                link: function(scope, element, attrs) {
-//
-//                    scope.getContentUrl = function() {
-//                        return scope.url;
-//                    }
-//                },
-//                template: '<div ng-include="getContentUrl()"></div>'
-//            };
-//        });
-
-        app.controller('postcardsCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
+        app.controller('postcardsCtl', ['_user', '$rootScope',
+            '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys','$timeout',
             'ErrorService',
             function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
@@ -933,12 +966,6 @@
                             },
                             ErrorService.handleHttpError);
                     });
-//                        function errorCallback(res) {
-//                            new Noty({
-//                                text: JSON.stringify(res.data, null, '  '),
-//                                animation: {}
-//                            }).show();
-//                        });
                 };
 
                 $scope.submitCompletePostcard = function() {
@@ -1028,9 +1055,122 @@
 
 
     (function addProfileCtl() {
+
+        app.factory('NotificationService', ['$http', '$q', '$timeout', 'ErrorService',
+            'Notification',
+            function ($http, $q, $timeout, ErrorService, Notification) {
+
+                var service = {};
+
+
+
+                service.getMyNotifications = function()
+                {
+                    var result = {
+                        _status: 'loading',
+                        data: [],
+                    };
+
+                    $http({
+                        'method': 'GET',
+                        'url': '/v3/users/me/notifications',
+                        'headers': {
+//                            'x-set-timeout': 5000
+                        }
+                    }).then(function(res) {
+                        result._status = 'done';
+                        var notifications = [];
+                        for (var i in res.data) {
+                            notifications.push(new Notification(res.data[i]));
+                        }
+                        result.data = notifications;
+                    });
+
+                    return result;
+                };
+
+                service.addTestNotification = function()
+                {
+                    var notification = new Notification({
+                        _status: 'loading',
+                    });
+                    $http({
+                        'method': 'POST',
+                        data: {
+                            message: 'hello world',
+                            created: 'ignored field'
+                        },
+                        headers: {
+                            'X-SET-TIMEOUT': 5000
+                        },
+                        'url': '/v3/users/me/notifications'
+                    }).then(function(res) {
+                        notification.setData({_status:'done'});
+                        notification.setData(res.data);
+
+                    });
+
+                    return notification;
+                };
+
+
+                return service;
+
+            }]);
+
+        app.factory('Notification', ['$http', '$q', '$timeout', 'ErrorService',
+            function ($http, $q, $timeout, ErrorService,) {
+                function Model(data) {
+                    if (data) {
+                        this.setData(data);
+                    }
+                }
+
+                Model.prototype = {
+                    setData: function (data) {
+                        angular.extend(this, data);
+                    },
+                    remove: function () {
+                        var self = this;
+                        self._status = 'deleted';
+                        $http({
+                            method: 'DELETE',
+                            url: '/v3/users/me/notifications/' + self._id
+                        }).then(function (res) {
+//                            self._status = '';
+//                            new Noty({
+//                                text: 'Removed Notification',
+//                                type: 'success',
+//                                timeout: 1000
+//                            }).show();
+                        }, ErrorService.handleHttpError);
+                    },
+                    isDeleted: function() {
+                        return this._status == 'deleted';
+                    }
+                };
+
+                return Model;
+            }]);
+
+
+        app.directive('notification', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    notification: '=notification',
+                    devMode: '=devMode'
+                },
+                templateUrl: 'directives/_notification.html'
+            };
+        });
+
+
         app.controller('profileCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys',
-            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+            'NotificationService', 'Notification',
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      NotificationService,Notification) {
                 $scope._user = _user;
 
                 hotkeys.bindTo($scope)
@@ -1042,25 +1182,13 @@
                         }
                     });
 
-                $http({
-                    'method': 'GET',
-                    'url': '/v3/users/me/notifications'
-                }).then(function(res) {
-                    $scope.notifications = res.data;
-                });
 
-                $scope.addTestNotification = function()
-                {
-                    $http({
-                        'method': 'POST',
-                        data: {
-                            message: 'hello world',
-                            created: 'ignored field'
-                        },
-                        'url': '/v3/users/me/notifications'
-                    }).then(function(res) {
-                        $scope.notifications = res.data;
-                    });
+                $scope.notificationsRequest = NotificationService.getMyNotifications();
+
+
+                $scope.addTestNotification = function() {
+                    $scope.notificationsRequest.data.push(
+                        NotificationService.addTestNotification());
                 };
 
 
@@ -1310,289 +1438,233 @@
 
     })();
 
-    app.directive('loadingIcon', function () {
-        return {
-            restrict: 'E',
-            scope: {
-                obj: '=obj',
+    (function addCommonDirectives() {
+        app.directive('loadingIcon', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    obj: '=obj',
 
-            },
-            templateUrl: 'templates/_loading-icon.html'
-        };
-    });
+                },
+                templateUrl: 'templates/_loading-icon.html'
+            };
+        });
+        app.directive("preview", function () {
+            function link(scope, element) {
+                var iframe = document.createElement('iframe');
+                var element0 = element[0];
+                element0.appendChild(iframe);
+                var body = iframe.contentDocument.body;
 
-    app.directive('tvshowDisplay', function () {
-        return {
-            restrict: 'E',
-            scope: {
-                tvshow: '=tvshow',
-
-            },
-            templateUrl: 'templates/tvshows/_tvshow-display.html'
-        };
-    });
-
-    app.directive('apiTvshowDisplay', function () {
-        return {
-            restrict: 'E',
-            scope: {
-                apiTvshow: '=apiTvshow',
-                devMode: '=devMode'
-
-            },
-            templateUrl: 'templates/tvshows/_api-tvshow-display.html'
-        };
-    });
-
-    app.directive('tvshowTds', function () {
-        return {
-            restrict: 'A',
-            scope: {
-                tvshow: '=tvshow',
-                devMode: '=devMode'
-            },
-            templateUrl: 'templates/tvshows/_tvshow-tds.html'
-        };
-    });
-
-    app.directive('tvshowListItem', function () {
-        return {
-            restrict: 'E',
-            scope: {
-                tvshow: '=tvshow',
-                devMode: '=devMode',
-                remove: '=remove'
-            },
-            templateUrl: 'templates/tvshows/_tvshow-list-item.html'
-        };
-    });
-
-    app.directive('tvshowSearchItem', function () {
-        return {
-            restrict: 'E',
-            scope: {
-                tvshow: '=tvshow',
-            },
-            templateUrl: 'templates/tvshows/_tvshow-search-item.html'
-        };
-    });
-
-
-    app.directive("preview", function () {
-        function link(scope, element) {
-            var iframe = document.createElement('iframe');
-            var element0 = element[0];
-            element0.appendChild(iframe);
-            var body = iframe.contentDocument.body;
-
-            scope.$watch('content', function () {
-                body.innerHTML = scope.content;
-            });
-        }
-
-        return {
-            link: link,
-            restrict: 'E',
-            scope: {
-                content: '='
+                scope.$watch('content', function () {
+                    body.innerHTML = scope.content;
+                });
             }
-        };
-    });
 
-
-    //http://www.webdeveasy.com/angularjs-data-model/
-    //https://api.github.com/repos/russjohnson09/coderuss/commits/4c20768f288af579519e887674ddcea5300a7d1d
-    app.factory('Gitcommit', ['$http', function ($http) {
-        function Gitcommit(data) {
-            if (data) {
-                this.setData(data);
-            }
-        };
-
-        const GITHUB_API = '/v1/proxy/github';
-
-        var context = '';
-        Gitcommit.prototype = {
-            setContext: function (val) {
-                context = val;
-            },
-            getContext: function () {
-                return context;
-            },
-            setData: function (data) {
-                angular.extend(this, data);
-            },
-            getStats: function () {
-                console.log('getStats', this, this.stats);
-                if (typeof this.stats == 'undefined') {
-                    this.stats = {};
-                    this.populateCommit();
+            return {
+                link: link,
+                restrict: 'E',
+                scope: {
+                    content: '='
                 }
+            };
+        });
+    })();
 
-                return this.stats;
-            },
-            updateCommitStatusPending: function () {
-                var self = this;
-                var url = GITHUB_API
-                    + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
+    (function addOtherRouteCtls() {
+        //http://www.webdeveasy.com/angularjs-data-model/
+        //https://api.github.com/repos/russjohnson09/coderuss/commits/4c20768f288af579519e887674ddcea5300a7d1d
+        app.factory('Gitcommit', ['$http', function ($http) {
+            function Gitcommit(data) {
+                if (data) {
+                    this.setData(data);
+                }
+            };
 
-                var data = {
-                    "state": "pending",
-                    "target_url": window.location.origin + self.sha,
-                    "description": "pending",
-                    "context": self.getContext()
-                };
+            const GITHUB_API = '/v1/proxy/github';
 
-                console.log('updateCommitStatusPending', data);
-
-                $http(
-                    {
-                        method: 'POST',
-                        url: url,
-                        data: JSON.stringify(data),
-                        headers: {
-                            'content-type': 'application/json',
-                            'cache-control': 'no-cache'
-                        },
+            var context = '';
+            Gitcommit.prototype = {
+                setContext: function (val) {
+                    context = val;
+                },
+                getContext: function () {
+                    return context;
+                },
+                setData: function (data) {
+                    angular.extend(this, data);
+                },
+                getStats: function () {
+                    console.log('getStats', this, this.stats);
+                    if (typeof this.stats == 'undefined') {
+                        this.stats = {};
+                        this.populateCommit();
                     }
-                ).then(function (response) {
-                    console.log('updateCommitStatusPending', response);
-                    if (response.data && response.data) {
-                        self.setData(response.data);
-                    }
-                });
-            },
-            updateCommitStatusSuccess: function () {
-                var self = this;
-                var url = GITHUB_API
-                    + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
 
-                var data = {
-                    "state": "success",
-                    "target_url": window.location.origin + self.sha,
-                    "description": "success description",
-                    "context": self.getContext()
-                };
+                    return this.stats;
+                },
+                updateCommitStatusPending: function () {
+                    var self = this;
+                    var url = GITHUB_API
+                        + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
 
-                console.log('updateCommitStatusPending', data);
+                    var data = {
+                        "state": "pending",
+                        "target_url": window.location.origin + self.sha,
+                        "description": "pending",
+                        "context": self.getContext()
+                    };
 
-                $http(
-                    {
-                        method: 'POST',
-                        url: url,
-                        data: JSON.stringify(data),
-                        headers: {
-                            'content-type': 'application/json',
-                            'cache-control': 'no-cache'
-                        },
-                    }
-                ).then(function (response) {
-                    console.log('updateCommitStatusPending', response);
-                    if (response.data && response.data) {
-                        self.setData(response.data);
-                    }
-                });
-            },
-            populateCommit: function () {
-                var self = this;
-                console.log('populateCommit');
-                var url = GITHUB_API
-                    + '/repos/russjohnson09/coderuss/commits/' + self.sha;
-                //X-GitHub-Request-Id
-                //xsrfHeaderName
-                console.log('populateCommit', url);
+                    console.log('updateCommitStatusPending', data);
 
-                $http(
-                    {
-                        method: 'GET',
-                        url: url,
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            data: JSON.stringify(data),
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+                        console.log('updateCommitStatusPending', response);
+                        if (response.data && response.data) {
+                            self.setData(response.data);
+                        }
+                    });
+                },
+                updateCommitStatusSuccess: function () {
+                    var self = this;
+                    var url = GITHUB_API
+                        + '/repos/russjohnson09/coderuss/statuses/' + self.sha;
+
+                    var data = {
+                        "state": "success",
+                        "target_url": window.location.origin + self.sha,
+                        "description": "success description",
+                        "context": self.getContext()
+                    };
+
+                    console.log('updateCommitStatusPending', data);
+
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            data: JSON.stringify(data),
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+                        console.log('updateCommitStatusPending', response);
+                        if (response.data && response.data) {
+                            self.setData(response.data);
+                        }
+                    });
+                },
+                populateCommit: function () {
+                    var self = this;
+                    console.log('populateCommit');
+                    var url = GITHUB_API
+                        + '/repos/russjohnson09/coderuss/commits/' + self.sha;
+                    //X-GitHub-Request-Id
+                    //xsrfHeaderName
+                    console.log('populateCommit', url);
+
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url,
 //                        xsrfHeaderName: 'X-GitHub-Request-Id ',
-                        headers: {
-                            'content-type': 'application/json',
-                            'cache-control': 'no-cache'
-                        },
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
 //                        params: {
 ////                            _proxy: 1,
 ////                            query: $scope.movie.query
 //                        }
-                    }
-                ).then(function (response) {
-                    console.log('populateCommit', response);
-                    if (response.data && response.data) {
-                        self.setData(response.data);
-                    }
-                });
+                        }
+                    ).then(function (response) {
+                        console.log('populateCommit', response);
+                        if (response.data && response.data) {
+                            self.setData(response.data);
+                        }
+                    });
 //                /repos/russjohnson09/coderuss/commits/{{sha}}
 //                $http.get()
 //                    .then(function(data) {
 //                        console.log(data);
 //                });
-            },
-            loadCommitData: function (sha) {
-                var scope = this;
-                $http.get('ourserver/books/' + bookId).success(function (bookData) {
-                    scope.setData(bookData);
-                });
-            },
-            load: function (id) {
-                var scope = this;
-                $http.get('ourserver/books/' + bookId).success(function (bookData) {
-                    scope.setData(bookData);
-                });
-            },
-            delete: function () {
-                $http.delete('ourserver/books/' + bookId);
-            },
-            update: function () {
-                $http.put('ourserver/books/' + bookId, this);
-            },
-            getImageUrl: function (width, height) {
-                return 'our/image/service/' + this.book.id + '/' + width + '/' + height;
-            },
-            isAvailable: function () {
-                if (!this.book.stores || this.book.stores.length === 0) {
-                    return false;
+                },
+                loadCommitData: function (sha) {
+                    var scope = this;
+                    $http.get('ourserver/books/' + bookId).success(function (bookData) {
+                        scope.setData(bookData);
+                    });
+                },
+                load: function (id) {
+                    var scope = this;
+                    $http.get('ourserver/books/' + bookId).success(function (bookData) {
+                        scope.setData(bookData);
+                    });
+                },
+                delete: function () {
+                    $http.delete('ourserver/books/' + bookId);
+                },
+                update: function () {
+                    $http.put('ourserver/books/' + bookId, this);
+                },
+                getImageUrl: function (width, height) {
+                    return 'our/image/service/' + this.book.id + '/' + width + '/' + height;
+                },
+                isAvailable: function () {
+                    if (!this.book.stores || this.book.stores.length === 0) {
+                        return false;
+                    }
+                    return this.book.stores.some(function (store) {
+                        return store.quantity > 0;
+                    });
                 }
-                return this.book.stores.some(function (store) {
-                    return store.quantity > 0;
-                });
-            }
-        };
+            };
 
-        return Gitcommit;
-    }]);
-
-    app.controller('gitreviewCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams', 'Gitcommit',
-        function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Gitcommit) {
-
-            console.log('gitreviewCtl');
-
-            console.log('cookies', $cookies.getAll());
-
-            //        $scope.sha = $routeParams.sha;
-
-            var gitcommit = $scope.gitcommit = new Gitcommit({sha: $routeParams.sha});
-
-            var url = '/v1/ping';
-            $http(
-                {
-                    method: 'GET',
-                    url: url,
-                    headers: {
-                        'content-type': 'application/json',
-                        'cache-control': 'no-cache'
-                    },
-                }
-            ).then(function (response) {
-                console.log(url, response);
-                gitcommit.setContext(response.data.server.context);
-            });
+            return Gitcommit;
         }]);
 
-    app.controller('shewasprettyCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams',
-        function ($rootScope, $cookies, $scope, $location, $http, $routeParams) {
+        app.controller('gitreviewCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'Gitcommit',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, Gitcommit) {
+
+                console.log('gitreviewCtl');
+
+                console.log('cookies', $cookies.getAll());
+
+                //        $scope.sha = $routeParams.sha;
+
+                var gitcommit = $scope.gitcommit = new Gitcommit({sha: $routeParams.sha});
+
+                var url = '/v1/ping';
+                $http(
+                    {
+                        method: 'GET',
+                        url: url,
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                    }
+                ).then(function (response) {
+                    console.log(url, response);
+                    gitcommit.setContext(response.data.server.context);
+                });
+            }]);
+
+        app.controller('shewasprettyCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams) {
 
 //            var url = '/v1/ping';
 //            $http(
@@ -1608,153 +1680,159 @@
 //                console.log(url, response);
 //            });
 
-            url = 'http://myasiantv.online/video/drama/she-was-pretty/episode-3/';
+                url = 'http://myasiantv.online/video/drama/she-was-pretty/episode-3/';
 
-            url = '/v1/shewaspretty';
-            $http(
-                {
-                    method: 'GET',
-                    url: url,
-                    headers: {
-                        'content-type': 'application/json',
-                        'cache-control': 'no-cache'
-                    },
-                }
-            ).then(function (response) {
-                console.log(url, response);
-                $scope.episodes = response.data;
-            }, function (err) {
-                console.error(err);
-            });
-        }]);
-
-    app.controller('movieCtl', function ($rootScope, $scope, $location, $http, $routeParams) {
-
-        $scope.ID = $routeParams.ID;
-
-        $scope.formData = {};
-
-        $scope.alerts = [];
-
-        $scope.movie = {};
-
-        $scope.movieSearch = {};
-
-        //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
-        $scope.searchMovie = function (movie) {
-            console.log('searchMovie');
-            $http(
-                {
-                    method: 'get',
-                    url: '/proxy/themoviedb/search/movie',
-                    headers: {
-                        'content-type': 'application/json',
-                        'cache-control': 'no-cache'
-                    },
-                    params: {
-                        _proxy: 1,
-                        query: $scope.movie.query
+                url = '/v1/shewaspretty';
+                $http(
+                    {
+                        method: 'GET',
+                        url: url,
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
                     }
+                ).then(function (response) {
+                    console.log(url, response);
+                    $scope.episodes = response.data;
+                }, function (err) {
+                    console.error(err);
+                });
+            }]);
+
+        app.controller('movieCtl', function ($rootScope, $scope, $location, $http, $routeParams) {
+
+            $scope.ID = $routeParams.ID;
+
+            $scope.formData = {};
+
+            $scope.alerts = [];
+
+            $scope.movie = {};
+
+            $scope.movieSearch = {};
+
+            //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
+            $scope.searchMovie = function (movie) {
+                console.log('searchMovie');
+                $http(
+                    {
+                        method: 'get',
+                        url: '/proxy/themoviedb/search/movie',
+                        headers: {
+                            'content-type': 'application/json',
+                            'cache-control': 'no-cache'
+                        },
+                        params: {
+                            _proxy: 1,
+                            query: $scope.movie.query
+                        }
 //                    qs: {
 //                        query: $scope.movie.query
 //                    }
-                }
-            ).then(function (response) {
-                if (response.data && response.data.results &&
-                    response.data.results[0]) {
-                    Object.assign($scope.movie, response.data.results[0])
-                    //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
-                    if ($scope.movie.backdrop_path) {
-                        $scope.movie.imagePath = 'https://image.tmdb.org/t/p/w500' + $scope.movie.backdrop_path
-                    }
-                }
-                console.log(response);
-            }, function (err) {
-                console.log(err);
-            })
-        };
-
-        var params = $location.search();
-
-    })
-        .directive('movie', function () {
-            return {
-                restrict: 'E',
-                scope: {
-                    movie: '=movie',
-                    searchMovie: '=searchMovie'
-
-                },
-                templateUrl: 'directives/movie.html'
-            };
-        });
-
-
-    app.controller('testsCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams', '$sce',
-        function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
-
-            var APP_BASE_URL = '';
-
-            $scope.testMain = function () {
-                var url = APP_BASE_URL + '/v1/selftest/main/run';
-                $http(
-                    {
-                        method: 'POST',
-                        url: url,
-                        headers: {
-                            'content-type': 'application/json',
-                            'cache-control': 'no-cache'
-                        },
                     }
                 ).then(function (response) {
-
-                    var result = [];
-                    console.log(response.data);
-                    response.data.tests.forEach(function (test) {
-                        result.push(test);
-                        test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
-
-                    });
-
-                    $scope.tests = result;
-
-                }, function (err) {
-                    console.error(err);
-                });
-            };
-
-            $scope.testFail = function () {
-                var url = APP_BASE_URL + '/v1/selftest/main/runfail';
-                $http(
-                    {
-                        method: 'POST',
-                        url: url,
-                        headers: {
-                            'content-type': 'application/json',
-                            'cache-control': 'no-cache'
-                        },
+                    if (response.data && response.data.results &&
+                        response.data.results[0]) {
+                        Object.assign($scope.movie, response.data.results[0])
+                        //https://image.tmdb.org/t/p/w500/n1y094tVDFATSzkTnFxoGZ1qNsG.jpg
+                        if ($scope.movie.backdrop_path) {
+                            $scope.movie.imagePath = 'https://image.tmdb.org/t/p/w500' + $scope.movie.backdrop_path
+                        }
                     }
-                ).then(function (response) {
-
-                    var result = [];
-                    console.log(response.data);
-                    response.data.tests.forEach(function (test) {
-                        result.push(test);
-                        test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
-
-                    });
-
-                    $scope.tests = result;
-
+                    console.log(response);
                 }, function (err) {
-                    console.error(err);
-                });
+                    console.log(err);
+                })
             };
-        }]);
+
+            var params = $location.search();
+
+        })
+            .directive('movie', function () {
+                return {
+                    restrict: 'E',
+                    scope: {
+                        movie: '=movie',
+                        searchMovie: '=searchMovie'
+
+                    },
+                    templateUrl: 'directives/movie.html'
+                };
+            });
+
+
+        app.controller('testsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', '$sce',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
+
+                var APP_BASE_URL = '';
+
+                $scope.testMain = function () {
+                    var url = APP_BASE_URL + '/v1/selftest/main/run';
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+
+                        var result = [];
+                        console.log(response.data);
+                        response.data.tests.forEach(function (test) {
+                            result.push(test);
+                            test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
+
+                        });
+
+                        $scope.tests = result;
+
+                    }, function (err) {
+                        console.error(err);
+                    });
+                };
+
+                $scope.testFail = function () {
+                    var url = APP_BASE_URL + '/v1/selftest/main/runfail';
+                    $http(
+                        {
+                            method: 'POST',
+                            url: url,
+                            headers: {
+                                'content-type': 'application/json',
+                                'cache-control': 'no-cache'
+                            },
+                        }
+                    ).then(function (response) {
+
+                        var result = [];
+                        console.log(response.data);
+                        response.data.tests.forEach(function (test) {
+                            result.push(test);
+                            test.response.rawResponseHtml = $sce.trustAsHtml(test.response.rawResponseBody);
+
+                        });
+
+                        $scope.tests = result;
+
+                    }, function (err) {
+                        console.error(err);
+                    });
+                };
+            }]);
+    })();
+
 
 
 </script>
+
+<footer class="footer">
+    <!--<kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd>-->
+</footer>
 </body>
 
 </html>

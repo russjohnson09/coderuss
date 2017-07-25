@@ -1,0 +1,25 @@
+<div ng-if="devMode">
+    <pre><json-formatter json="notification" open="1"></json-formatter></pre>
+</div>
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <!--#d9534f danger button color-->
+            <div ng-if="notification._status === 'loading'" class="col-sm-12">
+                <i class="fa fa-spinner fa-pulse"></i>
+            </div>
+            <div ng-if="notification._status !== 'loading'" class="col-sm-12">
+                {{notification.message}}
+                <a href="" ng-click="notification.remove()">
+                    <i class="cr-panel-icon danger fa fa-window-close"
+                       aria-hidden="true"></i>
+                </a>
+
+
+            </div>
+        </div>
+    </div>
+    <!--<div class="panel-body">{{notification.message}}</div>-->
+</div>

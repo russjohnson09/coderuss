@@ -1,16 +1,22 @@
-<div>
+<div ng-if="devMode">
     Hello,
     {{_user.username}}
 </div>
 
 
-<div>
+<div ng-if="true || devMode">
     Funds: {{_user.dollars_available || 0}}
 </div>
 
-<div ng-repeat="notification in notifications track by $index">
-    <div>{{notification.message}}</div>
+
+<h1>Notifications</h1>
+<div class="panel-group">
+    <loading-icon obj="notificationsRequest"></loading-icon>
+    <div ng-repeat="notification in notificationsRequest.data track by $index">
+    <notification ng-if="!notification.isDeleted()" notification="notification" dev-mode="devMode"></notification>
 </div>
+</div>
+
 
 
 <div ng-if="devMode">

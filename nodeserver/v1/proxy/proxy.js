@@ -50,7 +50,75 @@ module.exports = function(opts) {
         }
         if (req.params.proxy == 'tvmaze') {
             var path = req.params.path;
-            if (path == '/tvmaze/shows/16559') {
+            console.log(path);
+            if (path == '/shows/4189') {
+                return res.json({
+                    "id": 4189,
+                    "url": "http://www.tvmaze.com/shows/4189/general-hospital",
+                    "name": "General Hospital stubbed",
+                    "type": "Scripted",
+                    "language": "English",
+                    "genres": ["Drama", "Medical"],
+                    "status": "Running",
+                    "runtime": 60,
+                    "premiered": "1987-01-02",
+                    "officialSite": "http://abc.go.com/shows/general-hospital",
+                    "schedule": {"time": "14:00", "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]},
+                    "rating": {"average": null},
+                    "weight": 90,
+                    "network": {
+                        "id": 3,
+                        "name": "ABC",
+                        "country": {"name": "United States", "code": "US", "timezone": "America/New_York"}
+                    },
+                    "webChannel": null,
+                    "externals": {"tvrage": 3653, "thetvdb": 75332, "imdb": "tt0056758"},
+                    "image": {
+                        "medium": "http://static.tvmaze.com/uploads/images/medium_portrait/20/50438.jpg",
+                        "original": "http://static.tvmaze.com/uploads/images/original_untouched/20/50438.jpg"
+                    },
+                    "summary": "<p><b>General Hospital</b>, which celebrated its golden anniversary on April 1, 2013, continues its tradition of passion, intrigue and adventure that takes place in the fictional town of Port Charles in upstate New York. The glamour and excitement of those who have come to find their destinies in this familiar seaport town intertwine with the lives, loves and fortunes of beloved, well-known faces. As always, love, danger and mind blowing plot twists continue to abound on General Hospital with contemporary storylines and unforgettable characters.</p>",
+                    "updated": 1501006916,
+                    "_links": {
+                        "self": {"href": "http://api.tvmaze.com/shows/4189"},
+                        "previousepisode": {"href": "http://api.tvmaze.com/episodes/1251058"},
+                        "nextepisode": {"href": "http://api.tvmaze.com/episodes/1251059"}
+                    }
+                });
+            }
+            else if (path == '/episodes/1251058') {
+                return res.json({
+                    "id": 1251058,
+                    "url": "http://www.tvmaze.com/episodes/1251058/general-hospital-55x78-ep-13856",
+                    "name": "Ep. #13856 stubbed",
+                    "season": 55,
+                    "number": 78,
+                    "airdate": "2017-07-25",
+                    "airtime": "14:00",
+                    "airstamp": "2017-07-25T18:00:00+00:00",
+                    "runtime": 60,
+                    "image": null,
+                    "summary": null,
+                    "_links": {"self": {"href": "http://api.tvmaze.com/episodes/1251058"}}
+                });
+            }
+            else if (path == '/episodes/1251059') {
+                return res.json({
+                    "id": 1251059,
+                    "url": "http://www.tvmaze.com/episodes/1251059/general-hospital-55x79-ep-13857",
+                    "name": "Ep. #13857 stubbed",
+                    "season": 55,
+                    "number": 79,
+                    "airdate": "2017-07-26",
+                    "airtime": "14:00",
+                    "airstamp": "2017-07-26T18:00:00+00:00",
+                    "runtime": 60,
+                    "image": null,
+                    "summary": null,
+                    "_links": {"self": {"href": "http://api.tvmaze.com/episodes/1251059"}}
+                });
+            }
+            else if (path == '/shows/16559') {
                 return res.json({
                     "id": 16559,
                     "url": "http://www.tvmaze.com/shows/16559/hello-world",
@@ -84,7 +152,7 @@ module.exports = function(opts) {
                     }
                 }).end();
             }
-            else if (path == '/tvmaze/episodes/1025561') {
+            else if (path == '/episodes/1025561') {
                 return res.json({
                     "id": 1025561,
                     "url": "http://www.tvmaze.com/episodes/1025561/hello-world-1x10-chile",

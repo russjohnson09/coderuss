@@ -487,6 +487,10 @@
                     setData: function (data) {
                         angular.extend(this, data);
                     },
+                    getAirstamp: function()
+                    {
+                        return moment(this.airstamp).tz(moment.tz.guess());
+                    },
                     getHumanReadableAirStamp: function()
                     {
                         return moment(this.airstamp).tz(moment.tz.guess()).format('MMMM Do YYYY, h:mm:ss a z');

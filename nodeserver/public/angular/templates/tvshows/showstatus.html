@@ -27,12 +27,14 @@
             </div>
         </td>
         <td>
-            {{apiTvshow.get('show').getPreviousEpisode().getHumanReadableAirStamp()}}
+            {{apiTvshow.get('show').getPreviousEpisode().getAirstamp().format('MMM D, \'YY')}}:
+            {{apiTvshow.get('show').getPreviousEpisode().name}}
         </td>
         <td>
             <loading-icon obj="tvshow.getNextEpisode()"></loading-icon>
-            <div ng-if="tvshow.getNextEpisode().airstamp">
-                {{apiTvshow.get('show').getNextEpisode().getHumanReadableAirStamp()}}
+            <div ng-if="apiTvshow.get('show').getNextEpisode().airstamp">
+                {{apiTvshow.get('show').getNextEpisode().getAirstamp().format('MMM D, \'YY')}}:
+                {{apiTvshow.get('show').getNextEpisode().name}}
             </div>
         </td>
         <td>

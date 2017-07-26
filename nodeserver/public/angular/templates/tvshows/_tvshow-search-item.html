@@ -1,12 +1,25 @@
 <pre ng-if="false">{{tvshow | json}}</pre>
 <div class="row">
-    <div class="col-sm-3"><div style="font-size:20px">{{tvshow.name}}</div>
+    <div class="col-sm-2"><div style="font-size:20px">{{tvshow.name}}</div>
         <img class="tvshow-image" ng-src="{{tvshow.image.original}}">
     </div>
     <!--<div class="col-sm-3">-->
     <!--<img style="width:100%" ng-src="{{tvshow.show.image.original}}">-->
     <!--</div>-->
-    <div class="col-sm-5" ng-bind-html="tvshow.summary"></div>
+    <div class="col-sm-5">
+        <div ng-bind-html="tvshow.summary"></div>
+    </div>
+
+    <div class="col-sm-2">
+        <div ng-if="tvshow.getPreviousEpisode().airstamp">
+            <div>Prv:</div>
+            <div>{{tvshow.getPreviousEpisode().getAirstamp().format('MMM D, \'YY')}}</div>
+        </div>
+        <div ng-if="tvshow.getNextEpisode().airstamp">
+            <div>Nxt:</div>
+            <div>{{tvshow.getNextEpisode().getAirstamp().format('MMM D, \'YY')}}</div>
+        </div>
+    </div>
 
     <div ng-show="!tvshow.isWatching()" class="col-sm-2">
         <button ng-click="tvshow.addToUserList()" class="btn btn-primary">Add To My List</button>

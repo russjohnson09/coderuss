@@ -1300,9 +1300,10 @@
 
 
         app.controller('profileCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'hotkeys',
+            '$http', '$routeParams', 'hotkeys','ErrorService',
             'NotificationService', 'Notification',
-            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams,
+                      hotkeys, ErrorService,
                       NotificationService,Notification) {
                 $scope._user = _user;
 
@@ -1314,6 +1315,16 @@
                             $scope.devMode = !$scope.devMode;
                         }
                     });
+
+                $scope.testTvNotification = function()
+                {
+                    $http({
+                        'method': 'POST',
+                        url: '/v1/testsuites/run/tvnotifications'
+                    }).then(function(res) {
+                        console.log(res.data);
+                    },ErrorService.handleHttpError)
+                };
 
 
                 $scope.notificationsRequest = NotificationService.getMyNotifications();

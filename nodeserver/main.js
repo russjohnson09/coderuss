@@ -583,9 +583,45 @@ module.exports = function(opts, callback) {
             tvshownotificationTask.destroy();
         }
         //15th hour run 3am.
-        var scheduledTime = '0 3 * * *';
+        // var scheduledTime = '0 3 * * *';
+
+        //run every hour.
+        var scheduledTime = '0 * * * *';
 
         tvshownotificationTask = cron.schedule(scheduledTime,tvshowNotificationTaskFunc);
+    }
+
+    function addTvshowNotification(data)
+    {
+
+        var Notification = database.collection('notification');
+        data.type = 'tvshow_airdate';
+
+        Notification.update({
+            user_id: data.user_id,
+            meta: {
+                tvshow_id: data.meta.tvshow_id,
+                airstamp: data.meta.airstamp,
+            }
+        },
+            {$set: data},
+            {upsert:true}, function(error,result) {
+            // if (!result) {
+            //     Notification.insertOne(data, function (error, result) {
+            //         if (error) {
+            //             winston.error(error);
+            //             return res.status(500).json({
+            //                 error: error
+            //             })
+            //         }
+            //         mainLogger.info('added tvshow_airdate notification');
+            //     });
+            // }
+            // else {
+            //     mainLogger.info('found tvshow_airdate',result);
+            // }
+        });
+
     }
 
     function tvshowNotificationTaskFunc()
@@ -597,15 +633,13 @@ module.exports = function(opts, callback) {
         var created = Date.now();
         var now = moment(created);
         var tomorrow = moment(now).startOf('day').add(1,'day');
-        var twoDays = moment(now).startOf('day').add(2,'day');
+        // var twoDays = moment(now).add(1,'day');
+        var twoDays =  moment(now).add(2,'day');
 
         var defaultFormat = 'YYYY-MM-DD HH:mm:ss';
         mainLogger.info('tvshowNotification','Run',now.format(defaultFormat),
             tomorrow.format(defaultFormat),twoDays.format(defaultFormat)
         );
-
-
-        var message = '';
 
         Tvshow.find({}).toArray((function(err, results) {
             if (err) {
@@ -613,90 +647,94 @@ module.exports = function(opts, callback) {
                 return;
             }
             for (var i in results) {
-                var user_id = ObjectID(results[i].user_id);
+                (function () {
+                    var message = '';
+                    var tvshow =  results[i];
+                    var tvshow_id = tvshow._id;
 
-                request({
-                    'method': 'GET',
-                    'url': 'http://0.0.0.0:'+app.get('port') + '/v1/proxy/tvmaze/shows/' + results[i].tvmaze_id,
-                    'headers': {
-                        'Accept':'application/json'
-                    },
-                }, function(err,res,body) {
-                    if (err) {
-                        mainLogger.log('error', err);
-                        return;
-                    }
+                    var user_id = ObjectID(results[i].user_id);
 
-                    mainLogger.info(body);
+                    request({
+                        'method': 'GET',
+                        'url': 'http://0.0.0.0:' + app.get('port') + '/v1/proxy/tvmaze/shows/' + results[i].tvmaze_id,
+                        'headers': {
+                            'Accept': 'application/json'
+                        },
+                    }, function (err, res, body) {
+                        if (err) {
+                            mainLogger.log('error', err);
+                            return;
+                        }
 
-                    if (body) {
-                        try {
-                            body = JSON.parse(body);
-                            mainLogger.info(body._links);
+                        mainLogger.info(body);
 
-                            if (body._links && body._links.nextepisode) {
-                                message = 'A new episode of ' + body.name + ' comes out on ';
-                                mainLogger.info(body._links.nextepisode.href);
+                        if (body) {
+                            try {
+                                body = JSON.parse(body);
+                                mainLogger.debug(body._links);
 
-                                var episodeLink = body._links.nextepisode.href.split('/');
-                                var episodeId = episodeLink[episodeLink.length -1];
+                                if (body._links && body._links.nextepisode) {
+                                    message = 'A new episode of ' + body.name + ' comes out on ';
+                                    mainLogger.info(body._links.nextepisode.href);
 
-                                mainLogger.info(episodeId);
-                                request({
-                                    'method': 'GET',
-                                    'url': 'http://0.0.0.0:'+app.get('port') + '/v1/proxy/tvmaze/episodes/' + episodeId,
-                                    'headers': {
-                                        'Accept':'application/json'
-                                    },
-                                }, function(err,res,body) {
-                                    if (err) {
-                                        mainLogger.log('error', err);
-                                        return;
-                                    }
-                                    mainLogger.info(body);
+                                    var episodeLink = body._links.nextepisode.href.split('/');
+                                    var episodeId = episodeLink[episodeLink.length - 1];
 
-                                    body = JSON.parse(body);
-
-                                    if (body.airstamp) {
-                                        var airstamp = moment(body.airstamp);
-
-                                        mainLogger.info('tvnotification compare',
-                                            tomorrow.format(defaultFormat),
-                                            airstamp.format(defaultFormat),
-                                            twoDays.format(defaultFormat));
-
-                                        if (
-                                            // true ||
-                                            (tomorrow <= airstamp && airstamp < twoDays)) {
-                                            console.log('ready to view');
-                                            message += airstamp.format('MMMM Do') + '!';
-
-                                            var systemFields = {
-                                                created: created,
-                                                user_id: user_id,
-                                            };
-
-                                            var obj = {message:message};
-
-                                            Object.assign(obj,systemFields);
-
-                                            Notification.insertOne(obj, function(error, result) {
-                                                if (error) {
-                                                    winston.error(error);
-                                                    return res.status(500).json({
-                                                        error: error
-                                                    })
-                                                }
-                                            });
-
+                                    mainLogger.debug(episodeId);
+                                    request({
+                                        'method': 'GET',
+                                        'url': 'http://0.0.0.0:' + app.get('port') + '/v1/proxy/tvmaze/episodes/' + episodeId,
+                                        'headers': {
+                                            'Accept': 'application/json'
+                                        },
+                                    }, function (err, res, body) {
+                                        if (err) {
+                                            mainLogger.log('error', err);
+                                            return;
                                         }
-                                    }
-                                })
+                                        mainLogger.debug(body);
+
+                                        body = JSON.parse(body);
+
+                                        if (body.airstamp) {
+                                            var airstamp = moment(body.airstamp);
+
+                                            mainLogger.info('tvnotification compare',
+                                                tomorrow.format(defaultFormat),
+                                                airstamp.format(defaultFormat),
+                                                twoDays.format(defaultFormat));
+
+                                            if (
+                                                // true ||
+                                                (tomorrow <= airstamp && airstamp < twoDays)) {
+                                                mainLogger.debug('ready to view');
+                                                message += airstamp.format('MMMM Do') + '!';
+
+                                                var systemFields = {
+                                                    created: created,
+                                                    user_id: user_id,
+                                                    meta: {
+                                                        tvshow_id: tvshow_id,
+                                                        airstamp: parseInt(airstamp.format('x'))
+                                                    }
+                                                };
+
+                                                var obj = {message: message};
+
+                                                Object.assign(obj, systemFields);
+
+                                                addTvshowNotification(obj);
+
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                            catch (e) {
                             }
                         }
-                        catch(e){}
-                    }
-                })
+                    })
+                })()
             }
         }));
     }
@@ -705,21 +743,6 @@ module.exports = function(opts, callback) {
     {
         cb = cb || function(){};
         var seconds = 60 * 60 * 24; //24 hour cycle.
-
-        // var interval = setInterval(function() {
-        //     clock.tick(1000);
-        //     if ((seconds % 3600) == 0) {
-        //         console.log(seconds,Date.now());
-        //     }
-        //
-        //     // console.log(seconds);
-        //     if (seconds < 1) {
-        //         clearInterval(interval);
-        //         clock.restore();
-        //         cb();
-        //     }
-        //     seconds--;
-        // },1);
 
         if (clock) {
             clock.restore();
@@ -750,7 +773,7 @@ module.exports = function(opts, callback) {
 
 
 
-        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'dev') {
+        if (process.env.NODE_ENV === 'TEST' || process.env.NODE_ENV === 'DEV') {
             router.post('/selftest/main/run', function (req, res) {
 
                 runDefaultTest(function(testResults) {
@@ -1208,7 +1231,8 @@ module.exports = function(opts, callback) {
 
         router.get('/notifications', function(req,res) {
             var query = {
-                "user_id": req.user_id
+                "user_id": req.user_id,
+                "_deleted": {$ne: 1}
             };
             Notification.find(query).sort({
                 "created": -1,
@@ -1247,10 +1271,12 @@ module.exports = function(opts, callback) {
         });
 
         router.delete('/notifications/:id', function(req,res) {
-            Notification.remove({
+            Notification.update({
                 _id: ObjectID(req.params.id),
                 user_id: req.user_id
-            }, {
+            },{$set: {
+                _deleted: 1
+            }}, {
                 w: 1
             }, function(error, result) {
                 res.end();

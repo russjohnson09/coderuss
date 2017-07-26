@@ -21,6 +21,10 @@ const URL = require('url'); //url package
 const expect = require('chai').expect;
 var ObjectID = require('mongodb').ObjectID;
 
+var sinon = require('sinon');
+var clock;
+
+
 
 
 var loopback = require('loopback');
@@ -572,7 +576,7 @@ module.exports = function(opts, callback) {
     function addSelftestRouter() {
         var router = express.Router();
 
-        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV !== 'dev') {
+        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'dev') {
             router.post('/selftest/main/run', function (req, res) {
 
                 runDefaultTest(function(testResults) {
@@ -586,6 +590,38 @@ module.exports = function(opts, callback) {
                     res.json({tests:testResults}).end();
                 });
             });
+
+            var testInterval;
+
+            router.post('/faketimer', function(req,res) {
+                clock = sinon.useFakeTimers(req.body.timestamp);
+            });
+
+            /**
+             * Increments time without missing
+             * {seconds: 100}
+             */
+            router.post('/faketimer/increment', function(req,res) {
+                if (!clock) {
+                    res.end();
+                    return;
+                }
+                var seconds = req.body.seconds;
+
+                while(seconds > 0) {
+                    clock.tick(1000);
+                    seconds--;
+                }
+                clock = sinon.useFakeTimers(req.body.timestamp);
+            });
+
+            router.post('/faketimer/testinterval', function(req,res) {
+                if (testInterval)
+                setInterval()
+                io.emit('faketimer',{timestamp:Date.now()});
+            });
+
+
         }
         app.use('/v1', router);
 
@@ -1093,6 +1129,22 @@ module.exports = function(opts, callback) {
                 res.json(obj);
             });
         });
+
+        router.get('/tvshows/:id', function(req,res) {
+            var query = {
+                "user_id": req.user_id,
+                "_id": ObjectID(req.params.id),
+            };
+            Tvshow.findOne(query,function(err, result) {
+                if (err) {
+                    mainLogger.log('error', err);
+                    return res.status(500).json({'message': err.message});
+                }
+
+                res.json(result);
+            });
+        });
+
 
 
         router.delete('/tvshows/:id', function(req,res) {

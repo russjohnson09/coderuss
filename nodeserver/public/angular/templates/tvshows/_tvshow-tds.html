@@ -1,7 +1,8 @@
 
 
 <td>
-    {{tvshow.name}}
+    <a ng-href="/angular/#!/tvshows/details/{{tvshow.id}}">
+    {{tvshow.name}}</a>
     <div class="json" ng-if="devMode">
         <json-formatter json="tvshow" open="1"></json-formatter>
     </div>

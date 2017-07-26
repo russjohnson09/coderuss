@@ -7,7 +7,8 @@ var winston = require('winston');
 const querystring = require('querystring');
 const passport = require('passport');
 const request = require('request');
-const NODE_ENV = process.env.NODE_ENV || 'dev';
+process.env.NODE_ENV = process.env.NODE_ENV || 'DEV';
+const NODE_ENV = process.env.NODE_ENV;
 const CONTEXT = 'coderuss_' + NODE_ENV;
 const LOGSENE_LOG_TYPE = CONTEXT;
 const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/coderuss/branches/master";
@@ -20,6 +21,14 @@ const async = require('async');
 const URL = require('url'); //url package
 const expect = require('chai').expect;
 var ObjectID = require('mongodb').ObjectID;
+
+var sinon = require('sinon');
+var cron = require('node-cron');
+var clock;
+var tvshownotificationTask;
+var moment = require('moment-timezone');
+
+
 
 
 
@@ -62,7 +71,6 @@ const FTP_USER = process.env.FTP_USER || 'guest';
 const FTP_AUTHENTICATOR = www_authenticate.authenticator(FTP_USER, FTP_PASSWORD);
 
 
-process.env.NODE_ENV = process.env.NODE_ENV || 'DEV';
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -569,10 +577,180 @@ module.exports = function(opts, callback) {
         app.use('/v1/logsene', logsene.router);
     }
 
+    function createTvnotificationTask()
+    {
+        if (tvshownotificationTask) {
+            tvshownotificationTask.destroy();
+        }
+        //15th hour run 3am.
+        var scheduledTime = '0 3 * * *';
+
+        tvshownotificationTask = cron.schedule(scheduledTime,tvshowNotificationTaskFunc);
+    }
+
+    function tvshowNotificationTaskFunc()
+    {
+        var Tvshow = database.collection('tvshow');
+        var Notification = database.collection('notification');
+
+
+        var created = Date.now();
+        var now = moment(created);
+        var tomorrow = moment(now).startOf('day').add(1,'day');
+        var twoDays = moment(now).startOf('day').add(2,'day');
+
+        var defaultFormat = 'YYYY-MM-DD HH:mm:ss';
+        mainLogger.info('tvshowNotification','Run',now.format(defaultFormat),
+            tomorrow.format(defaultFormat),twoDays.format(defaultFormat)
+        );
+
+
+        var message = '';
+
+        Tvshow.find({}).toArray((function(err, results) {
+            if (err) {
+                mainLogger.log('error', err);
+                return;
+            }
+            for (var i in results) {
+                var user_id = ObjectID(results[i].user_id);
+
+                request({
+                    'method': 'GET',
+                    'url': 'http://0.0.0.0:'+app.get('port') + '/v1/proxy/tvmaze/shows/' + results[i].tvmaze_id,
+                    'headers': {
+                        'Accept':'application/json'
+                    },
+                }, function(err,res,body) {
+                    if (err) {
+                        mainLogger.log('error', err);
+                        return;
+                    }
+
+                    mainLogger.info(body);
+
+                    if (body) {
+                        try {
+                            body = JSON.parse(body);
+                            mainLogger.info(body._links);
+
+                            if (body._links && body._links.nextepisode) {
+                                message = 'A new episode of ' + body.name + ' comes out on ';
+                                mainLogger.info(body._links.nextepisode.href);
+
+                                var episodeLink = body._links.nextepisode.href.split('/');
+                                var episodeId = episodeLink[episodeLink.length -1];
+
+                                mainLogger.info(episodeId);
+                                request({
+                                    'method': 'GET',
+                                    'url': 'http://0.0.0.0:'+app.get('port') + '/v1/proxy/tvmaze/episodes/' + episodeId,
+                                    'headers': {
+                                        'Accept':'application/json'
+                                    },
+                                }, function(err,res,body) {
+                                    if (err) {
+                                        mainLogger.log('error', err);
+                                        return;
+                                    }
+                                    mainLogger.info(body);
+
+                                    body = JSON.parse(body);
+
+                                    if (body.airstamp) {
+                                        var airstamp = moment(body.airstamp);
+
+                                        mainLogger.info('tvnotification compare',
+                                            tomorrow.format(defaultFormat),
+                                            airstamp.format(defaultFormat),
+                                            twoDays.format(defaultFormat));
+
+                                        if (
+                                            // true ||
+                                            (tomorrow <= airstamp && airstamp < twoDays)) {
+                                            console.log('ready to view');
+                                            message += airstamp.format('MMMM Do') + '!';
+
+                                            var systemFields = {
+                                                created: created,
+                                                user_id: user_id,
+                                            };
+
+                                            var obj = {message:message};
+
+                                            Object.assign(obj,systemFields);
+
+                                            Notification.insertOne(obj, function(error, result) {
+                                                if (error) {
+                                                    winston.error(error);
+                                                    return res.status(500).json({
+                                                        error: error
+                                                    })
+                                                }
+                                            });
+
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                        catch(e){}
+                    }
+                })
+            }
+        }));
+    }
+
+    function runTvNotificationTest(cb)
+    {
+        cb = cb || function(){};
+        var seconds = 60 * 60 * 24; //24 hour cycle.
+
+        // var interval = setInterval(function() {
+        //     clock.tick(1000);
+        //     if ((seconds % 3600) == 0) {
+        //         console.log(seconds,Date.now());
+        //     }
+        //
+        //     // console.log(seconds);
+        //     if (seconds < 1) {
+        //         clearInterval(interval);
+        //         clock.restore();
+        //         cb();
+        //     }
+        //     seconds--;
+        // },1);
+
+        if (clock) {
+            clock.restore();
+        }
+
+        clock = sinon.useFakeTimers(parseInt(moment('2017-07-25').format('x'))); //July 25th 2017
+
+        createTvnotificationTask();
+
+        while(true) {
+            clock.tick(1000);
+            if ((seconds % 3600) == 0) {
+                console.log(seconds,moment().format('HH:mm:ss'));
+            }
+
+            // console.log(seconds);
+            if (seconds < 1) {
+                // clearInterval(interval);
+                clock.restore();
+                return cb();
+            }
+            seconds--;
+        }
+    }
+
     function addSelftestRouter() {
         var router = express.Router();
 
-        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV !== 'dev') {
+
+
+        if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'dev') {
             router.post('/selftest/main/run', function (req, res) {
 
                 runDefaultTest(function(testResults) {
@@ -586,6 +764,46 @@ module.exports = function(opts, callback) {
                     res.json({tests:testResults}).end();
                 });
             });
+
+            var testInterval;
+
+            router.post('/faketimer', function(req,res) {
+                clock = sinon.useFakeTimers(req.body.timestamp);
+            });
+
+            /**
+             * Increments time without missing
+             * {seconds: 100}
+             */
+            router.post('/faketimer/increment', function(req,res) {
+                if (!clock) {
+                    res.end();
+                    return;
+                }
+                var seconds = req.body.seconds;
+
+                while(seconds > 0) {
+                    clock.tick(1000);
+                    seconds--;
+                }
+                clock = sinon.useFakeTimers(req.body.timestamp);
+            });
+
+
+            router.post('/testsuites/run/tvnotifications', function(req,res) {
+                runTvNotificationTest(function() {
+                    res.json({});
+                });
+            });
+
+            /**
+             * Recreate cron jobs after a faketimer has been created.
+             */
+            router.post('/faketimer/cron', function(req,res) {
+                createTvnotificationTask();
+            });
+
+
         }
         app.use('/v1', router);
 
@@ -968,6 +1186,8 @@ module.exports = function(opts, callback) {
     }
 
     function addTvShowsRouter() {
+        createTvnotificationTask();
+
 
         var db = database;
         var Tvshow = db.collection('tvshow');
@@ -1094,6 +1314,22 @@ module.exports = function(opts, callback) {
             });
         });
 
+        router.get('/tvshows/:id', function(req,res) {
+            var query = {
+                "user_id": req.user_id,
+                "_id": ObjectID(req.params.id),
+            };
+            Tvshow.findOne(query,function(err, result) {
+                if (err) {
+                    mainLogger.log('error', err);
+                    return res.status(500).json({'message': err.message});
+                }
+
+                res.json(result);
+            });
+        });
+
+
 
         router.delete('/tvshows/:id', function(req,res) {
             Tvshow.remove({
@@ -1108,6 +1344,7 @@ module.exports = function(opts, callback) {
 
 
         app.use('/v3/users/me', router);
+
     }
 
 

@@ -5,7 +5,7 @@
     <json-formatter json="apiTvshowsCollection" open="1"></json-formatter>
     <!--<pre>{{apiTvshowsCollection | json}}</pre>-->
 </div>
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered table-responsive">
     <thead>
     <thead>
     <tr>
@@ -17,8 +17,29 @@
     </tr>
     </thead>
     <tbody>
-    <tr dev-mode="devMode" ng-repeat="apiTvshow in apiTvshowsCollection.data track by $index" tvshow-tds
-        tvshow="apiTvshow.getShow()">
+    <tr dev-mode="devMode" ng-repeat="apiTvshow in apiTvshowsCollection.data track by $index"
+        >
+        <td>
+            <a ng-href="/angular/#!/tvshows/details/{{apiTvshow._id}}">
+                {{apiTvshow.get('show').name}}</a>
+            <div class="json" ng-if="devMode">
+                <json-formatter json="tvshow" open="1"></json-formatter>
+            </div>
+        </td>
+        <td>
+            {{apiTvshow.get('show').getPreviousEpisode().getAirstamp().format('MMM D, \'YY')}}:
+            {{apiTvshow.get('show').getPreviousEpisode().name}}
+        </td>
+        <td>
+            <loading-icon obj="tvshow.getNextEpisode()"></loading-icon>
+            <div ng-if="apiTvshow.get('show').getNextEpisode().airstamp">
+                {{apiTvshow.get('show').getNextEpisode().getAirstamp().format('MMM D, \'YY')}}:
+                {{apiTvshow.get('show').getNextEpisode().name}}
+            </div>
+        </td>
+        <td>
+            {{apiTvshow.get('show').status}}
+        </td>
 
         <!--<td>{{apiTvshow.getShow() || json}}</td>-->
 

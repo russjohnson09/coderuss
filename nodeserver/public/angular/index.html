@@ -82,6 +82,8 @@
     <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
+    <script src="/js/ext/sinon-2.3.8.js"></script>
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
 
@@ -234,6 +236,11 @@
             .when("/tvshows", {
                 templateUrl: "templates/tvshows/tvshows.html",
                 controller: "tvshowsCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/details/:id", {
+                templateUrl: "templates/tvshows/tvshows_id.html",
+                controller: "tvshowsIdCtl",
                 resolve: userResolve,
             })
             .when("/tvshows/search", {
@@ -480,10 +487,32 @@
                     setData: function (data) {
                         angular.extend(this, data);
                     },
+                    getAirstamp: function()
+                    {
+                        return moment(this.airstamp).tz(moment.tz.guess());
+                    },
                     getHumanReadableAirStamp: function()
                     {
                         return moment(this.airstamp).tz(moment.tz.guess()).format('MMMM Do YYYY, h:mm:ss a z');
                     }
+                };
+
+                service.getTvShowById = function(id)
+                {
+                    var tvshow = new ApiTvshow({_status:'loading'});
+                    var url = apibaseurl + '/v3/users/me/tvshows/' + id;
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url
+                        }).then(
+                        function (res) {
+                            tvshow.setData(res.data);
+                            tvshow.setData({_status:'done'});
+                        },
+                        ErrorService.handleHttpError);
+
+                    return tvshow;
                 };
 
                 service.getTvShowsBySearchString = function (searchstring) {
@@ -525,6 +554,41 @@
                 ApiTvshow.prototype = {
                     setData: function (data) {
                         angular.extend(this, data);
+                    },
+                    get: function(name) {
+                        var self = this;
+                        if (self._relations == undefined) {
+                            this._relations = {};
+                        }
+                        if (self._relations[name] == undefined) {
+                            self._relations[name] = {_status: 'loading', data: null};
+
+                            if (name == 'show') {
+                                var url = baseurl + '/shows/' + self.tvmaze_id;
+                                $http(
+                                    {
+                                        method: 'GET',
+                                        url: url
+                                    }).then(
+                                    function (res) {
+                                        var tvshow = new Tvshow(res.data);
+                                        console.log('get','show',res.data,tvshow);
+                                        self._relations[name]._status = 'done';
+                                        self._relations[name].data = tvshow;
+                                    },
+                                    ErrorService.handleHttpError);
+                            }
+                        }
+                        return this._relations[name].data;
+                    },
+                    isLoading: function(name) {
+                        if (this._relations == undefined) {
+                            this._relations = {};
+                        }
+                        if (this._relations[name] == undefined) {
+                            this.get(name);
+                        }
+                        return this._relations[name]['_status'] === 'loading';
                     },
                     removeFromMyList: function () {
                         var self = this;
@@ -648,7 +712,6 @@
 
             }]);
 
-
         app.controller('searchTvshowsCtl', ['$rootScope', '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys', 'UserService', 'TvshowService',
             function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
@@ -666,6 +729,16 @@
                 $scope.search = function () {
                     $scope.tvshows = TvshowService.getTvShowsBySearchString($scope.searchstring);
                 }
+            }]);
+
+        app.controller('tvshowsIdCtl', ['$rootScope', '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'hotkeys', 'UserService', 'TvshowService',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      UserService, TvshowService) {
+
+                $scope.tvshow = TvshowService.getTvShowById($routeParams.id)
+
+
             }]);
 
 
@@ -725,9 +798,69 @@
 
     (function addHelloCtl() {
         app.controller('helloCtl', ['$rootScope', '$cookies', '$scope', '$location',
-            '$http', '$routeParams', 'hotkeys',
-            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys) {
+            '$http', '$routeParams', 'hotkeys','$interval',
+            function ($rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+            $interval) {
                 $scope.hello = {};
+
+                $scope.time = moment();
+
+                $interval(function() {
+                    updateCount++;
+                    console.log(updateCount);
+//                    if ((updateCount % (60*60)) == 0) {
+//                        console.log('updated time');
+//                    }
+                    $scope.time = moment();
+                },1000);
+
+//                var clock = sinon.useFakeTimers(Date.now());
+                var clock;
+
+                var updateCount = 0;
+
+                setInterval(function() {
+                    console.log(1);
+                },1000);
+
+
+                $scope.freeze = function()
+                {
+                    if (clock) {
+                        clock.restore();
+                    }
+                    clock = sinon.useFakeTimers(Date.now());
+
+//                    setInterval(function() {
+//                        console.log('freeze',1);
+//                    },1000);
+                };
+
+                $scope.increaseTimeSeconds = function(seconds)
+                {
+                    if (!clock) {
+                        clock = sinon.useFakeTimers(Date.now());
+                    }
+//                    clock.tick(seconds * 1000);
+//                    return;
+                    while(seconds > 0) {
+                        if (seconds % (60*60) == 0) {
+                            console.log('tick',seconds);
+                        }
+                        clock.tick(1000);
+                        $scope.time = moment();
+                        seconds--;
+                    }
+                };
+
+                $scope.restore = function()
+                {
+                    if (clock) {
+                        clock.restore();
+                        clock = null;
+                    }
+                }
+
             }])
     })();
 

@@ -586,7 +586,7 @@ module.exports = function(opts, callback) {
         // var scheduledTime = '0 3 * * *';
 
         //run every hour.
-        var scheduledTime = '0 * * * *';
+        var scheduledTime = '1 * * * * *';
 
         tvshownotificationTask = cron.schedule(scheduledTime,tvshowNotificationTaskFunc);
     }
@@ -606,20 +606,6 @@ module.exports = function(opts, callback) {
         },
             {$set: data},
             {upsert:true}, function(error,result) {
-            // if (!result) {
-            //     Notification.insertOne(data, function (error, result) {
-            //         if (error) {
-            //             winston.error(error);
-            //             return res.status(500).json({
-            //                 error: error
-            //             })
-            //         }
-            //         mainLogger.info('added tvshow_airdate notification');
-            //     });
-            // }
-            // else {
-            //     mainLogger.info('found tvshow_airdate',result);
-            // }
         });
 
     }
@@ -632,13 +618,12 @@ module.exports = function(opts, callback) {
 
         var created = Date.now();
         var now = moment(created);
-        var tomorrow = moment(now).startOf('day').add(1,'day');
-        // var twoDays = moment(now).add(1,'day');
+        var startOfDayYesterday = moment(now).startOf('day').add(-1,'days');
         var twoDays =  moment(now).add(2,'day');
 
         var defaultFormat = 'YYYY-MM-DD HH:mm:ss';
         mainLogger.info('tvshowNotification','Run',now.format(defaultFormat),
-            tomorrow.format(defaultFormat),twoDays.format(defaultFormat)
+            startOfDayYesterday.format(defaultFormat),twoDays.format(defaultFormat)
         );
 
         Tvshow.find({}).toArray((function(err, results) {
@@ -700,13 +685,13 @@ module.exports = function(opts, callback) {
                                             var airstamp = moment(body.airstamp);
 
                                             mainLogger.info('tvnotification compare',
-                                                tomorrow.format(defaultFormat),
+                                                startOfDayYesterday.format(defaultFormat),
                                                 airstamp.format(defaultFormat),
                                                 twoDays.format(defaultFormat));
 
                                             if (
                                                 // true ||
-                                                (tomorrow <= airstamp && airstamp < twoDays)) {
+                                                (startOfDayYesterday <= airstamp && airstamp < twoDays)) {
                                                 mainLogger.debug('ready to view');
                                                 message += airstamp.format('MMMM Do') + '!';
 

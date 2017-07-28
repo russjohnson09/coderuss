@@ -1,0 +1,130 @@
+<html>
+<!--https://github.com/lob/lob-templates-->
+<!--http://lorempixel.com/ -->
+<!--rgb(252, 84, 110)-->
+<!--https://www.greetingsisland.com/images/Cards/birthday/Birthday-greetings.jpg-->
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Bellefair" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Lob.com Thank You 4x6 Postcard Template Front</title>
+    <style>
+        *, *:before, *:after {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'DragonIsComing';
+            font-style: normal;
+            font-weight: 400;
+            src: url('https://s3-us-west-2.amazonaws.com/lob-assets/Dragon+is+coming.otf') format('opentype');
+        }
+
+        @font-face {
+            font-family: 'DragonIsComing';
+            font-style: normal;
+            font-weight: 400;
+            src: url('https://s3-us-west-2.amazonaws.com/lob-assets/Dragon+is+coming.otf') format('opentype');
+        }
+
+        /*Accurately display the postcard*/
+        /*https://stackoverflow.com/questions/19236349/body-set-to-overflow-yhidden-but-page-is-still-scrollable-in-chrome*/
+        html, body {
+            overflow:hidden;
+            height:100%;
+        }
+
+        body {
+            width: 6.25in;
+            height: 4.25in;
+            margin: 0;
+            padding: 0;
+
+            text-align: center;
+            color: #37A5D2;
+            font-family: "Bellefair", serif;
+            font-size: 15px;
+            text-align: center;
+
+            overflow: hidden;
+
+            /*border: .03in solid black;*/
+        }
+
+        body div.container {
+            width: 2.45in;
+            padding: .5in;
+        }
+
+        body.rotated {
+            /*-ms-transform: rotate(-90deg); !* IE 9 *!*/
+            /*-webkit-transform: rotate(-90deg); !* Chrome, Safari, Opera *!*/
+            /*transform: rotate(-90deg);*/
+            position: absolute;
+            left: 1in;
+            top: -1in;
+        }
+
+        img {
+            /*min-width: 100%;*/
+            /*min-height: 100%;*/
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+
+
+    <!--<script src="/js/ext/jquery-3.2.1.min.js"></script>-->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+
+    <script src="/bower_components/angular/angular.min.js"></script>
+    <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
+
+
+    <script>
+        var app = angular.module("app", []);
+        app.controller("mainCtl", function ($scope) {
+
+//            $scope.back_body = "{{back_body}}";
+
+            $scope.back_from_name = "{{back_from_name}}";
+
+
+            $scope.back_body = 'Hope you have a great birthday!';
+
+//            $scope.name = 'Andy';
+
+        });
+    </script>
+
+</head>
+
+<body ng-app="app" ng-controller="mainCtl" >
+<div class="container">
+
+    <div class="top" style="height:1in">
+
+    </div>
+
+    <div class="center" style="height:1in">
+        <!--Sending you a wish that your birthday will be a very special one!-->
+        {{back_body}}
+    </div>
+
+    <div class="footer">
+        Love,
+        <div>
+            {{back_from_name}}
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

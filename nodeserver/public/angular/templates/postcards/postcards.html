@@ -22,7 +22,7 @@
 <select ng-model="selectedTemplate" ng-options="template.value as template.label for template in templates">
 </select>
 
-<div ng-if="selectedTemplate.name=='birthday'">
+<div ng-if="selectedTemplate.type=='birthday'">
     <div class="form-group">
         <label for="body">Name</label>
         <input class="form-control"
@@ -51,11 +51,13 @@
 <div ng-show="postcardCheckout.status == 'preview'">
     <div>
         <h1>Front</h1>
-        <a ng-href={{preview.front_src}}><img ng-src="{{preview.front_src}}"></a>
+        <a ng-href={{preview.front_src}}>
+            <img style="border: 1px solid black;" ng-src="{{preview.front_src}}"></a>
     </div>
     <div>
         <h1>Back</h1>
-        <a ng-href={{preview.back_src}}><img ng-src="{{preview.back_src}}"></a>
+        <a ng-href={{preview.back_src}}>
+            <img style="border: 1px solid black;" ng-src="{{preview.back_src}}"></a>
     </div>
     <div>
         <button class="btn btn-lg btn-primary btn-block" ng-click="submitCompletePostcard()">Complete</button>

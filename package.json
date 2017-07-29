@@ -1,6 +1,7 @@
 {
   "name": "code-russ-node",
   "version": "1.0.0",
+  "engines" : { "node" : ">=8" },
   "scripts": {
     "test:travis": "istanbul cover nodeserver/tests/travis_run.js",
     "istanbul:start": "istanbul cover nodeserver/server.js",

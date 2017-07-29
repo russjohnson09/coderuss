@@ -81,19 +81,25 @@ const MONGO_CONNECTION = MONGO_URI;
 
 const alexa = require(__dirname + '/v1/alexa');
 
+var exceptionHandlers;
+if (process.env.NODE_ENV == 'DEV') {
+    exceptionHandlers == null;
+}
+else {
+    exceptionHandlers = [
+        new winston.transports.File({
+            filename: path.join(__dirname, 'exceptions.log'),
+            maxsize: 5242880, //5MB
+            maxFiles: 5,
+            colorize: false
+        }),
+        new winston.transports.Console({
+            colorize: true,
+            json: true
+        })
+    ];
 
-const exceptionHandlers = [
-    new winston.transports.File({
-        filename: path.join(__dirname, 'exceptions.log'),
-        maxsize: 5242880, //5MB
-        maxFiles: 5,
-        colorize: false
-    }),
-    new winston.transports.Console({
-        colorize: true,
-        json: true
-    })
-];
+}
 
 
 
@@ -107,22 +113,6 @@ function initLoopBack() {
 
     return loopbackApp;
 }
-
-// var app = loopback();
-
-// app.start = function() {
-//   // start the web server
-//   return app.listen(function() {
-//     app.emit('started');
-//     var baseUrl = app.get('url').replace(/\/$/, '');
-//     console.log('Web server listening at: %s', baseUrl);
-//     if (app.get('loopback-component-explorer')) {
-//       var explorerPath = app.get('loopback-component-explorer').mountPath;
-//       console.log('Browse your REST API at %s%s', baseUrl, explorerPath);
-//     }
-//   });
-// };
-// }
 
 module.exports = function(opts, callback) {
 
@@ -161,7 +151,7 @@ module.exports = function(opts, callback) {
     var mainLogger = new winston.Logger({
         transports: transports,
         exceptionHandlers: exceptionHandlers,
-        exitOnError: false
+        exitOnError: process.env.NODE_ENV == 'DEV'
     });
 
 
@@ -753,12 +743,15 @@ module.exports = function(opts, callback) {
         }
     }
 
+
+
+
     function addSelftestRouter() {
         var router = express.Router();
 
-
-
         if (process.env.NODE_ENV === 'TEST' || process.env.NODE_ENV === 'DEV') {
+            require('./apitests')({app:app});
+
             router.post('/selftest/main/run', function (req, res) {
 
                 runDefaultTest(function(testResults) {
@@ -1565,12 +1558,15 @@ function getMainLoggerTransports() {
             token: process.env.LOGSENE_TOKEN,
             ssl: 'true',
             type: LOGSENE_LOG_TYPE
-        }))
-        exceptionHandlers.push(new(winston.transports.Logsene)({
-            token: process.env.LOGSENE_TOKEN,
-            ssl: 'true',
-            type: LOGSENE_LOG_TYPE
-        }))
+        }));
+        if (exceptionHandlers) {
+            exceptionHandlers.push(new(winston.transports.Logsene)({
+                token: process.env.LOGSENE_TOKEN,
+                ssl: 'true',
+                type: LOGSENE_LOG_TYPE
+            }));
+        }
+
         winston.info('creating logsene transport');
     }
     return transports;

@@ -750,7 +750,7 @@ module.exports = function(opts, callback) {
         var router = express.Router();
 
         if (process.env.NODE_ENV === 'TEST' || process.env.NODE_ENV === 'DEV') {
-            require('./apitests')({app:app});
+            require('./apitests/apitests')({app:app,logger:mainLogger});
 
             router.post('/selftest/main/run', function (req, res) {
 

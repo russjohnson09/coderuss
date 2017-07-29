@@ -3,7 +3,7 @@ let initilize = function(opts) {
     const low = require('lowdb');
     const request = require('request');
     const apiTestsDb = low(__dirname+'/.apiTestsDb.json');
-    const URL = require('url').Url;
+    const URL = require('url');
 
     let self = {};
     let app = opts.app;
@@ -82,9 +82,6 @@ let initilize = function(opts) {
 
         var doTestCaseRequest = function(opts,cb)
         {
-            console.log(process.version);
-            // console.log(opts);
-            process.exit();
             var {URL} = require('url');
             var requestResponseObject = {
                 created: Date.now(),
@@ -96,9 +93,6 @@ let initilize = function(opts) {
             requestObject.rawRequestBody = opts.body || null;
             requestObject.headers = opts.headers;
             requestObject.qs = opts.qs || null;
-
-            console.log(requestObject);
-            // process.exit();
 
             if (opts.body) {
                 try {
@@ -119,14 +113,8 @@ let initilize = function(opts) {
                 })(opts.url);
             }
             catch(e) {
-                console.log(e);
-                process.exit();
                 return cb(e,null,null);
             }
-
-            console.log(opts);
-            process.exit();
-
 
             requestObject.rawRequestBody = opts.body;
             requestObject.headers = opts.headers;
@@ -142,11 +130,8 @@ let initilize = function(opts) {
             })(opts.url);
 
             requestObject.started = Date.now();
-
-            console.log(opts);
             request(opts, function (err, response, body) {
                 console.log(body);
-                process.exit();
                 responseObject.ended = Date.now();
                 if (err) {
                     responseObject.error = err;

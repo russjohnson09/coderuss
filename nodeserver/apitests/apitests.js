@@ -21,7 +21,8 @@ let initilize = function(opts) {
         function setTestDefaults() {
             apiTestsDb.set('testsuites',[{
                 id: 'testsuite_1',
-                name: 'Testsuite 1',
+                name: 'Ping test.',
+                description: 'Test the coderuss ping endpoint.'
             }]).write();
 
             apiTestsDb.set('testcases',[
@@ -325,10 +326,30 @@ let initilize = function(opts) {
             return result;
         }
 
+        app.all('/apitests/*',function(req,res,next) {
+            timeout = 175;
+            if (req.headers['x-timeout']) {
+                timeout = req.headers['x-timeout'];
+            }
+            setTimeout(next,timeout)
+        });
+
         app.get('/apitests/testsuites', function (req, res) {
             return res.json(apiTestsDb.get('testsuites').value()).end();
         });
 
+        app.get('/apitests/testsuites/:id', function (req, res) {
+            return res.json(apiTestsDb.get('testsuites').find({id:req.params.id}).value()).end();
+        });
+
+        app.get('/apitests/testsuites/:id/testcases', function (req, res) {
+            return res.json(apiTestsDb.get('testcases').filter({testsuite_id:req.params.id}).value()).end();
+        });
+
+        app.get('/apitests/testsuites/:id/testcases/:id', function (req, res) {
+
+            return res.json(apiTestsDb.get('testcases').filter({testsuite_id:req.params.id}).value()).end();
+        });
 
         app.post('/apitests/testsuites/:id/run', function (req, res) {
             runTestSuiteById(req.params.id,function(data) {
@@ -386,6 +407,7 @@ if (!module.parent) {
 
     initilize({logger:logger,app:app});
 
+    app.use("/", express.static(__dirname + "/../public"));
 
 
     var server = require('http').Server(app);

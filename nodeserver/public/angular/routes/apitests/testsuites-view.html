@@ -1,0 +1,28 @@
+<h1 ng-if="'loading' === testsuite._status"><i class="fa fa-spinner fa-pulse"></i></h1>
+
+<div ng-if="'loading' !== testsuite._status">
+    <h1 ng-if="'loading' !== testsuite._status">{{testsuite.data.name}}</h1>
+    <p class="description">
+        {{testsuite.data.description}}
+    </p>
+
+    <div>
+        <btn class="btn btn-primary" ng-click="testsuite.run()">Run Testsuite</btn>
+    </div>
+
+    <div ng-if="'loading' === testsuite._status">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+        <span class="sr-only">Loading...</span>
+    </div>
+
+    <div ng-if="'loading' !== testsuite._status">
+        <pre><json-formatter json="testsuite.data"></json-formatter></pre>
+
+        <div>
+            <pre><json-formatter json="testsuite.get('testcases')"></json-formatter></pre>
+        </div>
+
+    </div>
+
+</div>
+

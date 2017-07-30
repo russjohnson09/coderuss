@@ -196,6 +196,10 @@
                 templateUrl: "templates/login.html",
                 controller: "loginCtl"
             })
+            .when("/login", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
             .when("/signin", {
                 templateUrl: "templates/login.html",
                 controller: "loginCtl"
@@ -228,6 +232,14 @@
             .when('/gitreview/:sha', {
                 templateUrl: 'templates/gitreview.html',
                 controller: "gitreviewCtl"
+            })
+            .when('/apitests/testsuites', {
+                templateUrl: "routes/apitests/testsuites.html",
+                controller: 'apitestsTestSuitesCtl'
+            })
+            .when('/apitests/testsuites/:id', {
+                templateUrl: "routes/apitests/testsuites-view.html",
+                controller: 'apitestsTestSuitesViewCtl'
             })
             .when("/tests", {
                 templateUrl: "templates/tests.html",
@@ -1982,6 +1994,10 @@
     })();
 
 
+
+</script>
+
+<script src="routes/apitests/apitests.js">
 
 </script>
 

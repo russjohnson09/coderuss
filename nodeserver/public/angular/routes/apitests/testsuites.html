@@ -1,0 +1,6 @@
+<h1>Test suites</h1>
+<pre><json-formatter json="testsuite"></json-formatter></pre>
+<div ng-repeat="testsuite in testsuites track by $index">
+    <div><a ng-href="{{testsuite.getViewLink()}}">{{testsuite.getDescription()}}</a></div>
+    <!--<pre>{{testsuite | json}}</pre>-->
+</div>

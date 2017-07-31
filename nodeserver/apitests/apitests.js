@@ -29,8 +29,25 @@ let initilize = function(opts) {
                 {
                     testsuite_id: 'testsuite_1',
                     id: 'testcase_1',
+                    name: 'Ping get',
+                    description: 'Get ping.',
                     method: 'GET',
                     url: '{{HOST}}{{V1_PING}}',
+                    // headers: "content-type:application/json\naccept:application/json",
+                    headers: {
+                        'content-type': 'application/json',
+                        'accept': 'application/json',
+                    },
+                    body: null,
+                },
+                {
+                    testsuite_id: 'testsuite_1',
+                    id: 'testcase_2',
+                    name: 'Ping 2 get',
+                    description: 'Get ping.',
+                    method: 'GET',
+                    url: '{{HOST}}{{V1_PING}}',
+                    // headers: "content-type:application/json\naccept:application/json",
                     headers: {
                         'content-type': 'application/json',
                         'accept': 'application/json',
@@ -200,6 +217,7 @@ let initilize = function(opts) {
             var run = {
                 id: getGuid(),
                 started: Date.now(),
+                testsuite_id: testsuite.id,
                 ended: null,
                 result: 'pending',
                 testcases: [],
@@ -327,7 +345,7 @@ let initilize = function(opts) {
         }
 
         app.all('/apitests/*',function(req,res,next) {
-            timeout = 175;
+            timeout = 200;
             if (req.headers['x-timeout']) {
                 timeout = req.headers['x-timeout'];
             }
@@ -351,12 +369,22 @@ let initilize = function(opts) {
             return res.json(apiTestsDb.get('testcases').filter({testsuite_id:req.params.id}).value()).end();
         });
 
+        app.get('/apitests/testsuites/:id/runs', function (req, res) {
+            // var runs = apiTestsDb.get('runs').value();
+            // console.log(runs);
+            // return res.json(runs);
+            return res.json(apiTestsDb.get('runs').filter(
+                {testsuite_id:req.params.id},
+                // {},
+                ).value()).end();
+        });
+
         app.post('/apitests/testsuites/:id/run', function (req, res) {
             runTestSuiteById(req.params.id,function(data) {
                 return res.json(data).end();
             })
-
         });
+
 
         var runTestSuiteById = function(id,cb)
         {

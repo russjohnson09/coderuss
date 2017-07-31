@@ -1,5 +1,49 @@
-app.factory('ApiTestsuite', ['$http','$q','ApiTestcase','ErrorService',
-    function ($http,$q,ApiTestcase,ErrorService) {
+app.factory('Run', ['$http','$q','ErrorService', function ($http,$q,ErrorService) {
+    var model = function Run(data) {
+        if (data) {
+            this.setData(data);
+        }
+    };
+
+    model.prototype = {
+        setData: function (data) {
+            if (this.data == undefined) {
+                this.data = {};
+            }
+            angular.extend(this, data);
+        },
+        getId: function()
+        {
+            return this.data.id
+        },
+        get: function(name) {
+            var self = this;
+            if (self._relations == undefined) {
+                this._relations = {};
+            }
+            if (self._relations[name] == undefined) {
+                self._relations[name] = {_status: 'loading', data: null};
+            }
+            return this._relations[name].data;
+        },
+        isLoading: function(name) {
+            if (this._relations == undefined) {
+                this._relations = {};
+            }
+            if (this._relations[name] == undefined) {
+                this.get(name);
+            }
+            return this._relations[name]['_status'] === 'loading';
+        },
+    };
+
+    return model;
+}]);
+
+
+
+app.factory('ApiTestsuite', ['$http','$q','ApiTestcase','ErrorService','Run',
+    function ($http,$q,ApiTestcase,ErrorService,Run) {
     var model = function ApiTestsuite(data) {
         if (data) {
             this.setData(data);
@@ -41,6 +85,25 @@ app.factory('ApiTestsuite', ['$http','$q','ApiTestcase','ErrorService',
                         },
                         ErrorService.handleHttpError);
                 }
+                else if (name == 'runs') {
+                    var url = '/apitests/testsuites/' + self.data.id + '/runs';
+                    $http(
+                        {
+                            method: 'GET',
+                            url: url
+                        }).then(
+                        function (res) {
+                            let objs = [];
+                            for (var i in res.data) {
+                                objs.push(new Run({_status:'completed',
+                                    data:res.data[i]}));
+                            }
+                            self._relations[name]._status = 'done';
+                            self._relations[name].data = objs;
+                        },
+                        ErrorService.handleHttpError);
+                }
+
             }
             return this._relations[name].data;
         },
@@ -230,7 +293,6 @@ app.factory('ApiCheck', ['$http','$q','ErrorService', function ($http,$q,ErrorSe
     return model;
 }]);
 
-
 app.factory('ApiTestcase', ['$http','$q','ErrorService','ApiCheck', function ($http,$q,ErrorService,ApiCheck) {
     var model = function ApiTestcase(data) {
         if (data) {
@@ -359,4 +421,12 @@ app.controller('apitestsTestSuitesCtl', ['$rootScope', '$cookies', '$scope', '$l
 //                console.log('getAll',$scope.testsuites);
 
         });
+    }]);
+
+app.controller('apitestsTestSuitesRunsCtl', ['$rootScope', '$cookies', '$scope', '$location',
+    '$http', '$routeParams', '$sce','ApiTestsuiteService',
+    function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, ApiTestsuiteService) {
+
+        $scope.testsuite =  ApiTestsuiteService.getById($routeParams.id);
+
     }]);

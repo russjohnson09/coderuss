@@ -6,22 +6,88 @@
         {{testsuite.data.description}}
     </p>
 
+    <pre><json-formatter json="testsuite.data"></json-formatter></pre>
+
     <div>
         <btn class="btn btn-primary" ng-click="testsuite.run()">Run Testsuite</btn>
     </div>
 
-    <div ng-if="'loading' === testsuite._status">
-        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
-        <span class="sr-only">Loading...</span>
+    <!--<pre><json-formatter json="testsuite.data"></json-formatter></pre>-->
+
+    <!--<pre><json-formatter json="testsuite"></json-formatter></pre>-->
+
+    <!--<pre><json-formatter json="testsuite.get('testcases')"></json-formatter></pre>-->
+
+
+    <div ng-if="testsuite.isLoading('testcases')">
+        <i class="fa fa-spinner fa-pulse"></i></h1>
     </div>
 
-    <div ng-if="'loading' !== testsuite._status">
-        <pre><json-formatter json="testsuite.data"></json-formatter></pre>
+    <div ng-if="!testsuite.isLoading('testcases')">
+        <div class="testcase" ng-repeat="testcase in testsuite.get('testcases') track by $index">
+            <h2>{{testcase.data.name}}</h2>
+            <p>
+                {{testcase.data.description}}
+            </p>
 
-        <div>
-            <pre><json-formatter json="testsuite.get('testcases')"></json-formatter></pre>
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="{{testcase.data.id}}-url">
+                        Url
+                    </label>
+                    <div class="col-sm-10">
+                        <input id="{{testcase.data.id}}-url" class="form-control"
+                               ng-model="testcase.data.url">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="{{testcase.data.id}}-method">
+                        method
+                    </label>
+                    <div class="col-sm-10">
+                        <input id="{{testcase.data.id}}-method" class="form-control"
+                               ng-model="testcase.data.method">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="{{testcase.data.id}}-name">
+                        name
+                    </label>
+                    <div class="col-sm-10">
+                        <input id="{{testcase.data.id}}-name" class="form-control"
+                               ng-model="testcase.data.name">
+                    </div>
+                </div>
+
+                <div class="form-group form-group-request-body">
+                    <label class="control-label col-sm-2" for="{{testcase.data.id}}-body">
+                        body
+                    </label>
+                    <div class="col-sm-10">
+                        <textarea id="{{testcase.data.id}}-body" class="form-control"
+                                  ng-model="testcase.data.body">
+                        </textarea>
+                    </div>
+                </div>
+
+                <!--<div class="form-group form-group-request-headers">-->
+                    <!--<label class="control-label col-sm-2" for="{{testcase.data.id}}-headers">-->
+                        <!--headers-->
+                    <!--</label>-->
+                    <!--<div class="col-sm-10">-->
+                        <!--<textarea id="{{testcase.data.id}}-headers" class="form-control"-->
+                                  <!--ng-model="testcase.data.headers">-->
+                        <!--</textarea>-->
+                    <!--</div>-->
+                <!--</div>-->
+            </form>
+
+
+            <!--<div>{{testcase}}</div>-->
+            <pre><json-formatter json="testcase.data"></json-formatter></pre>
         </div>
-
     </div>
 
 </div>

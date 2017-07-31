@@ -241,6 +241,10 @@
                 templateUrl: "routes/apitests/testsuites-view.html",
                 controller: 'apitestsTestSuitesViewCtl'
             })
+            .when('/apitests/testsuites/:id/runs', {
+                templateUrl: "routes/apitests/testsuites-runs.html",
+                controller: 'apitestsTestSuitesRunsCtl'
+            })
             .when("/tests", {
                 templateUrl: "templates/tests.html",
                 controller: "testsCtl"

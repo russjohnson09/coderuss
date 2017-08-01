@@ -1,0 +1,80 @@
+{
+	"id": "9a1bd753-33a2-a25d-ed1b-581344bcc364",
+	"name": "coderuss_v1_ping",
+	"description": "",
+	"order": [
+		"f63d7168-d3be-2240-5cb6-c3600862bfa4",
+		"a41018b3-33d8-1a58-e895-990fcce40333"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1501561815363,
+	"owner": "237302",
+	"public": false,
+	"requests": [
+		{
+			"id": "a41018b3-33d8-1a58-e895-990fcce40333",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": " localhost:3000/v1/ping",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": "var jsonData = JSON.parse(responseBody);\ntests[\"meta.message = success\"] = jsonData.meta.message === 'Success';\n",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1501561792197,
+			"name": "v1/ping copy",
+			"description": "",
+			"collectionId": "9a1bd753-33a2-a25d-ed1b-581344bcc364",
+			"responses": [],
+			"isFromCollection": true,
+			"collectionRequestId": "59bb61d5-9bd4-3d7c-a417-4892ccd1b393",
+			"collection_id": "9a1bd753-33a2-a25d-ed1b-581344bcc364",
+			"rawModeData": "{\r\n  \"highlight\": {\r\n    \"pre_tags\": [\r\n      \"@kibana-highlighted-field@\"\r\n    ],\r\n    \"post_tags\": [\r\n      \"@/kibana-highlighted-field@\"\r\n    ],\r\n    \"fields\": {\r\n      \"*\": {}\r\n    },\r\n    \"require_field_match\": false,\r\n    \"fragment_size\": 2147483647\r\n  },\r\n  \"query\": {\r\n    \"filtered\": {\r\n      \"query\": {\r\n        \"query_string\": {\r\n          \"query\": \"_type: coderuss\",\r\n          \"analyze_wildcard\": true,\r\n          \"default_operator\": \"AND\"\r\n        }\r\n      },\r\n      \"filter\": {\r\n        \"bool\": {\r\n          \"must\": [\r\n            {\r\n              \"range\": {\r\n                \"@timestamp\": {\r\n                  \"gte\": 1488258000000,\r\n                  \"lte\": 1488344399999,\r\n                  \"format\": \"epoch_millis\"\r\n                }\r\n              }\r\n            }\r\n          ],\r\n          \"must_not\": []\r\n        }\r\n      }\r\n    }\r\n  },\r\n  \"size\": 500,\r\n  \"sort\": [\r\n    {\r\n      \"@timestamp\": {\r\n        \"order\": \"desc\",\r\n        \"unmapped_type\": \"boolean\"\r\n      }\r\n    }\r\n  ],\r\n  \"aggs\": {\r\n    \"2\": {\r\n      \"date_histogram\": {\r\n        \"field\": \"@timestamp\",\r\n        \"interval\": \"30m\",\r\n        \"time_zone\": \"America/New_York\",\r\n        \"min_doc_count\": 0,\r\n        \"extended_bounds\": {\r\n          \"min\": 1488258000000,\r\n          \"max\": 1488344399999\r\n        }\r\n      }\r\n    }\r\n  },\r\n  \"fields\": [\r\n    \"*\",\r\n    \"_source\"\r\n  ],\r\n  \"script_fields\": {},\r\n  \"fielddata_fields\": [\r\n    \"@timestamp\"\r\n  ]\r\n}"
+		},
+		{
+			"id": "f63d7168-d3be-2240-5cb6-c3600862bfa4",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": " localhost:3000/v1/ping",
+			"queryParams": [],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": "var jsonData = JSON.parse(responseBody);\ntests[\"meta.message = success\"] = jsonData.meta.message === 'Success';\n",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1501561792197,
+			"name": "v1/ping",
+			"description": "",
+			"collectionId": "9a1bd753-33a2-a25d-ed1b-581344bcc364",
+			"responses": [],
+			"isFromCollection": true,
+			"collectionRequestId": "59bb61d5-9bd4-3d7c-a417-4892ccd1b393",
+			"collection_id": "9a1bd753-33a2-a25d-ed1b-581344bcc364",
+			"rawModeData": "{\r\n  \"highlight\": {\r\n    \"pre_tags\": [\r\n      \"@kibana-highlighted-field@\"\r\n    ],\r\n    \"post_tags\": [\r\n      \"@/kibana-highlighted-field@\"\r\n    ],\r\n    \"fields\": {\r\n      \"*\": {}\r\n    },\r\n    \"require_field_match\": false,\r\n    \"fragment_size\": 2147483647\r\n  },\r\n  \"query\": {\r\n    \"filtered\": {\r\n      \"query\": {\r\n        \"query_string\": {\r\n          \"query\": \"_type: coderuss\",\r\n          \"analyze_wildcard\": true,\r\n          \"default_operator\": \"AND\"\r\n        }\r\n      },\r\n      \"filter\": {\r\n        \"bool\": {\r\n          \"must\": [\r\n            {\r\n              \"range\": {\r\n                \"@timestamp\": {\r\n                  \"gte\": 1488258000000,\r\n                  \"lte\": 1488344399999,\r\n                  \"format\": \"epoch_millis\"\r\n                }\r\n              }\r\n            }\r\n          ],\r\n          \"must_not\": []\r\n        }\r\n      }\r\n    }\r\n  },\r\n  \"size\": 500,\r\n  \"sort\": [\r\n    {\r\n      \"@timestamp\": {\r\n        \"order\": \"desc\",\r\n        \"unmapped_type\": \"boolean\"\r\n      }\r\n    }\r\n  ],\r\n  \"aggs\": {\r\n    \"2\": {\r\n      \"date_histogram\": {\r\n        \"field\": \"@timestamp\",\r\n        \"interval\": \"30m\",\r\n        \"time_zone\": \"America/New_York\",\r\n        \"min_doc_count\": 0,\r\n        \"extended_bounds\": {\r\n          \"min\": 1488258000000,\r\n          \"max\": 1488344399999\r\n        }\r\n      }\r\n    }\r\n  },\r\n  \"fields\": [\r\n    \"*\",\r\n    \"_source\"\r\n  ],\r\n  \"script_fields\": {},\r\n  \"fielddata_fields\": [\r\n    \"@timestamp\"\r\n  ]\r\n}"
+		}
+	]
+}

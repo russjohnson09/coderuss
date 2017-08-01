@@ -1,5 +1,5 @@
 dry-run: null
-hookfiles: null
+hookfiles: "./hooks/*_hooks*"
 language: nodejs
 sandbox: false
 init: false

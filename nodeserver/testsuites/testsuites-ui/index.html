@@ -1,0 +1,181 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html>
+
+<head>
+
+    <base href="/testsuites-ui/">
+    <!-- META -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Optimize mobile viewport -->
+
+    <title>Coderuss</title>
+
+    <link rel="stylesheet"
+          href="bower_components/bootstrap/dist/css/bootstrap.css">
+
+    <style>
+
+    </style>
+
+
+    <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
+
+    <!--<script src="/js/ext/jquery-3.2.1.min.js"></script>-->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angular-cookies/angular-cookies.min.js"></script>
+
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="js/ext/sinon-2.3.8.js"></script>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
+
+    <script src="bower_components/moment/moment.js"></script>
+    <script src="bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
+    <script src="bower_components/angular-hotkeys/build/hotkeys.js"></script>
+    <link rel="stylesheet" href="bower_components/angular-hotkeys/build/hotkeys.css">
+
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+
+    <link href="bower_components/noty/lib/noty.css" rel="stylesheet">
+    <script src="bower_components/noty/lib/noty.js"></script>
+
+
+    <link href="bower_components/json-formatter/dist/json-formatter.css" rel="stylesheet">
+    <script src="bower_components/json-formatter/dist/json-formatter.js"></script>
+
+
+</head>
+
+<body ng-app="app" ng-cloak>
+
+<nav ng-controller="navbarCtl" class="navbar navbar-default">
+    <div class="container-fluid" ng-cloak>
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <!--<a class="navbar-brand" href="/angular">coderuss</a>-->
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <ul class="nav navbar-nav">
+            <!--<li ng-class="{active: isActive('/habits')}"><a href="#!/habits">habits</a></li>-->
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right ">
+            <li class="dropdown">
+                <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                   aria-haspopup="true" aria-expanded="false">Testsuites<span
+                        class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#!/testsuites">Main</a></li>
+                </ul>
+            </li>
+        </ul>
+
+    </div><!-- /.container-fluid -->
+</nav>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <div ng-view></div>
+        </div>
+    </div>
+
+    <div ng-show="devMode" class="user">
+        {{user}}
+    </div>
+
+</div>
+
+<script>
+
+    var app = angular.module('app',
+        ['ngRoute', 'ngCookies', 'cfp.hotkeys', 'ngSanitize', 'jsonFormatter']);
+
+    app.config(function ($routeProvider, $locationProvider) {
+        console.log('routeProviderConfig', $routeProvider);
+        var userResolve = {
+            _user: function (User) {
+                console.log('resolve profile');
+                var UserService = new User();
+                console.log(UserService);
+                return new Promise(function (resolve) {
+                    UserService.getCurrentUser().then(function (user) {
+                        console.log(user);
+                        resolve(user);
+                    });
+                })
+            }
+        };
+        $routeProvider
+            .when("/testsuites", {
+                templateUrl: "routes/testsuites/testsuites-main.html",
+                controller: "testsuitesCtl"
+            })
+            .otherwise({
+                redirectTo: '/testsuites'
+            });
+    });
+
+    app.run(function ($rootScope, LoggedInService) {
+        $rootScope.$on("$routeChangeStart", function (event, next, current) {
+            console.log(event, next, current);
+        });
+        $rootScope.$on("$routeChangeSuccess", function (event, next, current) {
+            console.log(event, next, current);
+        });
+    });
+
+    app.factory('ErrorService', ['$http', '$q', function ($http, $q) {
+
+        var service = {};
+
+        service.handleHttpError = function (res) {
+            console.log('handleHttpError', res);
+            var message = res.status + ': ';
+            if (res.data) {
+                if (res.data.message) {
+                    message += res.data.message;
+                }
+                else if (res.data.error) {
+                    if (res.data.error.message) {
+                        message += res.data.error.message;
+                    }
+                }
+                else if (res.data.meta && res.data.meta.message) {
+                    message += res.data.meta.message;
+                }
+                else {
+                    message += JSON.stringify(res.data);
+                }
+            }
+            new Noty({
+                text: message,
+                animation: {},
+                type: 'error'
+            }).show();
+        };
+
+        return service;
+    }]);
+
+</script>
+
+<script src="routes/testsuites/testsuites.js">
+
+</script>
+
+<footer class="footer">
+    <!--<kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd>-->
+</footer>
+</body>
+
+</html>

@@ -120,12 +120,16 @@
                 templateUrl: "routes/testsuites/testsuites-main.html",
                 controller: "testsuitesCtl"
             })
+            .when("/testsuites/:id", {
+                templateUrl: "routes/testsuites/testsuites-id.html",
+                controller: "testsuitesIdCtl"
+            })
             .otherwise({
                 redirectTo: '/testsuites'
             });
     });
 
-    app.run(function ($rootScope, LoggedInService) {
+    app.run(function ($rootScope) {
         $rootScope.$on("$routeChangeStart", function (event, next, current) {
             console.log(event, next, current);
         });
@@ -166,6 +170,60 @@
 
         return service;
     }]);
+
+
+    app.factory('BaseModel',['$http','$q','ErrorService', function ($http,$q,ErrorService) {
+        var model = function BaseModel(data) {
+            if (data) {
+                this.setData(data);
+            }
+        };
+
+        model.prototype = {
+            setData: function (data) {
+                if (this.data == undefined) {
+                    this.data = {};
+                }
+                if (data && data.data && data.data.id) {
+                    this.id = data.data.id;
+                }
+                angular.extend(this, data);
+            },
+            getId: function()
+            {
+                return this.data.id
+            },
+            get: function(name) {
+                var self = this;
+                if (self._relations == undefined) {
+                    this._relations = {};
+                }
+                if (self._relations[name] == undefined) {
+                    self._relations[name] = {_status: 'loading', data: null};
+                }
+                return this._relations[name].data;
+            },
+            isLoading: function(name) {
+                if (this._relations == undefined) {
+                    this._relations = {};
+                }
+                if (this._relations[name] == undefined) {
+                    this.get(name);
+                }
+                return this._relations[name]['_status'] === 'loading';
+            },
+        };
+
+        return model;
+
+    }]);
+
+
+    app.controller('navbarCtl', ['$rootScope', '$cookies', '$scope', '$location',
+        '$http', '$routeParams', '$sce',
+        function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
+
+        }]);
 
 </script>
 

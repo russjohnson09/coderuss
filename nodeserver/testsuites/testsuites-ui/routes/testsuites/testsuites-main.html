@@ -1,0 +1,11 @@
+<div>
+    Hello
+</div>
+
+<div ng-repeat="testsuite in testsuites.data track by $index">
+    <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
+</div>
+
+<div>
+    <json-formatter json="testsuites"></json-formatter>
+</div>

@@ -276,6 +276,20 @@ let initilize = function (opts) {
         app.use("/testsuites-ui", express.static(__dirname + "/testsuites-ui"));
 
 
+
+        /*
+         * list testsuites
+         */
+        app.get('/testsuites', function(req,res) {
+            let obj = db.get('testsuites')
+                // .filter({})
+                .value();
+
+            logger.info(linenumber(),obj);
+
+            res.json(obj);
+        });
+
         /*
          * find a testsuite and all releated info.
          * testcases with their checks and setEnvvars required to run a testsuite.

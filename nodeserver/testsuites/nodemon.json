@@ -1,6 +1,6 @@
 {
   "verbose": true,
-  "ignore": ["testsuites.json","*.json", "testsuites-ui/"],
+  "ignore": ["testsuites.json","*.json", "testsuites-ui/*"],
   "execMap": {
     "rb": "ruby",
     "pde": "processing --sketch={{pwd}} --run"

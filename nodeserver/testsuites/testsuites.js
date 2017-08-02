@@ -12,7 +12,8 @@ let initilize = function (opts) {
         testsuites: [],
         testcases: [],
         // envvars: [],
-        checks: []
+        //checks: [],
+        checkresults: []
     }).write();
     const URL = require('url');
     const expect = require('chai').expect;
@@ -308,10 +309,10 @@ let initilize = function (opts) {
             let obj = db.get('testruns')
                 .find({ id: req.params.id })
                 .value();
-            Object.assign(obj,{logs:logs
-                // ,testcaseruns:testcaseruns
-            });
+
+            obj.logs = logs;
             obj.testcaseruns = testcaseruns;
+            // obj.checks =
             res.json(obj);
         });
 
@@ -355,7 +356,16 @@ let initilize = function (opts) {
 
 
                 if (setEnvvars) {
-                    setClientEnvvars(testrun.envvars,setEnvvars,requestlog);
+                    let envvars = [];
+                    for (let i in setEnvvars) {
+                        let setenv = setEnvvars[i];
+                        if (setenv.type == 'response_body') {
+                            envvars[setenv.name] =
+                                getValFromPath(requestlog.response.body
+                                ,setenv.path);
+                        }
+                    }
+                    db.get('testruns').find({id:testrun.id}).assign({envvars:envvars});
                 }
 
                 testcase.testrun = testrun;
@@ -377,10 +387,18 @@ let initilize = function (opts) {
 
         function getIdFromName(name)
         {
-            return name;
+            let result = name.toLowerCase();
+            result = result.split(' ');
+            result = result.join('-');
+            return result;
         }
 
-        /**
+        app.post('/testsuitehelpers/getidfromname', function(req,res) {
+            res.json({id:getIdFromName(req.body.name),
+                name:req.body.name});
+        });
+
+            /**
          * Remove replace testcase. Return result of live testrun.
          * Use name + tsid
          * Add testcaserun
@@ -402,6 +420,7 @@ let initilize = function (opts) {
 
             runTestCase(tr,obj, function(result) {
                 let testcaserun = {};
+                result = JSON.parse(JSON.stringify(result));
                 Object.assign(testcaserun,result,{
                     id: result.id + result.testrun.id,
                     testrun_id: result.testrun.id,

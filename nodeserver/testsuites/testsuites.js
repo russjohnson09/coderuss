@@ -317,6 +317,17 @@ let initilize = function (opts) {
             res.json(obj);
         });
 
+        /*
+         * testcase delete
+         */
+        app.delete('/testsuites/:tsid/testcases/:id', function(req,res) {
+            obj = db.get('testcases')
+                .remove({ testsuite_id: req.params.tsid, id: req.params.id })
+                .write();
+
+            res.status(204).end()
+        });
+
         function runTestCases(testrun,testcases,cb)
         {
             cb = cb || noop;
@@ -651,6 +662,9 @@ let initilize = function (opts) {
 
                             if (val1 !== val2) {
                                 checkresult.result = 'failure';
+                                checkresult.error = {
+                                    message: 'Expected ' + val1 + ' to equal ' + val2
+                                }
                             }
                             else {
                                 checkresult.result = 'success';

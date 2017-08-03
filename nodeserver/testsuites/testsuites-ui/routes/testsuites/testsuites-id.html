@@ -2,6 +2,12 @@
     {{testsuite.data.name}}
 </h1>
 
+<div>
+    <input ng-model="new_testcasename">
+
+    <button ng-click="testsuite.addTestcaseWithName(new_testcasename)" class="btn btn-primary">Add Test case</button>
+</div>
+
 <div ng-repeat="testsuite in testsuites.data track by $index">
     <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
 </div>
@@ -11,7 +17,30 @@
         <span ng-if="testcase.get('last_result') == 'success'"><i class="fa fa-check" style="color:green"></i></span>
         <span ng-if="testcase.get('last_result') == 'failure'"><i class="fa fa-exclamation-triangle"
                                                                   style="color:red"></i></span>
+        <span style="float:right"><button class="btn btn-primary" ng-click="testcase.saveRun()">Save/Run</button></span>
     </h2>
+    <button class="btn btn-primary" ng-click="testsuite.copyTestcase(testcase)">Copy</button>
+    <button class="btn btn-danger" ng-click="testsuite.removeTestcase($index)">Delete</button>
+
+
+    <div ng-if="testcase.get('checkresults')">
+        <h3>Last Run Results</h3>
+        <ul ng-repeat="check in testcase.get('checkresults')">
+            <li>
+                <span>
+                    {{check.check.name}} {{check.error.message}}
+                </span>
+                <span ng-if="check.result == 'success'">
+                    <i class="fa fa-check" style="color:green"></i>
+                </span>
+
+                <span ng-if="check.result == 'failure'">
+                    <i class="fa fa-exclamation-triangle" style="color:red"></i>
+                </span>
+
+            </li>
+        </ul>
+    </div>
 
 
     <div ng-if="testcase.get('current_envvars')">
@@ -20,9 +49,7 @@
             <li>{{key}} = {{value}}</li>
         </ul>
     </div>
-    <div>
-        <button class="btn btn-primary" ng-click="testcase.saveRun()">Save/Run</button>
-    </div>
+
     <form class="form-horizontal">
         <div class="form-group">
             <label class="control-label col-sm-2" for="{{testcase.id}}-name">
@@ -195,6 +222,8 @@
                 </div>
 
             </div>
+
+            <button ng-click="testcase.copyCheck($index)" class="btn btn-success">Copy</button>
 
             <button ng-click="testcase.removeCheck($index)" class="btn btn-danger">Remove</button>
 

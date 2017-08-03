@@ -12,6 +12,18 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
         model.prototype = Object.assign(
             BaseModel.prototype, //default model functions
             {
+                delete: function()
+                {
+                    let self = this;
+                    $http({
+                        "method": "DELETE",
+                        "url": "/testsuites/" + self.data.testsuite_id +
+                        "/testcases/" + self.id,
+                    }).then(function(res) {
+
+                    });
+                    console.log('delete',this.id);
+                },
                 saveRun: function()
                 {
                     let self = this;
@@ -64,6 +76,11 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
                 removeCheck: function(i)
                 {
                     this.data.checks.splice(i,1)
+                },
+                copyCheck: function(i)
+                {
+                    // let check = Object.assign({},this.data.checks[i]);
+                    this.data.checks.push(JSON.parse(JSON.stringify(this.data.checks[i])));
                 }
             }
         );
@@ -110,6 +127,29 @@ app.factory('Testsuite', ['$http','$q','ErrorService','Testcase',
                     delete data.data.testcases;
                 }
                 angular.extend(this, data);
+            },
+            addTestcaseWithName: function(name)
+            {
+                let self = this;
+                console.log(name);
+                self._relations['testcases'].data.push(new Testcase({data: {name: name}}));
+            },
+            copyTestcase: function(testcase)
+            {
+                let testcasedata = JSON.parse(JSON.stringify(testcase.data));
+                delete testcasedata.id;
+                this._relations['testcases'].data.push(new Testcase(
+                    {data: testcasedata}
+                    ));
+
+            },
+            removeTestcase: function(i)
+            {
+                let testcase = this._relations['testcases'].data.splice(i,1)[0];
+
+                console.log('removeTestcase',testcase);
+
+                testcase.delete();
             },
             get: function(name) {
                 var self = this;

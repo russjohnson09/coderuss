@@ -1,5 +1,27 @@
 let noop = function(){};
 
+app.factory('ShowHideHelper', [function() {
+    let factory = {};
+
+    factory.addToggleShowToScope = function($scope)
+    {
+
+        $scope._toggleShow = {};
+
+        $scope.toggleShow = function(name)
+        {
+            $scope._toggleShow[name] = !$scope._toggleShow[name]
+        };
+
+        $scope.getShow = function(name)
+        {
+            return $scope._toggleShow[name];
+        };
+    }
+
+    return factory;
+}]);
+
 app.factory('RequestLog', ['$http', '$q', function ($http, $q) {
     var model = function RequestLog(data) {
         if (data) {
@@ -168,7 +190,7 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
 
         var baseurl = '';
 
-        model.prototype = Object.assign(
+        model.prototype = Object.assign({},
             BaseModel.prototype, //default model functions
             {
                 setData: function (data) {
@@ -288,6 +310,79 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                 copyCheck: function (i) {
                     // let check = Object.assign({},this.data.checks[i]);
                     this.data.checks.push(JSON.parse(JSON.stringify(this.data.checks[i])));
+                },
+                refreshRelated: function (name) {
+                    let self = this;
+                    console.log('refreshRelated',name);
+
+                    if (name == 'request_logs') {
+                        $http({
+                            "method": "GET",
+                            "url": "/testsuites/" + self.data.testsuite_id
+                            + '/testcases/' + self.data.id + '/testruns/' + self.data.testrun_id
+                            + "/requestlogs"
+                        }).then(function (res) {
+                            let request_logs = [];
+                            for (let i in res.data) {
+                                request_logs.push(new RequestLog({data: res.data[i]}));
+                            }
+
+                            self._relations[name] = {
+                                _status: 'done',
+                                data: request_logs
+                            };
+                        }, ErrorService.handleHttpError);
+                    }
+                    else if (name == 'checkresults') {
+                        $http({
+                            "method": "GET",
+                            "url": "/testsuites/" + self.data.testsuite_id
+                            + '/testcases/' + self.data.id + '/testruns/' + self.data.testrun_id
+                            + "/checkresults"
+                        }).then(function (res) {
+                            let checkresults = [];
+                            for (let i in res.data) {
+                                checkresults.push(res.data[i]);
+                            }
+
+                            self._relations[name] = {
+                                _status: 'done',
+                                data: checkresults
+                            };
+                        }, ErrorService.handleHttpError);
+                    }
+                },
+                get: function (name) {
+                    let self = this;
+                    if (self._relations == undefined) {
+                        this._relations = {};
+                    }
+
+                    if (self._relations[name] == undefined) {
+                        self._relations[name] = {_status: 'loading', data: null};
+                    }
+                    //If this is a testcase for a specific testrun, get these request_logs.
+                    if (name == 'request_logs') {
+                        console.log('testcase','get',name,self.data,self._relations[name],
+                            self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called);
+                        if (self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called)
+                        {
+                            console.log('testcaseModel','get',name,self);
+                            self._relations[name]._loader_called = true;
+                            self.refreshRelated('request_logs');
+                        }
+                    }
+                    else if (name == 'checkresults') {
+                        if (self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called)
+                        {
+                            self._relations[name]._loader_called = true;
+                            self.refreshRelated(name);
+                        }
+                    }
+                    return self._relations[name].data;
                 }
             }
         );

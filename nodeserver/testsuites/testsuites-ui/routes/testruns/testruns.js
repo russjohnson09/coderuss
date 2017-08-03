@@ -8,7 +8,7 @@ app.factory('Testrun', ['$http', '$q', 'ErrorService', 'Testcase', '$timeout', '
             }
         };
 
-        model.prototype = Object.assign(
+        model.prototype = Object.assign({},
             BaseModel.prototype, //default model functions
             {
                 refreshRelated: function (name) {
@@ -33,24 +33,7 @@ app.factory('Testrun', ['$http', '$q', 'ErrorService', 'Testcase', '$timeout', '
                     if (self._relations == undefined) {
                         this._relations = {};
                     }
-                    // if (name == 'testsuite') {
-                    //     console.log('testsuite',self._relations['testsuite']);
-                    //     if ((!self.data || !self.data.testsuite) && !self._relations[name]._waiting ) {
-                    //         // self._relations[name]._waiting = true;
-                    //                 self._relations[name] = {_waiting: true,_status: 'loading', data: null};
-                    //
-                    //     }
-                    //     if (self.data && self.data.testsuite_id && self._relations[name]._waiting) {
-                    //         console.log('testsuite refresh',self._relation[name]);
-                    //         self._relations[name] = {_status: 'loading', data: null};
-                    //         self.refreshRelated('testsuite');
-                    //     }
-                    //     else if (self._relations[name] == undefined) {
-                    //         console.log('testsuite',self._relation[name]);
-                    //         self._relations[name] = {_waiting: true,_status: 'loading', data: null};
-                    //     }
-                    // }
-                    // console.log(self._relations[name]);
+
                     if (self._relations[name] == undefined) {
                         self._relations[name] = {_status: 'loading', data: null};
                     }
@@ -76,13 +59,34 @@ app.factory('Testrun', ['$http', '$q', 'ErrorService', 'Testcase', '$timeout', '
                     if (data && data.data && data.data.testcases) {
                         let testcasesdata = Object.assign({}, data.data.testcases);
                         let testcases = [];
+
+                        // let requestLogsByTestcaseId = {};
+                        // if (data.data.logs) {
+                        //     for (let i in res.data.logs) {
+                        //         let log = res.data.logs[i];
+                        //         let testcase_id = log['testcase_id'];
+                        //         requestLogsByTestcaseId[testcase_id] = requestLogsByTestcaseId[testcase_id] || [];
+                        //         requestLogsByTestcaseId[testcase_id].push(new RequestLog({data: log});
+                        //     }
+                        // }
+
                         for (var i in testcasesdata) {
+                            let testcase_id = testcasesdata[i].id;
+                            let tc = testcasesdata[i];
+                            tc.testrun_id = data.data.id;
                             let testcase = new Testcase(
                                 {
+                                    "id": testcase_id,
                                     _status: 'done',
-                                    data: testcasesdata[i]
+                                    data: tc
                                 });
                             testcases.push(testcase);
+                            testcase._relations = testcase._relations || {};
+
+                            // console.log('get request_logs',testcase,testcase.get('request_logs'));
+
+                            // testcase._relations['request_logs'] = requestLogsByTestcaseId[testcase_id] || [];
+
                         }
                         this._relations = this._relations || {};
                         this._relations['testcases'] = {
@@ -123,9 +127,13 @@ app.factory('TestrunService', ['$http', '$q', 'ErrorService', 'Testrun',
 
 app.controller('testrunsIdCtl', ['$rootScope', '$cookies', '$scope', '$location',
     '$http', '$routeParams', '$sce', 'TestrunService',
-    function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestrunService) {
+    'ShowHideHelper',
+    function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestrunService,
+              ShowHideHelper) {
 
         $scope.testrun = TestrunService.getById($routeParams.id);
+
+        ShowHideHelper.addToggleShowToScope($scope);
 
 
     }]);

@@ -443,31 +443,57 @@ let initilize = function (opts) {
 
         }
 
+
+        (function testcasesCRUD() {
+            app.delete('/testsuites/:tsid/testcases/:id', function(req,res) {
+                let id = req.params.id;
+                // if (id == 'undefined') {
+                //     removeAllTestcasesWithoutTestsuite();
+                // }
+
+                logger.info(linenumber(),id);
+
+                db.get('testcases')
+                    .remove({id: id })
+                    .write();
+
+                let testcase = db.get('testcases')
+                    .find({id: id})
+                    .value();
+
+                if (testcase) {
+                    return res.status(422).json(testcase);
+                }
+
+                res.end()
+            });
+
+            app.get('/testsuites/:tsid/testcases/:id/testruns/:trid/requestlogs', function(req,res) {
+
+                let testcase_id = req.params.id;
+                let testrun_id = req.params.trid;
+
+                let logs = db.get('logs').filter({testrun_id:testrun_id,
+                    testcase_id:testcase_id})
+                    .value();
+                return res.json(logs).end();
+            });
+
+            app.get('/testsuites/:tsid/testcases/:id/testruns/:trid/checkresults', function(req,res) {
+
+                let testcase_id = req.params.id;
+                let testrun_id = req.params.trid;
+
+                let objs = db.get('checkresults')
+                    .filter({testrun_id:testrun_id, testcase_id:testcase_id})
+                    .value();
+                return res.json(objs).end();
+            });
+
+        })();
         /*
          * testcase delete
          */
-        app.delete('/testsuites/:tsid/testcases/:id', function(req,res) {
-            let id = req.params.id;
-            // if (id == 'undefined') {
-            //     removeAllTestcasesWithoutTestsuite();
-            // }
-
-            logger.info(linenumber(),id);
-
-            db.get('testcases')
-                .remove({id: id })
-                .write();
-
-            let testcase = db.get('testcases')
-                .find({id: id})
-                .value();
-
-            if (testcase) {
-                return res.status(422).json(testcase);
-            }
-
-            res.end()
-        });
 
         function runTestCases(testrun,testcases,cb)
         {

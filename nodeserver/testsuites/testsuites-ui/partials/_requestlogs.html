@@ -1,7 +1,10 @@
+
 <div ng-if="requestLogs.length > 0">
     <!--<h1>RequestLogs</h1>-->
 
     <div ng-repeat="requestlog in requestLogs track by $index">
+        <json-formatter json="requestlog"></json-formatter>
+
         <div
                 ng-class="{'panel-danger': requestlog.getResponseStatus() == 'danger',
              'panel-success': requestlog.getResponseStatus() == 'success',

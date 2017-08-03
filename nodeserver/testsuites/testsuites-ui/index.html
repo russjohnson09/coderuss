@@ -17,7 +17,20 @@
           href="bower_components/bootstrap/dist/css/bootstrap.css">
 
     <style>
-
+        .panel-group-scrollable {
+            max-height: 500px;
+            /*overflow-y: scroll;*/
+            overflow-y: auto;
+        }
+        .method {
+            font-weight: bold;
+            width: 60px;
+            border-radius: 10px;
+            padding: 0 10px;
+        }
+        .method-post {
+            background-color: #FF8800;
+        }
     </style>
 
 
@@ -224,6 +237,18 @@
         function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce) {
 
         }]);
+
+
+
+    app.directive('requestLogs', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                requestLogs: '=requestLogs'
+            },
+            templateUrl: 'partials/_requestlogs.html'
+        };
+    });
 
 </script>
 

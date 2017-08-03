@@ -455,6 +455,20 @@ let initilize = function (opts) {
 
         });
 
+
+        app.post('/testsuites/:id/removelivetestrun', function(req,res)
+        {
+            let tr = getLiveTestrun(req.params.id);
+            if (tr) {
+                db.get('testruns').remove({id:tr.id}).write();
+                db.get('logs').remove({testrun_id:t.id}).write();
+                db.get('testcaseruns').remove({testrun_id:t.id}).write();
+                db.get('testcases').remove({testsuite_id:req.params.id}).write();
+                db.get('checkresults').remove({testsuite_id:req.params.id}).write();
+            }
+            res.end();
+        });
+
         /*
          * find and replace testsuite
          * current recent testrun
@@ -631,7 +645,7 @@ let initilize = function (opts) {
                 }
 
 
-                checkresults = [];
+                let checkresults = [];
                 db.get('checkresults').remove({testcase_id:testcase.id}).write();
                 if (checks) {
 
@@ -723,6 +737,30 @@ let initilize = function (opts) {
             return db.get('testruns').find({id:tsid+'-live'}).value();
         }
 
+        function getCreateLiveTestrun(tsid)
+        {
+            let tr = getLiveTestrun(tsid);
+            if (tr) {
+                return tr;
+            }
+
+            let t = {
+                id: tsid + '-live',
+                status: 'pending',
+                envvars: {},
+                testsuite_id: tsid
+            };
+
+            db.get('testruns')
+                .push(
+                    JSON.parse(JSON.stringify(t))
+                )
+                .write();
+
+            return t;
+
+        }
+
         function getIdFromName(name)
         {
             let result = name.toLowerCase();
@@ -743,23 +781,45 @@ let initilize = function (opts) {
          */
         app.post('/testsuites/:tsid/testcases', function(req,res) {
 
+            var testcases =  db.get('testcases')
+                .filter({ testsuite_id: req.params.tsid })
+                .value();
+
             let id = req.params.tsid + '-' + getIdFromName(req.body.name);
-            db.get('testcases')
-                .remove({ id: id })
-                .write();
 
-            let tr = getLiveTestrun(req.params.tsid);
+            let testcase = db.get('testcases')
+                .find({ id: id })
+                .value();
 
-            var obj = {id: id};
+            let obj = {id: id};
+
             Object.assign(obj,req.body);
 
             obj.testsuite_id = req.params.tsid;
 
-            db.get('testcases')
-                .push(
-                    JSON.parse(JSON.stringify(obj))
-                )
-                .write();
+            if (!testcase) {
+                db.get('testcases')
+                    .push(
+                        JSON.parse(JSON.stringify(obj))
+                    )
+                    .write();
+            }
+            else {
+                db.get('testcases')
+                    .find({id:id})
+                    .assign(
+                        JSON.parse(JSON.stringify(obj))
+                    )
+                    .write();
+            }
+
+
+
+            // db.get('testcases')
+            //     .remove({ id: id })
+            //     .write();
+
+            let tr = getCreateLiveTestrun(req.params.tsid);
 
             runTestCase(tr,obj, function(result) {
                 let testcaserun = {};

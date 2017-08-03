@@ -1,5 +1,170 @@
+app.factory('RequestLog', ['$http','$q', function ($http,$q) {
+    var model = function RequestLog(data) {
+        if (data) {
+            this.setData(data);
+        }
+    };
+
+    var descriptionsPost = [
+    ];
+
+    var baseurl = '';
+
+    model.prototype = {
+        toggleShow: function() {
+            this.show = !this.show;
+        },
+        setData: function (data) {
+            angular.extend(this, data);
+        },
+        //Some apis will really on other response codes
+        getResponseCode: function() {
+            if (this.data.response && this.data.response.body &&
+                this.data.response.body.ResponseCode) {
+                return this.data.response.body.ResponseCode;
+            }
+            return 200;
+        },
+        getRequestMd: function()
+        {
+            var result = "";
+
+            result += "#Request\n";
+            result += "##Endpoint\n";
+            result += "```"+ this.data.request.path + " " + this.data.request.method
+                + " " + this.getResponseCode() + "```\n\n";
+
+            var url = this.getUrlWithQueryString();
+            result += "[" + url + "]" + "(" + url + ")" + "\n";
+
+            result += "##Request Body\n";
+            result += "```json\n";
+            result += JSON.stringify(this.data.request.body,null,'    ');
+            result += "\n```\n";
+
+            result += "##Response Body\n";
+            result += "```json\n";
+            result += JSON.stringify(this.data.response.body,null,'    ');
+            result += "\n```\n";
+
+            return result;
+        },
+        getById: function(id)
+        {
+            var requestlog = new model({
+                _status: 'loading',
+                show: true,
+            });
+            $http({
+                'method': 'GET',
+                url: '/v1/requestlogs/' + id,
+                headers: {
+                    'content-type': 'application/json',
+                    'cache-control': 'no-cache'
+                },
+            }).then(function(res) {
+                requestlog.setData(res.data);
+                requestlog.setData({_status:'done'});
+//                        return new RequestLog(res.data);
+            });
+            return requestlog;
+        },
+        getLink: function()
+        {
+
+        },
+        save: function() {
+            $http({
+                'method': 'POST',
+                url: '/v1/requestlogs',
+                headers: {
+                    'content-type': 'application/json',
+                    'cache-control': 'no-cache'
+                },
+                data: JSON.stringify(this)
+            })
+        },
+        getUrlWithQueryString: function()
+        {
+            var url = this.data.request.url;
+            if (this.data.request.qs) {
+                var i = 0;
+                for (var key in this.data.request.qs) {
+                    console.log(key,this.data.request.qs,this.data.request.qs[key])
+                    if (i == 0) {
+                        url += "?";
+                    }
+                    else {
+                        url += '&';
+                    }
+                    url += (key + '=' + this.data.request.qs[key]);
+                    i++;
+                }
+            }
+            return url;
+        },
+        getDescription: function() {
+            if (this.data.request.path) {
+                var descriptions = [];
+                if (this.data.request.method == 'POST') {
+                    descriptions = descriptionsPost;
+                }
+
+                for (var i in descriptions) {
+                    if (this.data.request.path.match(descriptions[i].re)) {
+                        return descriptions[i].description;
+                    }
+                }
+            }
+            else {
+                return '';
+            }
+
+        },
+        getResponseStatus: function()
+        {
+            var responseCode = this.getResponseCode();
+
+            if (this.data.response.statusCode < 400 && (!responseCode || (responseCode < 400))) {
+                return 'success';
+            }
+            else if (this.data.response.statusCode < 500 && (!responseCode || responseCode < 500)) {
+                return 'warning';
+            }
+            else {
+                return 'danger';
+            }
+        },
+        getShortRequestPath: function()
+        {
+            if (this.data.request.path.length > 50) {
+                return this.data.request.path.substr(this.data.request.path.length - 50);
+            }
+            else {
+                return this.data.request.path;
+            }
+        },
+        getIsSuccess: function() {
+            return this.data.response.statusCode < 400;
+        },
+        getDuration: function()
+        {
+            if (this.data.response.completed && this.data.request.started) {
+                return this.data.response.completed - this.data.request.started;
+            }
+            else if (this.data.response.ended && this.data.request.started) {
+                return this.data.response.ended - this.data.request.started;
+            }
+        },
+    };
+
+    return model;
+}]);
+
+
 app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
-    function ($http,$q,ErrorService,BaseModel) {
+    'RequestLog',
+    function ($http,$q,ErrorService,BaseModel,RequestLog) {
 
         var model = function Testcase(data) {
             if (data) {
@@ -12,6 +177,19 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
         model.prototype = Object.assign(
             BaseModel.prototype, //default model functions
             {
+                setData: function (data) {
+                    if (this.data == undefined) {
+                        this.data = {};
+
+                    }
+                    angular.extend(this, data);
+
+                    if (this.data.type === undefined) {
+                        //set the default type of testcase to api
+                        //can also be browser
+                        this.data.type = 'api';
+                    }
+                },
                 delete: function()
                 {
                     let self = this;
@@ -36,7 +214,17 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
                         let checkresults = res.data.checkresults;
                         self._relations = self._relations || {};
                         self._relations['checkresults'] = {data: checkresults};
-                        self._relations['logs'] = {data: res.data.logs};
+
+
+                        if (self.data.type === 'api') {
+                            let request_logs = [];
+                            for (var i in res.data.logs)
+                            {
+                                request_logs.push(new RequestLog({data: res.data.logs[i]}))
+                            }
+                            self._relations['request_logs'] = {data: request_logs};
+                        }
+
 
 
 
@@ -62,11 +250,12 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
                 //new function go here
                 addSetEnvvar: function()
                 {
-                    console.log(this);
+                    this.data.setEnvvars = this.data.setEnvvars || [];
                     this.data.setEnvvars.push({name: 'new'});
                 },
                 addCheck: function()
                 {
+                    this.data.checks = this.data.checks || [];
                     this.data.checks.push({name: 'new'});
                 },
                 removeSetEnvvar: function(i)
@@ -127,6 +316,27 @@ app.factory('Testsuite', ['$http','$q','ErrorService','Testcase',
                     delete data.data.testcases;
                 }
                 angular.extend(this, data);
+            },
+            resetLiveTestrun: function() {
+                let self = this;
+                $http({
+                    "method": "POST",
+                    "url": "/testsuites/" + self.id + "/removelivetestrun"
+                }).then(function(res)
+                {
+                    console.log(res.data);
+                },ErrorService.handleHttpError);
+            },
+            run: function()
+            {
+                let self = this;
+                $http({
+                    "method": "POST",
+                    "url": "/testsuites/" + self.id + "/run"
+                }).then(function(res)
+                {
+                    console.log(res.data);
+                },ErrorService.handleHttpError);
             },
             addTestcaseWithName: function(name)
             {
@@ -266,6 +476,11 @@ app.controller('testsuitesCtl', ['$rootScope', '$cookies', '$scope', '$location'
         // $scope.testsuite =  TestsuiteService.getById($routeParams.id);
 
         $scope.testsuites = TestsuiteService.search();
+
+        $scope.runTestsuite = function(testsuite)
+        {
+            testsuite.run();
+        }
 
     }]);
 

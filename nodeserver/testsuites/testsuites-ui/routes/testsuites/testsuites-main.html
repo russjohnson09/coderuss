@@ -1,11 +1,12 @@
-<div>
-    Hello
-</div>
+<h1>Testsuites</h1>
 
-<div ng-repeat="testsuite in testsuites.data track by $index">
-    <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
-</div>
+<ul ng-repeat="testsuite in testsuites.data track by $index">
+    <li>
+        <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
+        <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
+    </li>
+</ul>
 
-<div>
+<div ng-if="false">
     <json-formatter json="testsuites"></json-formatter>
 </div>

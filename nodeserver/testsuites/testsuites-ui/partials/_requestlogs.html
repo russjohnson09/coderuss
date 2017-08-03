@@ -1,0 +1,111 @@
+<div ng-if="requestLogs.length > 0">
+    <!--<h1>RequestLogs</h1>-->
+
+    <div ng-repeat="requestlog in requestLogs track by $index">
+        <div
+                ng-class="{'panel-danger': requestlog.getResponseStatus() == 'danger',
+             'panel-success': requestlog.getResponseStatus() == 'success',
+                        'panel-warning': requestlog.getResponseStatus() == 'warning'}" class="panel">
+
+            <!--wrap panel heading in span to trigger image change as well as collapse -->
+            <div ng-click="requestlog.toggleShow()"
+                 ng-class="{expanded: requestlog.show}"
+                 class="panel-heading" role="tab">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <a href="">
+
+                        <span ng-if="!requestlog.show">
+                            <i class="fa fa-caret-right" aria-hidden="true"></i>
+                        </span>
+                            <span ng-if="requestlog.show">
+                            <i class="fa fa-caret-down" aria-hidden="true"></i>
+                        </span>
+
+                        {{requestlog.data.request.path}}
+
+                        </a>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="method"
+                             ng-class="{
+                            'bg-primary': 'POST' === requestlog.data.request.method,
+                             'bg-info': 'GET' === requestlog.data.request.method,
+                             'bg-warning': 'PUT' === requestlog.data.request.method,
+                             'bg-danger': 'DELETE' === requestlog.data.request.method
+                            }">
+                            {{requestlog.data.request.method}}
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        {{requestlog.data.response.statusCode}}
+                    </div>
+                    <div class="col-sm-2">
+                        {{requestlog.getDuration()}} (ms)
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapse{{$index}}" class="panel-collapse collapse"
+                 ng-class="{in: requestlog.show}"
+                 role="tabpanel"
+                 aria-labelledby="headingOne">
+                <div ng-if="requestlog.show" class="panel-body">
+
+                    <div class="requestlog">
+                        <div class="description">
+                            {{requestlog.getDescription()}}
+                        </div>
+                        <div class="request">
+                            <div class="request-body">
+                                <div>
+                                    Request Url: <a href="{{requestlog.getUrlWithQueryString()}}">{{requestlog.getUrlWithQueryString()}}</a>
+                                    <div>
+                                        Request Method: {{requestlog.data.request.method}}
+                                    </div>
+                                    <div ng-if="requestlog.data.request.qs">
+                                        Query String:
+                                        <pre>{{requestlog.data.request.qs | json}}</pre>
+                                    </div>
+                                </div>
+                                <div ng-if="requestlog.data.request.headers">
+                                    Request Headers:
+                                    <pre>{{requestlog.data.request.headers | json}}</pre>
+                                </div>
+                                <div ng-if="requestlog.data.request.body ">
+                                    Request Body:
+                                    <pre>{{requestlog.data.request.body | json}}</pre>
+                                </div>
+                                <div id="requestlog-{{requestlog.data.id}}-request-body">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="response">
+                            <div class="response-body">
+                                <div>
+                                    Response Status Code: {{requestlog.data.response.statusCode}}
+                                </div>
+                                <div>
+                                    Response Headers: <pre>{{requestlog.data.response.headers | json}}</pre>
+                                </div>
+                                <div ng-show="requestlog.data.response.body">
+                                    Response Body:
+                                </div>
+                                <div ng-show="requestlog.data.response.body">
+                                    <pre>{{requestlog.data.response.body | json}}</pre>
+                                </div>
+                                <div ng-show="!requestlog.data.response.body">
+                                    <preview content="requestlog.data.response.rawResponseBody"></preview>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

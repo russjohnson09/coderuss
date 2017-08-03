@@ -1,5 +1,5 @@
 <h1>
-    {{testsuite.data.name}}
+    {{testsuite.data.name}} <button ng-click="testsuite.resetLiveTestrun()" type="button" class="btn btn-primary">Reset Live Testrun</button>
 </h1>
 
 <div>
@@ -42,15 +42,17 @@
         </ul>
     </div>
 
-
     <div ng-if="testcase.get('current_envvars')">
-        <h3>Set variables</h3>
+        <h3>Current Variables</h3>
         <ul ng-repeat="(key, value) in testcase.get('current_envvars')">
             <li>{{key}} = {{value}}</li>
         </ul>
     </div>
 
-    <form class="form-horizontal">
+    <request-logs request-logs="testcase.get('request_logs')"></request-logs>
+
+
+    <form class="form-horizontal" ng-submit="testcase.saveRun()">
         <div class="form-group">
             <label class="control-label col-sm-2" for="{{testcase.id}}-name">
                 Name
@@ -88,10 +90,8 @@
                           ng-model="testcase.data.opts.body"></textarea>
             </div>
         </div>
-    </form>
 
-    <h3>{{testcase.data.name}} - Envvars</h3>
-    <form class="form-horizontal">
+        <h3>{{testcase.data.name}} - Set Variables</h3>
         <!--<json-formatter json="testcase.data.setEnvvars"></json-formatter>-->
         <div ng-repeat="envvar in testcase.data.setEnvvars track by $index">
             <div>
@@ -130,14 +130,19 @@
             </div>
         </div>
         <div>
-            <button class="btn btn-primary" ng-click="testcase.addSetEnvvar()">
+            <button type="button" class="btn btn-primary" ng-click="testcase.addSetEnvvar()">
                 Add Set Variable
             </button>
         </div>
 
+        <h3>{{testcase.data.name}} - Checks</h3>
         <div ng-repeat="check in testcase.data.checks track by $index">
             <div>
-                <h4>{{check.name}}</h4>
+                <h4>#{{$index+1}} {{check.name}}
+                    <button type="button" style="float:right" ng-click="testcase.copyCheck($index)" class="btn btn-success">Copy</button>
+
+                    <button type="button" style="float:right" ng-click="testcase.removeCheck($index)" class="btn btn-danger">Remove</button>
+                </h4>
                 <div class="form-group">
                     <label class="control-label col-sm-2">
                         Name
@@ -195,6 +200,16 @@
 
                 <div class="form-group">
                     <label class="control-label col-sm-2">
+                        Val1 Name
+                    </label>
+                    <div class="col-sm-10">
+                        <input class="form-control"
+                               ng-model="check.val1.name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2">
                         Val2 Type
                     </label>
                     <div class="col-sm-10">
@@ -213,7 +228,7 @@
                 </div>
                 <div class="form-group">
                     <label class="control-label col-sm-2">
-                        Val1 Val
+                        Val2 Val
                     </label>
                     <div class="col-sm-10">
                         <input class="form-control"
@@ -221,23 +236,33 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="control-label col-sm-2">
+                        Val2 Name
+                    </label>
+                    <div class="col-sm-10">
+                        <input class="form-control"
+                               ng-model="check.val2.name">
+                    </div>
+                </div>
+
             </div>
-
-            <button ng-click="testcase.copyCheck($index)" class="btn btn-success">Copy</button>
-
-            <button ng-click="testcase.removeCheck($index)" class="btn btn-danger">Remove</button>
 
         </div>
         <div>
-            <button class="btn btn-primary" ng-click="testcase.addCheck()">
+            <button type="button" class="btn btn-primary" ng-click="testcase.addCheck()">
                 Add Check
             </button>
         </div>
+
+        <!--<span ng-show="false"-->
+              <!--style="float:right"><button class="btn btn-primary"-->
+                                          <!--ng-click="testcase.saveRun()">Save/Run</button></span>-->
     </form>
 
-    <json-formatter json="testcase"></json-formatter>
+    <!--<json-formatter json="testcase"></json-formatter>-->
 </div>
 
 <div>
-    <json-formatter json="testsuite"></json-formatter>
+    <!--<json-formatter json="testsuite"></json-formatter>-->
 </div>

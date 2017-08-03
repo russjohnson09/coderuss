@@ -12,7 +12,59 @@ app.factory('Testcase', ['$http','$q','ErrorService','BaseModel',
         model.prototype = Object.assign(
             BaseModel.prototype, //default model functions
             {
+                saveRun: function()
+                {
+                    let self = this;
+                    $http({
+                        "method": "POST",
+                        "url": "/testsuites/" + self.data.testsuite_id +
+                            "/testcases",
+                        "data": self.data
+                    }).then(function(res) {
+                        let checkresults = res.data.checkresults;
+                        self._relations = self._relations || {};
+                        self._relations['checkresults'] = {data: checkresults};
+                        self._relations['logs'] = {data: res.data.logs};
+
+
+
+                        let hasfailures = (checkresults.filter(function(checkresult) {
+                            return checkresult.result !== 'success';
+                        })).length > 0;
+
+                        if (hasfailures) {
+                            self._relations['last_result'] = {data:'failure'}
+
+                        }
+                        else {
+                            self._relations['last_result'] = {data:'success'};
+                        }
+
+                        self._relations['current_envvars'] = {data: res.data.testrun.envvars};
+
+
+
+                        console.log('saveRun',res);
+                    })
+                },
                 //new function go here
+                addSetEnvvar: function()
+                {
+                    console.log(this);
+                    this.data.setEnvvars.push({name: 'new'});
+                },
+                addCheck: function()
+                {
+                    this.data.checks.push({name: 'new'});
+                },
+                removeSetEnvvar: function(i)
+                {
+                    this.data.setEnvvars.splice(i,1)
+                },
+                removeCheck: function(i)
+                {
+                    this.data.checks.splice(i,1)
+                }
             }
         );
 

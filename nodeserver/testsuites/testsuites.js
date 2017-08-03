@@ -464,7 +464,7 @@ let initilize = function (opts) {
                 id: obj.id + '-live',
                 status: 'pending',
                 // logs: [],
-                envvars: {x:1},
+                envvars: {},
                 testsuite_id: obj.id
             };
             db.get('testruns').remove({id:t.id}).write();

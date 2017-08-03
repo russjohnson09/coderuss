@@ -193,8 +193,13 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                     });
                     console.log('delete', this.id);
                 },
-                saveRun: function () {
+                saveRun: function (index)
+                {
                     let self = this;
+                    console.log(this,index);
+                    if (index !== undefined) {
+                        self.data.order = index;
+                    }
                     $http({
                         "method": "POST",
                         "url": "/testsuites/" + self.data.testsuite_id +
@@ -299,6 +304,35 @@ app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase',
                 }
                 angular.extend(this, data);
             },
+            arrangeTestcases : function(index,inc)
+            {
+                let self = this;
+
+                let ts = self.get('testcases')[index];
+                console.log(ts,index,inc);
+                // return;
+                ts.data.order = ts.data.order + inc;
+
+                $http({
+                    "method": "POST",
+                    "url": "/testsuites/" + self.id + "/testcases/" + ts.data.id +
+                        "/reorder",
+                    "data": ts.data,
+                }).then(function (res) {
+                    self.refresh();
+                }, ErrorService.handleHttpError);
+            },
+            refresh: function()
+            {
+                let self = this;
+                $http({
+                    "method": "GET",
+                    "url": "/testsuites/" + self.id
+                }).then(function (res) {
+                    self.setData({data: res.data, _status: 'done'}
+                    );
+                })
+            },
             resetLiveTestrun: function () {
                 let self = this;
                 $http({
@@ -310,19 +344,30 @@ app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase',
             },
             run: function (cb) {
                 let self = this;
+
+                self._relations['last_run'] = {
+                    data: null
+                };
+
                 $http({
                     "method": "POST",
                     "url": "/testsuites/" + self.id + "/run"
                 }).then(function (res) {
-                        self._relations['last_result'] = {
-                            data: 'success'
+                        self._relations['last_run'] = {
+                            data: res.data
                         };
+                        // self._relations['last_result'] = {
+                        //     data: 'success'
+                        // };
                         cb(res.data);
                 },
                     function(res) {
-                        self._relations['last_result'] = {
-                            data: 'failure'
+                        self._relations['last_run'] = {
+                            data: res.data
                         };
+                        // self._relations['last_result'] = {
+                        //     data: 'failure'
+                        // };
                         cb(res.data);
                     }
                     // ErrorService.handleHttpError

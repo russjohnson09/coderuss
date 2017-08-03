@@ -17,7 +17,17 @@
         <span ng-if="testcase.get('last_result') == 'success'"><i class="fa fa-check" style="color:green"></i></span>
         <span ng-if="testcase.get('last_result') == 'failure'"><i class="fa fa-exclamation-triangle"
                                                                   style="color:red"></i></span>
-        <span style="float:right"><button class="btn btn-primary" ng-click="testcase.saveRun()">Save/Run</button></span>
+        <span style="float:right"><button class="btn btn-primary"
+                                          ng-click="testcase.saveRun($index)">
+            Save/Run</button></span>
+
+        <span ng-if="$index < testsuite.get('testcases').length - 1" style="float:right"><button class="btn btn-primary"
+                                          ng-click="testsuite.arrangeTestcases($index,1)">
+            Up</button></span>
+
+        <span ng-if="$index !== 0"  style="float:right"><button class="btn btn-primary"
+                                          ng-click="testsuite.arrangeTestcases($index,-1)">
+            Down</button></span>
     </h2>
     <button class="btn btn-primary" ng-click="testsuite.copyTestcase(testcase)">Copy</button>
     <button class="btn btn-danger" ng-click="testsuite.removeTestcase($index)">Delete</button>

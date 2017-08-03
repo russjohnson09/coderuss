@@ -9,10 +9,10 @@
         <div class="col-sm-5">
             <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
             <a ng-href="#!/testruns/" + t>
-            <span ng-if="testsuite.get('last_result') == 'success'">Success
+            <span ng-if="testsuite.get('last_run').result == 'success'">Success: see details
                 <i class="fa fa-check" style="color:green"></i>
             </span>
-                <span ng-if="testsuite.get('last_result') == 'failure'">Failure
+                <span ng-if="testsuite.get('last_run').result == 'failure'">Failure
                 <i class="fa fa-exclamation-triangle"
                    style="color:red"></i>
             </span>

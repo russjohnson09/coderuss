@@ -8,6 +8,9 @@ let initilize = function (opts) {
     let logger = opts.logger;
     let app = opts.app;
     let noop = function(){};
+    let getGuid = function () {
+        return crypto.randomBytes(10).toString('hex');
+    };
 
     const db = low(__dirname + '/.testsuites.json');
     db.defaults({
@@ -301,6 +304,7 @@ let initilize = function (opts) {
 
             obj.testcases = db.get('testcases')
                 .filter({ testsuite_id: req.params.id })
+                .sortBy('order')
                 .value();
 
             res.json(obj);
@@ -312,6 +316,7 @@ let initilize = function (opts) {
         app.get('/testsuites/:id/testcases', function(req,res) {
             obj = db.get('testcases')
                 .filter({ testsuite_id: req.params.id })
+                .sortBy('order')
                 .value();
 
             res.json(obj);
@@ -429,7 +434,8 @@ let initilize = function (opts) {
                 .find({id:req.params.id})
                 .value();
             let t = {
-                id: obj.id + '-' + Date.now(),
+                // id: obj.id + '-' + Date.now(),
+                id: getGuid(),
                 status: 'pending',
                 testsuite_id: obj.id,
                 envvars: {}
@@ -441,7 +447,10 @@ let initilize = function (opts) {
                 )
                 .write();
 
-            let testcases = db.get('testcases').filter({testsuite_id:req.params.id}).value();
+            let testcases = db.get('testcases')
+                .filter({testsuite_id:req.params.id})
+                .sort('order')
+                .value();
 
 
             runTestCases(t,testcases,function(tr) {
@@ -774,7 +783,82 @@ let initilize = function (opts) {
                 name:req.body.name});
         });
 
-        /**
+        app.post('/testsuitehelpers/get/:name', function(req,res) {
+            let obj = {name:req.params.name,val:null};
+            if (req.params.name == 'guid') {
+                return res.json({name:req.params.name,val:getGuid()}).end();
+            }
+            res.json(obj).end();
+        });
+
+
+        app.post('/testsuites/:tsid/testcases/:id/reorder', function(req,res) {
+            let testcases =  db.get('testcases')
+                .filter({ testsuite_id: req.params.tsid })
+                .sortBy('order')
+                .value();
+
+            let order = req.body.order;
+            let id = req.body.id;
+            let testcase =  db.get('testcases')
+                .find({ testsuite_id: req.params.tsid, id: req.params.id })
+                .value();
+            let oldOrder = testcase.order;
+
+            let result = {oldOrder:oldOrder,order:order,changed: 0,
+                loops: []};
+
+            if (oldOrder == order) {
+                return res.json(result).end();
+            }
+            if (order > oldOrder) {
+                for (let i in testcases)
+                {
+                    let tc = testcases[i];
+
+                    result.loops.push(
+                        {tc_id:tc.id,
+                        tc_order:tc.order,oldOrder:oldOrder,
+                    new_order:order}
+                    );
+
+                    if (tc.order > oldOrder && tc.order <= order) {
+                        result.changed ++;
+                        db.get('testcases').find({id:tc.id}).assign({order: tc.order - 1})
+                            .write();
+                    }
+                }
+            }
+            else {
+                for (let i in testcases)
+                {
+                    let tc = testcases[i];
+
+                    result.loops.push(
+                        {tc_id:tc.id,
+                            tc_order:tc.order,oldOrder:oldOrder,
+                            new_order:order}
+                    );
+
+                    if (tc.order < oldOrder && tc.order >= order) {
+                        result.changed ++;
+                        db.get('testcases').find({id:tc.id}).assign({order: tc.order + 1})
+                            .write();
+                    }
+                }
+            }
+
+            db.get('testcases')
+                .find({ testsuite_id: req.params.tsid, id: req.params.id })
+                .assign({order:order})
+                .write();
+
+            return res.json(result).end();
+
+
+        });
+
+            /**
          * Remove replace testcase. Return result of live testrun.
          * Use name + tsid
          * Add testcaserun
@@ -783,6 +867,7 @@ let initilize = function (opts) {
 
             var testcases =  db.get('testcases')
                 .filter({ testsuite_id: req.params.tsid })
+                .sortBy('order')
                 .value();
 
             let id = req.params.tsid + '-' + getIdFromName(req.body.name);

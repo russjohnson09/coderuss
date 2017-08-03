@@ -1,0 +1,42 @@
+<h1>Testsuites</h1>
+
+<ul ng-repeat="testsuite in testsuites.data track by $index">
+    <div class="row">
+        <div class="col-sm-5">
+            <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
+        </div>
+
+        <div class="col-sm-5">
+            <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
+            <a ng-href="#!/testruns/" + t>
+            <span ng-if="testsuite.get('last_result') == 'success'">Success
+                <i class="fa fa-check" style="color:green"></i>
+            </span>
+                <span ng-if="testsuite.get('last_result') == 'failure'">Failure
+                <i class="fa fa-exclamation-triangle"
+                   style="color:red"></i>
+            </span>
+            </a>
+        </div>
+        <div class="col-sm-2">
+
+        </div>
+    </div>
+    <li ng-if="false">
+        <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
+        <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
+        <a>
+            <span ng-if="testsuite.get('last_result') == 'success'">
+                <i class="fa fa-check" style="color:green"></i>
+            </span>
+            <span ng-if="testsuite.get('last_result') == 'failure'">
+                <i class="fa fa-exclamation-triangle"
+                   style="color:red"></i>
+            </span>
+        </a>
+    </li>
+</ul>
+
+<div ng-if="false">
+    <json-formatter json="testsuites"></json-formatter>
+</div>

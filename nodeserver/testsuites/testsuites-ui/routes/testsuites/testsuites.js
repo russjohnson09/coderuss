@@ -739,6 +739,9 @@ app.controller('testsuitesCtl', ['$rootScope', '$cookies', '$scope', '$location'
 
         $scope.runTestsuite = function (testsuite) {
             testsuite.run(function(data) {
+                if (data.result !== 'success') {
+                    $location.path('/testruns/' + data.id);
+                }
                 console.log(data);
             });
         };

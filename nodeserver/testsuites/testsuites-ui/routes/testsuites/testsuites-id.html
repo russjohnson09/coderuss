@@ -2,6 +2,13 @@
     {{testsuite.data.name}} <button ng-click="testsuite.resetLiveTestrun()" type="button" class="btn btn-primary">Reset Live Testrun</button>
 </h1>
 
+
+<input ng-model="testsuite.data.name"> <button type="button" class="btn btn-primary"
+                                               ng-click="testsuite.update()">Update Testsuite Name</button>
+
+<button ng-click="runTestsuite(testsuite)" class="btn btn-primary">Run Testcases</button>
+
+
 <div>
     <input ng-model="new_testcasename">
 

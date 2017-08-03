@@ -27,7 +27,7 @@ let initilize = function (opts) {
         checkresults: []
     }).write();
 
-    const repodb = low(__dirname + '/testsuites.json');
+    let repodb = opts.repodb || low(__dirname + '/testsuites.json');
 
     repodb.defaults({
         testsuites: [],
@@ -283,54 +283,133 @@ let initilize = function (opts) {
 
 
 
-        /*
-         * list testsuites
-         */
-        app.get('/testsuites', function(req,res) {
-            let obj = db.get('testsuites')
-                // .filter({})
-                .value();
+        (function testsuitesCRUD() {
 
-            logger.info(linenumber(),obj);
+            /*
+             * update testsuite
+             * don't delete anything
+             */
+            app.put('/testsuites/:id', function(req,res) {
+                let obj = db.get('testsuites')
+                    .find({id:req.params.id})
+                    .assign(req.body)
+                    .write();
 
-            res.json(obj);
-        });
+                res.json(obj).end();
+            });
 
-        /*
-         * find a testsuite and all releated info.
-         * testcases with their checks and setEnvvars required to run a testsuite.
-         */
-        app.get('/testsuites/:id', function(req,res) {
-            let obj = db.get('testsuites')
-                .find({ id: req.params.id })
-                .value();
+            /*
+             * list testsuites
+             */
+            app.get('/testsuites', function(req,res) {
+                let obj = db.get('testsuites')
+                    // .filter({})
+                    .value();
 
-            obj.testcases = db.get('testcases')
-                .filter({ testsuite_id: req.params.id })
-                .sortBy('order')
-                .value();
+                logger.info(linenumber(),obj);
 
-            res.json(obj);
-        });
+                res.json(obj);
+            });
 
-        /**
-         * Delete testsuite and related records;
-         * @param id
-         */
-        function deleteTestsuite(id)
-        {
-            db.get('testsuites')
-                .remove({ id: req.params.id })
-                .write();
-        }
+            /*
+             * find a testsuite and all releated info.
+             * testcases with their checks and setEnvvars required to run a testsuite.
+             */
+            app.get('/testsuites/:id', function(req,res) {
+                let obj = db.get('testsuites')
+                    .find({ id: req.params.id })
+                    .value();
 
-        /*
-         * delete a testsuite
-         */
-        app.delete('/testsuites/:id', function(req,res) {
+                if (!obj) {
+                    return res.end();
+                }
 
-            res.end();
-        });
+                obj.testcases = db.get('testcases')
+                    .filter({ testsuite_id: req.params.id })
+                    .sortBy('order')
+                    .value();
+
+                res.json(obj);
+            });
+
+
+            /*
+             * find a testsuite and all releated info.
+             * testcases with their checks and setEnvvars required to run a testsuite.
+             */
+            app.post('/testsuites/:id/copy', function(req,res) {
+                let obj = db.get('testsuites')
+                    .find({ id: req.params.id })
+                    .value();
+
+                if (!obj) {
+                    return res.end();
+                }
+
+                let newId = getGuid();
+
+                let newName = obj.name + ' Copy';
+
+                let newTestsuite = Object.assign({},obj,{id:newId,name:newName});
+
+                db.get('testsuites')
+                    .push(newTestsuite)
+                    .write();
+
+                let testcases = db.get('testcases')
+                    .filter({ testsuite_id: req.params.id })
+                    .sortBy('order')
+                    .value();
+
+                newTestsuite.testcases = [];
+
+                logger.info(linenumber(),testcases);
+
+                for (let i in testcases)
+                {
+                    let testcase = JSON.parse(JSON.stringify(testcases[i]));
+
+                    logger.info(linenumber(),testcase);
+
+                    testcase.id = getGuid();
+
+                    testcase.testsuite_id = newTestsuite.id;
+
+                    logger.info(linenumber(),testcase);
+
+                    newTestsuite.testcases.push(testcase);
+
+                    db.get('testcases')
+                        .push(testcase)
+                        .write();
+                }
+
+
+
+                res.json(newTestsuite).end();
+            });
+
+            /**
+             * Delete testsuite and related records;
+             * @param id
+             */
+            function deleteTestsuite(id)
+            {
+                db.get('testsuites')
+                    .remove({ id: id })
+                    .write();
+            }
+
+            /*
+             * delete a testsuite
+             */
+            app.delete('/testsuites/:id', function(req,res) {
+
+                deleteTestsuite(req.params.id);
+                res.end();
+            });
+
+        })();
 
         /*
          * testcases get
@@ -426,19 +505,28 @@ let initilize = function (opts) {
             }
 
             let testsuites = sourceDb.get('testsuites').value();
+            targetDb.get('testsuites').remove().write();
+            targetDb.get('testcases').remove().write();
+            targetDb.get('testruns').remove().write();
+
+
             for (var i in testsuites)
             {
                 let ts = testsuites[i];
-                targetDb.get('testsuites').remove({id:ts.id}).write();
+                delete ts.testcases;
 
                 targetDb.get('testsuites').push(ts).write();
 
                 let testcases = sourceDb.get('testcases').filter({"testsuite_id": ts.id }).value();
-                targetDb.get('testcases').remove({testsuite_id:ts.id}).write();
 
                 for (var i in testcases)
                 {
                     let tc = testcases[i];
+
+                    delete tc.checkresults;
+                    delete tc.logs;
+                    delete tc.testrun;
+
 
                     targetDb.get('testcases').push(tc).write();
 
@@ -880,7 +968,7 @@ let initilize = function (opts) {
 
         });
 
-            /**
+        /**
          * Remove replace testcase. Return result of live testrun.
          * Use name + tsid
          * Add testcaserun
@@ -892,7 +980,13 @@ let initilize = function (opts) {
                 .sortBy('order')
                 .value();
 
-            let id = req.params.tsid + '-' + getIdFromName(req.body.name);
+            let id;
+            if (req.body.id) {
+
+            }
+            else {
+                id = req.params.tsid + '-' + getIdFromName(req.body.name);
+            }
 
             let testcase = db.get('testcases')
                 .find({ id: id })
@@ -952,15 +1046,6 @@ let initilize = function (opts) {
 
                 res.json(result);
             });
-
-        });
-
-        app.post('/testsuites/:id/testcases/:id/checks', function(req,res) {
-
-        });
-
-
-        app.post('/testsuites/:id/testcases/:id/setenvs', function(req,res) {
 
         });
 

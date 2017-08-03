@@ -5,12 +5,15 @@ let initilize = function (opts) {
     var webdriverio = require('webdriverio');
     var express = require('express');
 
+
     let logger = opts.logger;
     let app = opts.app;
     let noop = function(){};
     let getGuid = function () {
         return crypto.randomBytes(10).toString('hex');
     };
+
+    logger.info(linenumber(),'started testsuites.js');
 
     const db = low(__dirname + '/.testsuites.json');
     db.defaults({
@@ -308,6 +311,25 @@ let initilize = function (opts) {
                 .value();
 
             res.json(obj);
+        });
+
+        /**
+         * Delete testsuite and related records;
+         * @param id
+         */
+        function deleteTestsuite(id)
+        {
+            db.get('testsuites')
+                .remove({ id: req.params.id })
+                .write();
+        }
+
+        /*
+         * delete a testsuite
+         */
+        app.delete('/testsuites/:id', function(req,res) {
+
+            res.end();
         });
 
         /*

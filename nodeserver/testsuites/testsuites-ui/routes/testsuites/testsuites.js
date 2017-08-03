@@ -503,6 +503,17 @@ app.factory('TestsuiteService', ['$http', '$q', 'ErrorService', 'Testsuite',
             return obj;
         };
 
+        factory.addTestsuite = function(data)
+        {
+            return $http({
+                "method": "POST",
+                "url": "/testsuites/" + data.id,
+                "data": data,
+            }).then(function (res) {
+
+            }, ErrorService.handleHttpError);
+        };
+
         return factory;
     }]);
 
@@ -511,6 +522,12 @@ app.controller('testsuitesCtl', ['$rootScope', '$cookies', '$scope', '$location'
     function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestsuiteService) {
 
         // $scope.testsuite =  TestsuiteService.getById($routeParams.id);
+
+        $scope.createTestsuite = function(id,name) {
+            TestsuiteService.addTestsuite({id:id,name:name}).then(function() {
+                $location.path('/testsuites/' + id);
+            });
+        };
 
         $scope.testsuites = TestsuiteService.search();
 

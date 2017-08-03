@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Optimize mobile viewport -->
 
-    <title>Coderuss</title>
+    <title>Testsuites</title>
 
     <link rel="stylesheet"
           href="bower_components/bootstrap/dist/css/bootstrap.css">
@@ -136,6 +136,10 @@
             .when("/testsuites/:id", {
                 templateUrl: "routes/testsuites/testsuites-id.html",
                 controller: "testsuitesIdCtl"
+            })
+            .when("/testruns/:id", {
+                templateUrl: "routes/testruns/testruns-id.html",
+                controller: "testrunsIdCtl"
             })
             .otherwise({
                 redirectTo: '/testsuites'
@@ -278,9 +282,9 @@
 
 </script>
 
-<script src="routes/testsuites/testsuites.js">
+<script src="routes/testsuites/testsuites.js"></script>
 
-</script>
+<script src="routes/testruns/testruns.js"></script>
 
 <footer class="footer">
     <!--<kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd>-->

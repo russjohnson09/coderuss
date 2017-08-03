@@ -713,6 +713,11 @@ let initilize = function (opts) {
             res.json(getTestRunFull(req.params.id));
         });
 
+        app.get('/testruns/:id', function(req,res) {
+
+            res.json(getTestRunFull(req.params.id));
+        });
+
 
         function addRun() {
 
@@ -849,7 +854,7 @@ let initilize = function (opts) {
                             checkresult.val1 = val1;
                             checkresult.val2 = val2;
 
-                            if (val1 !== val2) {
+                            if (val1 != val2) {
                                 checkresult.result = 'failure';
                                 checkresult.error = {
                                     message: 'Expected ' + val1 + ' to equal ' + val2

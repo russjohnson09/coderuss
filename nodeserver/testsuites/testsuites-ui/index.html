@@ -193,6 +193,10 @@
         };
 
         model.prototype = {
+            toggleShow: function()
+            {
+                this.show = !this.show;
+            },
             setData: function (data) {
                 if (this.data == undefined) {
                     this.data = {};

@@ -199,7 +199,7 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                     $http({
                         "method": "DELETE",
                         "url": "/testsuites/" + self.data.testsuite_id +
-                        "/testcases/" + self.id,
+                        "/testcases/" + self.data.id,
                     }).then(function (res) {
 
                     });
@@ -210,6 +210,8 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                     cb = cb || noop;
                     let self = this;
                     console.log(this,index);
+                    self._relations['last_result'] = {data: null};
+
                     if (index !== undefined && index !== null) {
                         self.data.order = index;
                     }
@@ -219,9 +221,13 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                         "/testcases",
                         "data": self.data
                     }).then(function (res) {
+                        self.id = self.data.id = res.data.id;
                         let checkresults = res.data.checkresults;
+
                         self._relations = self._relations || {};
                         self._relations['checkresults'] = {data: checkresults};
+                        self._relations['error'] = {data: null};
+
 
 
                         if (self.data.type === 'api') {
@@ -232,10 +238,20 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                             self._relations['request_logs'] = {data: request_logs};
                         }
 
+                        let hasfailures;
+                        if (checkresults) {
+                            let hasfailures = (checkresults.filter(function (checkresult) {
+                                    return checkresult.result !== 'success';
+                                })).length > 0;
+                        }
+                        else {
+                            hasfailures = true;
+                        }
 
-                        let hasfailures = (checkresults.filter(function (checkresult) {
-                                return checkresult.result !== 'success';
-                            })).length > 0;
+                        console.log('haserr',res.data,res.data.err);
+                        if (res.data && res.data.err) {
+                            self._relations['error'] = {data: res.data.err};
+                        }
 
                         if (hasfailures) {
                             self._relations['last_result'] = {data: 'failure'}
@@ -245,8 +261,10 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                             self._relations['last_result'] = {data: 'success'};
                         }
 
-                        self._relations['current_envvars'] = {data: res.data.testrun.envvars};
-
+                        try {
+                            self._relations['current_envvars'] = {data: res.data.testrun.envvars};
+                        }
+                        catch (e){}
 
                         console.log('saveRun', res);
                         cb();
@@ -317,6 +335,16 @@ app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase','$timeout',
                     delete data.data.testcases;
                 }
                 angular.extend(this, data);
+            },
+            removeEnvvar: function(i)
+            {
+                this.data.envvars.splice(i,1);
+                this.update();
+            },
+            addEnvvar: function()
+            {
+                this.data.envvars = this.data.envvars || [];
+                this.data.envvars.push({name: '',val:''});
             },
             saveRunTestcases: function()
             {
@@ -693,6 +721,19 @@ app.controller('testsuitesIdCtl', ['$rootScope', '$cookies', '$scope', '$locatio
     function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestsuiteService) {
 
         $scope.testsuite = TestsuiteService.getById($routeParams.id);
+
+
+        $scope._toggleShow = {};
+
+        $scope.toggleShow = function(name)
+        {
+            $scope._toggleShow[name] = !$scope._toggleShow[name]
+        };
+
+        $scope.getShow = function(name)
+        {
+            return $scope._toggleShow[name];
+        };
 
         $scope.runTestsuite = function(testsuite)
         {

@@ -22,8 +22,6 @@ let initilize = function (opts) {
         logs: [],
         testsuites: [],
         testcases: [],
-        // envvars: [],
-        // checks: [],
         checkresults: []
     }).write();
 
@@ -423,15 +421,52 @@ let initilize = function (opts) {
             res.json(obj);
         });
 
+        function removeAllTestcasesWithoutTestsuite()
+        {
+            logger.info(linenumber(),'removeAllTestcasesWithoutTestsuite');
+            let testcases = db.get('testcases')
+                .value();
+
+            db.get('testcases').remove().write();
+
+            for (let i in testcases)
+            {
+                // logger.info(linenumber(),'removeAllTestcasesWithoutTestsuite');
+
+                let tc = testcases[i];
+
+                if (tc.testsuite_id)
+                {
+                    db.get('testcases').push(tc).write();
+                }
+            }
+
+        }
+
         /*
          * testcase delete
          */
         app.delete('/testsuites/:tsid/testcases/:id', function(req,res) {
-            obj = db.get('testcases')
-                .remove({ testsuite_id: req.params.tsid, id: req.params.id })
+            let id = req.params.id;
+            // if (id == 'undefined') {
+            //     removeAllTestcasesWithoutTestsuite();
+            // }
+
+            logger.info(linenumber(),id);
+
+            db.get('testcases')
+                .remove({id: id })
                 .write();
 
-            res.status(204).end()
+            let testcase = db.get('testcases')
+                .find({id: id})
+                .value();
+
+            if (testcase) {
+                return res.status(422).json(testcase);
+            }
+
+            res.end()
         });
 
         function runTestCases(testrun,testcases,cb)
@@ -538,17 +573,37 @@ let initilize = function (opts) {
             return res.json({});
         });
 
+        function getTestsuiteEnvvarsObj(id)
+        {
+            let ts = db.get('testsuites')
+                .find({id:id})
+                .value();
+            let result = {};
+
+            logger.info(linenumber(),id,!!(ts.id));
+
+            logger.info(linenumber(),ts,ts.envvars);
+
+            if (ts.envvars) {
+                for (var i in ts.envvars) {
+                    result[ts.envvars[i].name] = ts.envvars[i].value;
+                }
+            }
+
+            return result;
+        }
+
 
         app.post('/testsuites/:id/run', function(req,res) {
             let obj = db.get('testsuites')
                 .find({id:req.params.id})
                 .value();
+
             let t = {
-                // id: obj.id + '-' + Date.now(),
                 id: getGuid(),
                 status: 'pending',
                 testsuite_id: obj.id,
-                envvars: {}
+                envvars: getTestsuiteEnvvarsObj(req.params.id)
             };
 
             db.get('testruns')
@@ -582,8 +637,10 @@ let initilize = function (opts) {
                 db.get('testruns').remove({id:tr.id}).write();
                 db.get('logs').remove({testrun_id:tr.id}).write();
                 db.get('testcaseruns').remove({testrun_id:tr.id}).write();
-                db.get('testcases').remove({testsuite_id:req.params.id}).write();
+
+                // db.get('testcases').remove({testsuite_id:req.params.id}).write();
                 db.get('checkresults').remove({testsuite_id:req.params.id}).write();
+
             }
             res.end();
         });
@@ -607,8 +664,7 @@ let initilize = function (opts) {
             let t = {
                 id: obj.id + '-live',
                 status: 'pending',
-                // logs: [],
-                envvars: {},
+                envvars: getTestsuiteEnvvarsObj(req.params.id),
                 testsuite_id: obj.id
             };
             db.get('testruns').remove({id:t.id}).write();
@@ -819,6 +875,26 @@ let initilize = function (opts) {
                             }
 
                         }
+                        else if (check.type == 'gt') {
+                            val1 = getValForCheck(check.val1,requestlog,testrun);
+                            val2 = getValForCheck(check.val2,requestlog,testrun);
+
+                            logger.info(linenumber(),val1,val2);
+
+                            checkresult.val1 = val1;
+                            checkresult.val2 = val2;
+
+                            if (!(val1 > val2)) {
+                                checkresult.result = 'failure';
+                                checkresult.error = {
+                                    message: 'Expected ' + val1 + ' > ' + val2
+                                }
+                            }
+                            else {
+                                checkresult.result = 'success';
+                            }
+                        }
+
                         else {
                             checkresult.result = 'failure';
                             checkresult.error = {
@@ -830,8 +906,6 @@ let initilize = function (opts) {
                         db.get('checkresults').push(
                             JSON.parse(JSON.stringify(checkresult))
                         ).write();
-
-                        // testcase.checks[i].result = checkresult.result;
 
                     }
 
@@ -863,10 +937,12 @@ let initilize = function (opts) {
                 return tr;
             }
 
+            let ts = db.get('testsuites').find({id:tsid}).value();
+
             let t = {
                 id: tsid + '-live',
                 status: 'pending',
-                envvars: {},
+                envvars: getTestsuiteEnvvarsObj(tsid),
                 testsuite_id: tsid
             };
 
@@ -982,10 +1058,10 @@ let initilize = function (opts) {
 
             let id;
             if (req.body.id) {
-
+                id = req.body.id;
             }
             else {
-                id = req.params.tsid + '-' + getIdFromName(req.body.name);
+                id = getGuid();
             }
 
             let testcase = db.get('testcases')
@@ -1007,20 +1083,18 @@ let initilize = function (opts) {
             }
             else {
                 db.get('testcases')
-                    .find({id:id})
+                    .find({id: id})
                     .assign(
                         JSON.parse(JSON.stringify(obj))
                     )
                     .write();
             }
 
-
-
-            // db.get('testcases')
-            //     .remove({ id: id })
-            //     .write();
-
             let tr = getCreateLiveTestrun(req.params.tsid);
+
+            tr.envvars = Object.assign({},getTestsuiteEnvvarsObj(req.params.tsid),tr.envvars);
+
+            logger.info(tr.envvars);
 
             runTestCase(tr,obj, function(result) {
                 let testcaserun = {};
@@ -1219,3 +1293,4 @@ function linenumber()
 
     return linemessage;
 }
+

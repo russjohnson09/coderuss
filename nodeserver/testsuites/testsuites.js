@@ -461,8 +461,8 @@ let initilize = function (opts) {
             let tr = getLiveTestrun(req.params.id);
             if (tr) {
                 db.get('testruns').remove({id:tr.id}).write();
-                db.get('logs').remove({testrun_id:t.id}).write();
-                db.get('testcaseruns').remove({testrun_id:t.id}).write();
+                db.get('logs').remove({testrun_id:tr.id}).write();
+                db.get('testcaseruns').remove({testrun_id:tr.id}).write();
                 db.get('testcases').remove({testsuite_id:req.params.id}).write();
                 db.get('checkresults').remove({testsuite_id:req.params.id}).write();
             }

@@ -1,0 +1,67 @@
+<h1>{{testrun.get('testsuite').data.name}}</h1>
+<pre>{{testrun.get('testsuite').data.description}}</pre>
+
+<div ng-repeat="testcase in testrun.get('testcases') track by $index">
+    <h2 ng-click="testcase.toggleShow()" class="name">#{{$index+1}} {{testcase.data.name}}
+        <span ng-if="testcase.get('last_result') == 'success'"><i class="fa fa-check" style="color:green"></i></span>
+        <span ng-if="testcase.get('last_result') == 'failure'"><i class="fa fa-exclamation-triangle" style="color:red"></i></span>
+    </h2>
+    <p>
+        {{testcase.data.description}}
+    </p>
+
+    <h3 ng-if="testcase.get('request_logs') || testcase.get('checkresults') || testcase.get('error')"
+        ng-click="toggleShow('results'+$index)">
+                                <span ng-if="!getShow('results'+$index)">
+                            <i class="fa fa-caret-right" aria-hidden="true"></i>
+                        </span>
+        <span ng-if="getShow('results'+$index)">
+                            <i class="fa fa-caret-down" aria-hidden="true"></i>
+                        </span>
+
+        Results</h3>
+
+    <div ng-if="getShow('results'+$index)">
+
+        <div ng-if="testcase.get('error')">
+            <h4>Error</h4>
+            <span >
+                        <i class="fa fa-exclamation-triangle" style="color:red"></i>
+                    </span>
+            <span>{{testcase.get('error').message}}</span>
+        </div>
+
+        <div ng-if="testcase.get('checkresults')">
+            <h3>Last Run Results</h3>
+            <ul ng-repeat="check in testcase.get('checkresults')">
+                <li>
+                    <span>
+                        {{check.check.name}} {{check.error.message}}
+                    </span>
+                    <span ng-if="check.result == 'success'">
+                        <i class="fa fa-check" style="color:green"></i>
+                    </span>
+
+                    <span ng-if="check.result == 'failure'">
+                        <i class="fa fa-exclamation-triangle" style="color:red"></i>
+                    </span>
+
+                </li>
+            </ul>
+        </div>
+
+        <div ng-if="testcase.get('current_envvars')">
+            <h3>Current Variables</h3>
+            <ul ng-repeat="(key, value) in testcase.get('current_envvars')">
+                <li>{{key}} = {{value}}</li>
+            </ul>
+        </div>
+
+        <request-logs request-logs="testcase.get('request_logs')"></request-logs>
+    </div>
+
+
+</div>
+
+
+<json-formatter json="testrun"></json-formatter>

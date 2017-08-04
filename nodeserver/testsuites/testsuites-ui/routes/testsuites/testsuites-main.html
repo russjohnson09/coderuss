@@ -1,4 +1,19 @@
 <h1>Testsuites</h1>
+<!--<button type="button" class="btn btn-danger" ng-click="backupAndRestore()">-->
+    <!--Backup And Restore-->
+<!--</button>-->
+<button type="button" class="btn btn-danger" ng-click="backupTestsuites()">
+    Backup
+</button>
+
+<!--<button type="button" class="btn btn-danger" ng-click="restoreTestsuites()">-->
+    <!--Restore-->
+<!--</button>-->
+<input ng-model="input_testsuite_id">
+<input ng-model="input_testsuite_name">
+<button type="button" class="btn btn-primary" ng-click="createTestsuite(input_testsuite_id,input_testsuite_id)">
+    Create Testsuite
+</button>
 
 <ul ng-repeat="testsuite in testsuites.data track by $index">
     <div class="row">
@@ -8,6 +23,8 @@
 
         <div class="col-sm-5">
             <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
+            <button class="btn btn-primary" ng-click="copyTestsuite(testsuite)">Copy</button>
+
             <a ng-href="#!/testruns/" + t>
             <span ng-if="testsuite.get('last_run').result == 'success'">Success: see details
                 <i class="fa fa-check" style="color:green"></i>
@@ -19,9 +36,11 @@
             </a>
         </div>
         <div class="col-sm-2">
-
+            <button class="btn btn-danger" ng-click="deleteTestsuite(testsuite)">Delete</button>
         </div>
     </div>
+
+
     <li ng-if="false">
         <a ng-href="#!/testsuites/{{testsuite.data.id}}">{{testsuite.data.name}}</a>
         <button class="btn btn-primary" ng-click="runTestsuite(testsuite)">Run</button>
@@ -37,6 +56,9 @@
     </li>
 </ul>
 
-<div ng-if="false">
+<div ng-if="true">
     <json-formatter json="testsuites"></json-formatter>
+    <button ng-if="devMode == 1" type="button" class="btn btn-danger" ng-click="restoreTestsuites()">
+        Restore
+    </button>
 </div>

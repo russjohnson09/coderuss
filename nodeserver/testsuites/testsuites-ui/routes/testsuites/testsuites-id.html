@@ -1,8 +1,65 @@
-<h1>
-    {{testsuite.data.name}} <button ng-click="testsuite.resetLiveTestrun()" type="button" class="btn btn-primary">Reset Live Testrun</button>
-</h1>
+<div class="testsuite-details">
+    <h1>
+        {{testsuite.data.name}} - Details
+        <button ng-click="testsuite.resetLiveTestrun()" type="button" class="btn btn-primary">Reset Live Testrun</button>
+    </h1>
+    <div class="testsuite-details-name">
+        <div class="form-group">
+            <label class="control-label col-sm-2">
+                Testsuite Name
+            </label>
+            <div class="col-sm-10">
+                <input ng-model="testsuite.data.name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">
+                Testsuite Description
+            </label>
+            <div class="col-sm-10">
+                <textarea style="width:100%;height:200px;" ng-model="testsuite.data.description"></textarea>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary"
+            ng-click="testsuite.update()">Update Testsuite
+    </button>
+
+    <div class="testsuite-envvars">
+        <h3>Testsuite Envvars</h3>
+        <div ng-repeat="ts_envvar in testsuite.data.envvars">
+            <div class="form-group">
+                <label class="control-label col-sm-2">
+                    Name
+                </label>
+                <div class="col-sm-10">
+                    <input ng-model="ts_envvar.name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">
+                    Value
+                </label>
+                <div class="col-sm-10">
+                    <input ng-model="ts_envvar.value">
+                </div>
+            </div>
+            <button class="btn btn-danger" ng-click="testsuite.removeEnvvar($index)">Delete</button>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary"
+                    ng-click="testsuite.addEnvvar()">Add Envvar
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<button ng-click="runTestsuite(testsuite)" class="btn btn-primary">Run Testcases</button>
+
 
 <div>
+    <h3>Testcases</h3>
     <input ng-model="new_testcasename">
 
     <button ng-click="testsuite.addTestcaseWithName(new_testcasename)" class="btn btn-primary">Add Test case</button>
@@ -13,262 +70,314 @@
 </div>
 
 <div ng-repeat="testcase in testsuite.get('testcases') track by $index">
-    <h2 class="name">#{{$index+1}} {{testcase.data.name}}
+    <h2 ng-click="testcase.toggleShow()" class="name">#{{$index+1}} {{testcase.data.name}}
         <span ng-if="testcase.get('last_result') == 'success'"><i class="fa fa-check" style="color:green"></i></span>
         <span ng-if="testcase.get('last_result') == 'failure'"><i class="fa fa-exclamation-triangle"
                                                                   style="color:red"></i></span>
-        <span style="float:right"><button class="btn btn-primary"
-                                          ng-click="testcase.saveRun($index)">
+    </h2>
+    <p>
+        {{testcase.data.description}}
+    </p>
+
+    <span style="float:right"><button class="btn btn-primary"
+                                      ng-click="testcase.saveRun($index)">
             Save/Run</button></span>
 
-        <span ng-if="$index < testsuite.get('testcases').length - 1" style="float:right"><button class="btn btn-primary"
-                                          ng-click="testsuite.arrangeTestcases($index,1)">
+    <span ng-if="$index < testsuite.get('testcases').length - 1" style="float:right"><button class="btn btn-primary"
+                                                                                             ng-click="testsuite.arrangeTestcases($index,1)">
             Up</button></span>
 
-        <span ng-if="$index !== 0"  style="float:right"><button class="btn btn-primary"
-                                          ng-click="testsuite.arrangeTestcases($index,-1)">
+    <span ng-if="$index !== 0" style="float:right"><button class="btn btn-primary"
+                                                           ng-click="testsuite.arrangeTestcases($index,-1)">
             Down</button></span>
-    </h2>
     <button class="btn btn-primary" ng-click="testsuite.copyTestcase(testcase)">Copy</button>
     <button class="btn btn-danger" ng-click="testsuite.removeTestcase($index)">Delete</button>
 
+    <h3 ng-if="testcase.get('checkresults') || testcase.get('error')"
+        ng-click="toggleShow('results'+$index)">
+                                <span ng-if="!getShow('results'+$index)">
+                            <i class="fa fa-caret-right" aria-hidden="true"></i>
+                        </span>
+        <span ng-if="getShow('results'+$index)">
+                            <i class="fa fa-caret-down" aria-hidden="true"></i>
+                        </span>
 
-    <div ng-if="testcase.get('checkresults')">
-        <h3>Last Run Results</h3>
-        <ul ng-repeat="check in testcase.get('checkresults')">
-            <li>
-                <span>
-                    {{check.check.name}} {{check.error.message}}
-                </span>
-                <span ng-if="check.result == 'success'">
-                    <i class="fa fa-check" style="color:green"></i>
-                </span>
+        Results</h3>
 
-                <span ng-if="check.result == 'failure'">
-                    <i class="fa fa-exclamation-triangle" style="color:red"></i>
-                </span>
+    <div ng-if="getShow('results'+$index)">
 
-            </li>
-        </ul>
+        <div ng-if="testcase.get('error')">
+            <h4>Error</h4>
+            <span >
+                        <i class="fa fa-exclamation-triangle" style="color:red"></i>
+                    </span>
+            <span>{{testcase.get('error').message}}</span>
+        </div>
+
+        <div ng-if="testcase.get('checkresults')">
+            <h3>Last Run Results</h3>
+            <ul ng-repeat="check in testcase.get('checkresults')">
+                <li>
+                    <span>
+                        {{check.check.name}} {{check.error.message}}
+                    </span>
+                    <span ng-if="check.result == 'success'">
+                        <i class="fa fa-check" style="color:green"></i>
+                    </span>
+
+                    <span ng-if="check.result == 'failure'">
+                        <i class="fa fa-exclamation-triangle" style="color:red"></i>
+                    </span>
+
+                </li>
+            </ul>
+        </div>
+
+        <div ng-if="testcase.get('current_envvars')">
+            <h3>Current Variables</h3>
+            <ul ng-repeat="(key, value) in testcase.get('current_envvars')">
+                <li>{{key}} = {{value}}</li>
+            </ul>
+        </div>
+
+        <request-logs request-logs="testcase.get('request_logs')"></request-logs>
     </div>
 
-    <div ng-if="testcase.get('current_envvars')">
-        <h3>Current Variables</h3>
-        <ul ng-repeat="(key, value) in testcase.get('current_envvars')">
-            <li>{{key}} = {{value}}</li>
-        </ul>
-    </div>
 
-    <request-logs request-logs="testcase.get('request_logs')"></request-logs>
+    <div ng-if="testcase.show">
 
-
-    <form class="form-horizontal" ng-submit="testcase.saveRun()">
-        <div class="form-group">
-            <label class="control-label col-sm-2" for="{{testcase.id}}-name">
-                Name
-            </label>
-            <div class="col-sm-10">
-                <input ng-blur="testcase.save()" id="{{testcase.id}}-name" class="form-control"
-                       ng-model="testcase.data.name">
+        <form class="form-horizontal" ng-submit="testcase.saveRun()">
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-id">
+                    Id
+                </label>
+                <div class="col-sm-10">
+                    <input ng-blur="testcase.save()" id="{{testcase.id}}-id" class="form-control"
+                           ng-model="testcase.data.id">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-sm-2" for="{{testcase.id}}-opts-url">
-                Url
-            </label>
-            <div class="col-sm-10">
-                <input id="{{testcase.id}}-opts-url" class="form-control"
-                       ng-model="testcase.data.opts.url">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-sm-2" for="{{testcase.id}}-opts-method">
-                Method
-            </label>
-            <div class="col-sm-10">
-                <input id="{{testcase.id}}-opts-method" class="form-control"
-                       ng-model="testcase.data.opts.method">
-            </div>
-        </div>
 
-        <div class="form-group">
-            <label class="control-label col-sm-2" for="{{testcase.id}}-opts-body">
-                Body
-            </label>
-            <div class="col-sm-10">
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-name">
+                    Name
+                </label>
+                <div class="col-sm-10">
+                    <input ng-blur="testcase.save()" id="{{testcase.id}}-name" class="form-control"
+                           ng-model="testcase.data.name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-description">
+                    Description
+                </label>
+                <div class="col-sm-10">
+                    <textarea ng-blur="testcase.save()" id="{{testcase.id}}-description" class="form-control"
+                              ng-model="testcase.data.description"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-opts-url">
+                    Url
+                </label>
+                <div class="col-sm-10">
+                    <input id="{{testcase.id}}-opts-url" class="form-control"
+                           ng-model="testcase.data.opts.url">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-opts-method">
+                    Method
+                </label>
+                <div class="col-sm-10">
+                    <input id="{{testcase.id}}-opts-method" class="form-control"
+                           ng-model="testcase.data.opts.method">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-opts-body">
+                    Body
+                </label>
+                <div class="col-sm-10">
                 <textarea id="{{testcase.id}}-opts-body" class="form-control"
                           ng-model="testcase.data.opts.body"></textarea>
-            </div>
-        </div>
-
-        <h3>{{testcase.data.name}} - Set Variables</h3>
-        <!--<json-formatter json="testcase.data.setEnvvars"></json-formatter>-->
-        <div ng-repeat="envvar in testcase.data.setEnvvars track by $index">
-            <div>
-                <h4>{{envvar.name}}</h4>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Name
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="envvar.name">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Type
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="envvar.type">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Path
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="envvar.path">
-                    </div>
                 </div>
             </div>
 
-            <div>
-                <button ng-click="testcase.removeSetEnvvar($index)" class="btn btn-danger">Remove</button>
-            </div>
-        </div>
-        <div>
-            <button type="button" class="btn btn-primary" ng-click="testcase.addSetEnvvar()">
-                Add Set Variable
-            </button>
-        </div>
-
-        <h3>{{testcase.data.name}} - Checks</h3>
-        <div ng-repeat="check in testcase.data.checks track by $index">
-            <div>
-                <h4>#{{$index+1}} {{check.name}}
-                    <button type="button" style="float:right" ng-click="testcase.copyCheck($index)" class="btn btn-success">Copy</button>
-
-                    <button type="button" style="float:right" ng-click="testcase.removeCheck($index)" class="btn btn-danger">Remove</button>
-                </h4>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Name
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.name">
+            <h3>{{testcase.data.name}} - Set Variables</h3>
+            <!--<json-formatter json="testcase.data.setEnvvars"></json-formatter>-->
+            <div ng-repeat="envvar in testcase.data.setEnvvars track by $index">
+                <div>
+                    <h4>{{envvar.name}}</h4>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Name
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="envvar.name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Type
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="envvar.type">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Path
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="envvar.path">
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Description
-                    </label>
-                    <div class="col-sm-10">
+
+                <div>
+                    <button ng-click="testcase.removeSetEnvvar($index)" class="btn btn-danger">Remove</button>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary" ng-click="testcase.addSetEnvvar()">
+                    Add Set Variable
+                </button>
+            </div>
+
+            <h3>{{testcase.data.name}} - Checks</h3>
+            <div ng-repeat="check in testcase.data.checks track by $index">
+                <div>
+                    <h4>#{{$index+1}} {{check.name}}
+                        <button type="button" style="float:right" ng-click="testcase.copyCheck($index)"
+                                class="btn btn-success">Copy
+                        </button>
+
+                        <button type="button" style="float:right" ng-click="testcase.removeCheck($index)"
+                                class="btn btn-danger">Remove
+                        </button>
+                    </h4>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Name
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Description
+                        </label>
+                        <div class="col-sm-10">
                         <textarea class="form-control"
                                   ng-model="check.description"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Type
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.type">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Type
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.type">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val1 Type
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val1.type">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val1 Type
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val1.type">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val1 Path
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val1.path">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val1 Path
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val1.path">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val1 Val
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val1.val">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val1 Val
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val1.val">
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val1 Name
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val1.name">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val1 Name
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val1.name">
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val2 Type
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val2.type">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val2 Type
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val2.type">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val2 Path
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val2.path">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val2 Path
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val2.path">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val2 Val
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val2.val">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val2 Val
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val2.val">
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="control-label col-sm-2">
-                        Val2 Name
-                    </label>
-                    <div class="col-sm-10">
-                        <input class="form-control"
-                               ng-model="check.val2.name">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2">
+                            Val2 Name
+                        </label>
+                        <div class="col-sm-10">
+                            <input class="form-control"
+                                   ng-model="check.val2.name">
+                        </div>
                     </div>
+
                 </div>
 
             </div>
+            <div>
+                <button type="button" class="btn btn-primary" ng-click="testcase.addCheck()">
+                    Add Check
+                </button>
+            </div>
 
-        </div>
-        <div>
-            <button type="button" class="btn btn-primary" ng-click="testcase.addCheck()">
-                Add Check
-            </button>
-        </div>
-
-        <!--<span ng-show="false"-->
-              <!--style="float:right"><button class="btn btn-primary"-->
-                                          <!--ng-click="testcase.saveRun()">Save/Run</button></span>-->
-    </form>
+            <!--<span ng-show="false"-->
+            <!--style="float:right"><button class="btn btn-primary"-->
+            <!--ng-click="testcase.saveRun()">Save/Run</button></span>-->
+        </form>
+    </div>
 
     <!--<json-formatter json="testcase"></json-formatter>-->
 </div>

@@ -1,3 +1,27 @@
+let noop = function(){};
+
+app.factory('ShowHideHelper', [function() {
+    let factory = {};
+
+    factory.addToggleShowToScope = function($scope)
+    {
+
+        $scope._toggleShow = {};
+
+        $scope.toggleShow = function(name)
+        {
+            $scope._toggleShow[name] = !$scope._toggleShow[name]
+        };
+
+        $scope.getShow = function(name)
+        {
+            return $scope._toggleShow[name];
+        };
+    }
+
+    return factory;
+}]);
+
 app.factory('RequestLog', ['$http', '$q', function ($http, $q) {
     var model = function RequestLog(data) {
         if (data) {
@@ -166,7 +190,7 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
 
         var baseurl = '';
 
-        model.prototype = Object.assign(
+        model.prototype = Object.assign({},
             BaseModel.prototype, //default model functions
             {
                 setData: function (data) {
@@ -174,6 +198,15 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                         this.data = {};
 
                     }
+
+                    console.log('setTestcase',data,data.data,data.data.opts,data.data.opts.json)
+
+                    if (data && data.data && data.data.opts && data.data.opts.json)
+                    {
+                        data.data.opts.body = JSON.stringify(data.data.opts.json,null,'    ');
+                        delete data.data.opts.json;
+                    }
+
                     angular.extend(this, data);
 
                     if (this.data.type === undefined) {
@@ -181,23 +214,27 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                         //can also be browser
                         this.data.type = 'api';
                     }
+
                 },
                 delete: function () {
                     let self = this;
                     $http({
                         "method": "DELETE",
                         "url": "/testsuites/" + self.data.testsuite_id +
-                        "/testcases/" + self.id,
+                        "/testcases/" + self.data.id,
                     }).then(function (res) {
 
                     });
                     console.log('delete', this.id);
                 },
-                saveRun: function (index)
+                saveRun: function (index,cb)
                 {
+                    cb = cb || noop;
                     let self = this;
                     console.log(this,index);
-                    if (index !== undefined) {
+                    self._relations['last_result'] = {data: null};
+
+                    if (index !== undefined && index !== null) {
                         self.data.order = index;
                     }
                     $http({
@@ -206,9 +243,13 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                         "/testcases",
                         "data": self.data
                     }).then(function (res) {
+                        self.id = self.data.id = res.data.id;
                         let checkresults = res.data.checkresults;
+
                         self._relations = self._relations || {};
                         self._relations['checkresults'] = {data: checkresults};
+                        self._relations['error'] = {data: null};
+
 
 
                         if (self.data.type === 'api') {
@@ -219,10 +260,20 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                             self._relations['request_logs'] = {data: request_logs};
                         }
 
+                        let hasfailures;
+                        if (checkresults) {
+                            let hasfailures = (checkresults.filter(function (checkresult) {
+                                    return checkresult.result !== 'success';
+                                })).length > 0;
+                        }
+                        else {
+                            hasfailures = true;
+                        }
 
-                        let hasfailures = (checkresults.filter(function (checkresult) {
-                                return checkresult.result !== 'success';
-                            })).length > 0;
+                        console.log('haserr',res.data,res.data.err);
+                        if (res.data && res.data.err) {
+                            self._relations['error'] = {data: res.data.err};
+                        }
 
                         if (hasfailures) {
                             self._relations['last_result'] = {data: 'failure'}
@@ -232,10 +283,13 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                             self._relations['last_result'] = {data: 'success'};
                         }
 
-                        self._relations['current_envvars'] = {data: res.data.testrun.envvars};
-
+                        try {
+                            self._relations['current_envvars'] = {data: res.data.testrun.envvars};
+                        }
+                        catch (e){}
 
                         console.log('saveRun', res);
+                        cb();
                     })
                 },
                 //new function go here
@@ -256,6 +310,79 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
                 copyCheck: function (i) {
                     // let check = Object.assign({},this.data.checks[i]);
                     this.data.checks.push(JSON.parse(JSON.stringify(this.data.checks[i])));
+                },
+                refreshRelated: function (name) {
+                    let self = this;
+                    console.log('refreshRelated',name);
+
+                    if (name == 'request_logs') {
+                        $http({
+                            "method": "GET",
+                            "url": "/testsuites/" + self.data.testsuite_id
+                            + '/testcases/' + self.data.id + '/testruns/' + self.data.testrun_id
+                            + "/requestlogs"
+                        }).then(function (res) {
+                            let request_logs = [];
+                            for (let i in res.data) {
+                                request_logs.push(new RequestLog({data: res.data[i]}));
+                            }
+
+                            self._relations[name] = {
+                                _status: 'done',
+                                data: request_logs
+                            };
+                        }, ErrorService.handleHttpError);
+                    }
+                    else if (name == 'checkresults') {
+                        $http({
+                            "method": "GET",
+                            "url": "/testsuites/" + self.data.testsuite_id
+                            + '/testcases/' + self.data.id + '/testruns/' + self.data.testrun_id
+                            + "/checkresults"
+                        }).then(function (res) {
+                            let checkresults = [];
+                            for (let i in res.data) {
+                                checkresults.push(res.data[i]);
+                            }
+
+                            self._relations[name] = {
+                                _status: 'done',
+                                data: checkresults
+                            };
+                        }, ErrorService.handleHttpError);
+                    }
+                },
+                get: function (name) {
+                    let self = this;
+                    if (self._relations == undefined) {
+                        this._relations = {};
+                    }
+
+                    if (self._relations[name] == undefined) {
+                        self._relations[name] = {_status: 'loading', data: null};
+                    }
+                    //If this is a testcase for a specific testrun, get these request_logs.
+                    if (name == 'request_logs') {
+                        console.log('testcase','get',name,self.data,self._relations[name],
+                            self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called);
+                        if (self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called)
+                        {
+                            console.log('testcaseModel','get',name,self);
+                            self._relations[name]._loader_called = true;
+                            self.refreshRelated('request_logs');
+                        }
+                    }
+                    else if (name == 'checkresults') {
+                        if (self.data && self.data.testrun_id && self._relations[name]._status == 'loading'
+                            && !self._relations[name]._loader_called)
+                        {
+                            self._relations[name]._loader_called = true;
+                            self.refreshRelated(name);
+                        }
+                    }
+                    return self._relations[name].data;
                 }
             }
         );
@@ -266,8 +393,8 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
     }]);
 
 
-app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase',
-    function ($http, $q, ErrorService, Testcase) {
+app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase','$timeout',
+    function ($http, $q, ErrorService, Testcase, $timeout) {
         var model = function Testsuite(data) {
             if (data) {
                 this.setData(data);
@@ -303,6 +430,63 @@ app.factory('Testsuite', ['$http', '$q', 'ErrorService', 'Testcase',
                     delete data.data.testcases;
                 }
                 angular.extend(this, data);
+            },
+            removeEnvvar: function(i)
+            {
+                this.data.envvars.splice(i,1);
+                this.update();
+            },
+            addEnvvar: function()
+            {
+                this.data.envvars = this.data.envvars || [];
+                this.data.envvars.push({name: '',val:''});
+            },
+            saveRunTestcases: function()
+            {
+                let self = this;
+                $http({
+                    "method": "POST",
+                    "url": "/testsuites/" + self.id + "/removelivetestrun"
+                }).then(function (res) {
+                    doTestCase();
+                }, ErrorService.handleHttpError);
+
+                let i = 0;
+                let testcases = self.get('testcases');
+
+                let doTestCase = function()
+                {
+                    let tc = testcases[i];
+
+                    tc.saveRun(i, function() {
+                       i++;
+                       if (i < testcases.length) {
+                           $timeout(doTestCase,0);
+                       }
+                    });
+                };
+            },
+            update: function()
+            {
+                let self = this;
+                $http({
+                    "method": "PUT",
+                    "url": "/testsuites/" + self.id,
+                    "data": self.data
+                }).then(function (res) {
+                    self.refresh();
+                }, ErrorService.handleHttpError);
+            },
+            delete: function()
+            {
+                console.log('delete',this);
+                let self = this;
+                $http({
+                    "method": "DELETE",
+                    "url": "/testsuites/" + self.id
+                }).then(function (res) {
+                    // self.refresh();
+                }, ErrorService.handleHttpError);
             },
             arrangeTestcases : function(index,inc)
             {
@@ -486,6 +670,23 @@ app.factory('TestsuiteService', ['$http', '$q', 'ErrorService', 'Testsuite',
             return obj;
         };
 
+        factory.copyTestsuite = function(testsuite)
+        {
+            return $http({
+                "method": "POST",
+                "url": "/testsuites/" + testsuite.data.id + "/copy",
+            });
+
+            return $http({
+                "method": "POST",
+                "url": "/testsuites/" + id,
+                "data": {
+                    id: id,
+                    name: testsuite.data.name + ' Copy'
+                }
+            })
+        };
+
         factory.getById = function (id) {
             var obj = new Testsuite({_status: 'loading', id: id, data: null});
 
@@ -503,22 +704,111 @@ app.factory('TestsuiteService', ['$http', '$q', 'ErrorService', 'Testsuite',
             return obj;
         };
 
+        factory.addTestsuite = function(data)
+        {
+            return $http({
+                "method": "POST",
+                "url": "/testsuites/" + data.id,
+                "data": data,
+            }).then(function (res) {
+
+            }, ErrorService.handleHttpError);
+        };
+
         return factory;
     }]);
 
 app.controller('testsuitesCtl', ['$rootScope', '$cookies', '$scope', '$location',
-    '$http', '$routeParams', '$sce', 'TestsuiteService',
-    function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestsuiteService) {
+    '$http', '$routeParams', '$sce', 'TestsuiteService','ErrorService','$q',
+    function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestsuiteService,ErrorService,
+    $q) {
+
+        $scope.devMode = localStorage.getItem('devMode');
+
+        console.log('devMode',$scope.devMode);
 
         // $scope.testsuite =  TestsuiteService.getById($routeParams.id);
+
+        $scope.createTestsuite = function(id,name) {
+            TestsuiteService.addTestsuite({id:id,name:name}).then(function() {
+                $location.path('/testsuites/' + id);
+            });
+        };
 
         $scope.testsuites = TestsuiteService.search();
 
         $scope.runTestsuite = function (testsuite) {
             testsuite.run(function(data) {
+                if (data.result !== 'success') {
+                    $location.path('/testruns/' + data.id);
+                }
                 console.log(data);
             });
-        }
+        };
+
+        $scope.deleteTestsuite = function (testsuite)
+        {
+            testsuite.delete();
+        };
+
+        $scope.copyTestsuite = function(testsuite)
+        {
+            TestsuiteService.copyTestsuite(testsuite);
+        };
+
+        $scope.backupTestsuites = function()
+        {
+            return $http({
+                "method": "POST",
+                "url": "/testsuitescpy",
+                "data": {
+                    "target": "repo"
+                },
+            }).then(function (res) {
+
+            }, ErrorService.handleHttpError);
+        };
+
+        $scope.restoreTestsuites = function()
+        {
+            console.log('restore');
+            return $http({
+                "method": "POST",
+                "url": "/testsuitescpy",
+                "data": {
+                    "target": "main"
+                },
+            }).then(function (res) {
+
+            }, ErrorService.handleHttpError);
+        };
+
+        $scope.backupAndRestore = function()
+        {
+            console.log('backupAndRestore');
+            return new $q(function(resolve,reject) {
+                $http({
+                    "method": "POST",
+                    "url": "/testsuitescpy",
+                    "data": {
+                        "target": "repo"
+                    },
+                }).then(function (res) {
+                    $http({
+                        "method": "POST",
+                        "url": "/testsuitescpy",
+                        "data": {
+                            "target": "main"
+                        },
+                    }).then(function (res) {
+                        resolve();
+                    }, ErrorService.handleHttpError);
+
+                }, ErrorService.handleHttpError);
+            });
+
+        };
+
 
     }]);
 
@@ -529,6 +819,25 @@ app.controller('testsuitesIdCtl', ['$rootScope', '$cookies', '$scope', '$locatio
     function ($rootScope, $cookies, $scope, $location, $http, $routeParams, $sce, TestsuiteService) {
 
         $scope.testsuite = TestsuiteService.getById($routeParams.id);
+
+
+        $scope._toggleShow = {};
+
+        $scope.toggleShow = function(name)
+        {
+            $scope._toggleShow[name] = !$scope._toggleShow[name]
+        };
+
+        $scope.getShow = function(name)
+        {
+            return $scope._toggleShow[name];
+        };
+
+        $scope.runTestsuite = function(testsuite)
+        {
+            console.log('runTestsuite',testsuite);
+            testsuite.saveRunTestcases();
+        };
 
         // $scope.testsuites = TestsuiteService.search();
 

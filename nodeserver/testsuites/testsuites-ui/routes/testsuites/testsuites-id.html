@@ -194,6 +194,25 @@
                            ng-model="testcase.data.opts.method">
                 </div>
             </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-opts-timeout">
+                    Timeout
+                </label>
+                <div class="col-sm-10">
+                    <input id="{{testcase.id}}-opts-timeout" class="form-control"
+                           ng-model="testcase.data.opts.timeout">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="{{testcase.id}}-opts-headers">
+                    Headers
+                </label>
+                <div class="col-sm-10">
+                <textarea id="{{testcase.id}}-opts-headers" class="form-control"
+                          ng-model="testcase.data.opts.headers"></textarea>
+                </div>
+            </div>
 
             <div class="form-group">
                 <label class="control-label col-sm-2" for="{{testcase.id}}-opts-body">

@@ -1,8 +1,6 @@
 {
-  "mem": {
-    "name": "mem",
-    "localStorage": "",
-    "file": "",
+  "db": {
+    "name": "db",
     "connector": "memory"
   }
 }

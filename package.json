@@ -1,18 +1,18 @@
 {
   "name": "code-russ-node",
   "version": "1.0.0",
-  "engines" : { "node" : ">=8" },
+  "engines": {
+    "node": ">=8"
+  },
   "scripts": {
     "test:travis": "istanbul cover nodeserver/tests/travis_run.js",
     "istanbul:start": "istanbul cover nodeserver/server.js",
     "kill:node": "killall node",
-    "prestart": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs",
     "build:angular": "cd ./my-app && npm install && npm run build:angular",
     "heroku-postbuild": "bash ./postbuild.sh",
     "start": "node nodeserver/server.js",
     "test": "npm run test:main",
     "test:main": "npm run test:wdio:phantomjs && npm run dredd:test && mocha ./nodeserver/tests/main/**/*.js",
-    "spectacle:watch": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs -d",
     "test:load": "mocha ./nodeserver/tests/load/**/*.js --reporter spec",
     "test:main:blanket": "mocha --require blanket --reporter mocha-lcov-reporter ./nodeserver/tests/main/**/*.js --reporter spec && cat ./coverage/lcov.info | coveralls",
     "convert": "jscoverage nodeserver/main.js nodeserver-cov/main.js --exclude .env",
@@ -64,8 +64,7 @@
     "loopback": "^3.0.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^4.0.0",
-    "low": "0.0.1",
-    "lowdb": "^0.16.2",
+    "lowdb": "^0.17.1",
     "mocha": "^3.1.2",
     "moment-timezone": "^0.5.11",
     "mongodb": "^2.2.13",
@@ -86,7 +85,6 @@
     "session-file-store": "^1.0.0",
     "sinon": "^2.4.0",
     "socket.io": "^1.7.2",
-    "spectacle-docs": "^0.7.0",
     "strip-ansi": "^3.0.1",
     "strip-loader": "^0.1.0",
     "strong-error-handler": "^2.0.0",
@@ -115,7 +113,6 @@
     "tap": "^10.2.1",
     "unit.js": "^2.0.0",
     "wdio-mocha-framework": "^0.5.8",
-    "wdio-phantomjs-service": "^0.2.2",
     "wdio-selenium-standalone-service": "0.0.8",
     "wdio-spec-reporter": "0.0.5",
     "webdriverio": "^4.6.2"

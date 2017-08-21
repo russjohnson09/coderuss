@@ -1,17 +1,17 @@
 {
-  "name": "CoffeeShop",
+  "name": "ContactMessage",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "name": {
+    "message": {
       "type": "string",
       "required": true
     },
-    "city": {
-      "type": "string",
+    "created": {
+      "type": "number",
       "required": true
     }
   },

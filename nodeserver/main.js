@@ -21,6 +21,8 @@ const async = require('async');
 const URL = require('url'); //url package
 const expect = require('chai').expect;
 var ObjectID = require('mongodb').ObjectID;
+const LOOPBACK_API_PORT = process.env.LOOPBACK_API_PORT || 0;
+
 
 var sinon = require('sinon');
 var cron = require('node-cron');
@@ -109,7 +111,7 @@ function createAlexaApp(app) {
 
 function initLoopBack() {
     var loopbackApp = require(__dirname + '/v2/loopback/server/server');
-    loopbackApp.start();
+    loopbackApp.start(LOOPBACK_API_PORT);
 
     return loopbackApp;
 }
@@ -210,39 +212,32 @@ module.exports = function(opts, callback) {
     app.use(passport.session());
 
 
-    // app.use(function(req, res, next) {
-    //     res.setHeader("x-context", app.get('CONTEXT'));
-    //     // req.session.context = app.get('CONTEXT');
-    //
-    //     //unsafe cookie allowed for context
-    //     res.cookie('context',app.get('CONTEXT'), { maxAge: 900000, httpOnly: false });
-    //
-    //     return next();
-    // });
-
-
     winston.info(root, {
         'root': root
     });
 
-    winston.info(__dirname + '/../.apt/usr/games/frotz');
+    if (process.env.INCLUDE_FROTZ != 0) {
+        winston.info(__dirname + '/../.apt/usr/games/frotz');
 
-    const frotzcmd = getFrotzCmd();
-    winston.info(frotzcmd, {
-        'frotz': frotzcmd
-    });
-    var args = [__dirname + "/v1/zork/Zork/DATA/ZORK1.DAT", '-i', '-p', '-q']
+        const frotzcmd = getFrotzCmd();
+        winston.info(frotzcmd, {
+            'frotz': frotzcmd
+        });
+        var args = [__dirname + "/v1/zork/Zork/DATA/ZORK1.DAT", '-i', '-p', '-q']
 
-    var child = spawn(frotzcmd, args);
+        var child = spawn(frotzcmd, args);
 
-    child.stdout.on('data', function(data) {
-        winston.debug(data);
-    });
+        child.stdout.on('data', function(data) {
+            winston.debug(data);
+        });
 
-    child.stderr.on('data', function(data) {
-        winston.error('stderr: ' + data.toString());
-        process.exit(1);
-    });
+        child.stderr.on('data', function(data) {
+            winston.error('stderr: ' + data.toString());
+            process.exit(1);
+        });
+    }
+
+
 
 
     app.use(morgan('combined', {
@@ -290,7 +285,11 @@ module.exports = function(opts, callback) {
             addTodosRouter();
             addHabitsRouter();
             addGithubRouter();
-            addZorkRouter();
+
+            if (process.env.INCLUDE_FROTZ != 0) {
+                addZorkRouter();
+            }
+
             addDeployRouter();
 
 

@@ -13,8 +13,30 @@
       "./mixins"
     ]
   },
-  "CoffeeShop": {
-    "dataSource": "mem",
+  "User": {
+    "dataSource": "mongodb"
+  },
+  "AccessToken": {
+    "dataSource": "mongodb",
+    "public": false
+  },
+  "ACL": {
+    "dataSource": "mongodb",
+    "public": false
+  },
+  "RoleMapping": {
+    "dataSource": "mongodb",
+    "public": false,
+    "options": {
+      "strictObjectIDCoercion": true
+    }
+  },
+  "Role": {
+    "dataSource": "mongodb",
+    "public": false
+  },
+  "ContactMessage": {
+    "dataSource": "mongodb",
     "public": true
   }
 }

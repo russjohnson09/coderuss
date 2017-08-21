@@ -2,7 +2,11 @@ let initilize = function (opts) {
     const crypto = require('crypto');
     const low = require('lowdb');
     const request = require('request');
-    const apiTestsDb = low(__dirname + '/.apiTestsDb.json');
+
+    const FileSync = require('lowdb/adapters/FileSync')
+    const adapter = new FileSync(__dirname + '/.apiTestsDb.json')
+    const apiTestsDb = low(adapter)
+
     const URL = require('url');
     const expect = require('chai').expect;
 

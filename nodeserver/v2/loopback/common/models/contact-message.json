@@ -5,13 +5,12 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "Timestamp": {}
+  },
   "properties": {
     "message": {
       "type": "string",
-      "required": true
-    },
-    "created": {
-      "type": "number",
       "required": true
     }
   },

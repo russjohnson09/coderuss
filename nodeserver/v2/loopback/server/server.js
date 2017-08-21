@@ -1,5 +1,9 @@
 'use strict';
-const LOOPBACK_API_PORT = process.env.LOOPBACK_API_PORT || 0;
+const LOOPBACK_API_PORT = process.env.LOOPBACK_API_PORT || 3001;
+
+console.log(process.env.NODE_ENV);
+
+// process.exit();
 
 var loopback = require('loopback');
 var boot = require('loopback-boot');
@@ -11,7 +15,6 @@ app.start = function() {
   // start the web server
   return app.listen(LOOPBACK_API_PORT,function() {
     app.emit('started');
-      console.log(s);
       var baseUrl = app.get('url').replace(/\/$/, '');
     console.log('Web server listening at: %s', baseUrl);
     if (app.get('loopback-component-explorer')) {

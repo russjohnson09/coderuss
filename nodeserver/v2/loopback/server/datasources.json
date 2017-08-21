@@ -1,6 +1,12 @@
 {
   "db": {
-    "name": "db",
+    "name": "mem",
     "connector": "memory"
+  },
+  "mongodb": {
+    "url": "",
+    "name": "mongodb",
+    "user": "",
+    "connector": "mongodb"
   }
 }

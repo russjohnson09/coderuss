@@ -89,4 +89,7 @@ has a implementation of idempotent requests.
 of the timeout. Fix is either stub this and loose integration, increase timeout which 
 could lead to other problems or just monitor.
 
+##https://travis-ci.org/russjohnson09/coderuss/jobs/267284600
+/v1/proxy/tvmaze/episodes/4189 GET timeout
+
 

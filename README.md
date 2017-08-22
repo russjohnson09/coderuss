@@ -80,4 +80,10 @@ Not creating duplicate orders is something very important. https://lob.com/docs#
 has a implementation of idempotent requests.
 
 
+## Unstable tests
+## https://travis-ci.org/russjohnson09/coderuss/jobs/267275160
+/v1/postcards POST timeout 2000. relies on lob service so this is probably the source
+of the timeout. Fix is either stub this and loose integration, increase timeout which 
+could lead to other problems or just monitor.
+
 

@@ -140,7 +140,8 @@ module.exports = function (opts) {
                 started: app.get('serverstarted'),
                 commit: app.get('commit'),
                 context: app.get('CONTEXT'),
-                version: process.version
+                version: process.version,
+                now: Date.now()
             },
             'meta': { 'message': 'Success' }
         };

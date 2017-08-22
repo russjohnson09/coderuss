@@ -218,12 +218,20 @@ let initilize = function (opts) {
                 return urlParsed.pathname + urlParsed.search;
             })(opts.url);
 
+            if (opts.timeout) {
+                opts.timeout = parseInt(opts.timeout);
+            }
+
             requestObject.started = Date.now();
-            logger.info(linenumber(),opts);
+            logger.info(linenumber(),JSON.stringify(opts,null,'    '));
             request(opts, function (err, response, body) {
                 responseObject.ended = Date.now();
                 if (err) {
                     responseObject.error = err;
+                    return done(err, response, body);
+                }
+                else if (response && response.error) {
+                    responseObject.error = response.error;
                     return done(err, response, body);
                 }
                 responseObject.body = null;
@@ -671,6 +679,30 @@ let initilize = function (opts) {
             res.end();
         });
 
+
+        app.post('/testsuites', function(req,res) {
+            obj = req.body;
+
+            if (!obj.id)
+            {
+                obj.id = getGuid();
+            }
+
+            db.get('testsuites')
+                .push(
+                    JSON.parse(JSON.stringify(obj))
+                )
+                .write();
+            let t = {
+                id: obj.id + '-live',
+                status: 'pending',
+                envvars: getTestsuiteEnvvarsObj(obj.id),
+                testsuite_id: obj.id
+            };
+
+            res.json(obj);
+        });
+
         /*
          * find and replace testsuite
          * current recent testrun
@@ -784,6 +816,18 @@ let initilize = function (opts) {
 
             let setEnvvars = Object.assign({},testcase.setEnvvars);
             let opts = Object.assign({},testcase.opts);
+
+            if (opts.headers) {
+                opts.headers = findReplace(opts.headers,testrun.envvars);
+                try {
+                    opts.headers = JSON.parse(opts.headers);
+                }
+                catch (e){}
+            }
+            opts.headers = opts.headers || {};
+            opts.headers['cookie'] = testrun.cookie;
+            opts.headers['user-agent'] = opts.headers['user-agent'] || 'testsuite-agent';
+
             let checks = Object.assign({},testcase.checks);
 
             let currentenvvars = testrun.envvars;
@@ -837,12 +881,22 @@ let initilize = function (opts) {
                                 getValFromPath(requestlog.response.body
                                     , setenv.path);
                         }
+                        else if (setenv.type == 'response_headers') {
+                            envvars[setenv.name] =
+                                getValFromPath(requestlog.response.headers
+                                    , setenv.path);
+                        }
                     }
 
                     logger.info(linenumber(), 'setEnvvars', envvars, testrun.id);
 
+                    let trAssign = {envvars: currentenvvars};
+                    if (requestlog.response.headers && requestlog.response.headers['set-cookie']) {
+                        trAssign.cookie = requestlog.response.headers['set-cookie'];
+                    }
+
                     Object.assign(currentenvvars,envvars);
-                    db.get('testruns').find({id: testrun.id}).assign({envvars: currentenvvars}).write();
+                    db.get('testruns').find({id: testrun.id}).assign(trAssign).write();
 
 
                     logger.info(linenumber(), 'testruns',
@@ -1094,6 +1148,7 @@ let initilize = function (opts) {
             else {
                 id = getGuid();
             }
+
 
             let testcase = db.get('testcases')
                 .find({ id: id })

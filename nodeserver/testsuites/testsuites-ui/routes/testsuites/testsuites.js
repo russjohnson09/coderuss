@@ -199,8 +199,6 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
 
                     }
 
-                    console.log('setTestcase',data,data.data,data.data.opts,data.data.opts.json)
-
                     if (data && data.data && data.data.opts && data.data.opts.json)
                     {
                         data.data.opts.body = JSON.stringify(data.data.opts.json,null,'    ');
@@ -290,7 +288,7 @@ app.factory('Testcase', ['$http', '$q', 'ErrorService', 'BaseModel',
 
                         console.log('saveRun', res);
                         cb();
-                    })
+                    },ErrorService.handleHttpError)
                 },
                 //new function go here
                 addSetEnvvar: function () {
@@ -708,10 +706,10 @@ app.factory('TestsuiteService', ['$http', '$q', 'ErrorService', 'Testsuite',
         {
             return $http({
                 "method": "POST",
-                "url": "/testsuites/" + data.id,
+                "url": "/testsuites/",///" + data.id,
                 "data": data,
             }).then(function (res) {
-
+                return res;
             }, ErrorService.handleHttpError);
         };
 
@@ -729,9 +727,9 @@ app.controller('testsuitesCtl', ['$rootScope', '$cookies', '$scope', '$location'
 
         // $scope.testsuite =  TestsuiteService.getById($routeParams.id);
 
-        $scope.createTestsuite = function(id,name) {
-            TestsuiteService.addTestsuite({id:id,name:name}).then(function() {
-                $location.path('/testsuites/' + id);
+        $scope.createTestsuite = function(name) {
+            TestsuiteService.addTestsuite({name:name}).then(function(res) {
+                $location.path('/testsuites/' + res.data.id);
             });
         };
 

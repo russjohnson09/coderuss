@@ -54,7 +54,7 @@ const USERS_LOG_LEVEL = process.env.USERS_LOG_LEVEL || 'error';
 const ZORK_LOG_LEVEL = process.env.ZORK_LOG_LEVEL || 'error';
 
 const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'warn';
-const ACCESS_LOG_LEVEL = process.env.ACCESS_LOG_LEVEL || 'error';
+const ACCESS_LOG_LEVEL = process.env.ACCESS_LOG_LEVEL || 'info';
 const TODO_LOG_LEVEL = process.env.TODO_LOG_LEVEL || 'error';
 const PROXY_LOG_LEVEL = process.env.PROXY_LOG_LEVEL || 'error';
 const ALEX_CONSOLE_LOG_LEVEL = process.env.ALEX_CONSOLE_LOG_LEVEL || 'debug';
@@ -284,6 +284,8 @@ module.exports = function(opts, callback) {
             addShewasprettyRouter();
             addTvShowsRouter();
 
+
+
             addSelftestRouter();
 
             addVoiceRouter();
@@ -309,6 +311,8 @@ module.exports = function(opts, callback) {
     app.use(express.static(path.join(__dirname, 'public/')));
     
     app.use('/my-app',express.static(path.join(__dirname,'..', 'my-app','dist')));
+
+    var uuid = require('node-uuid');
 
 
 
@@ -373,7 +377,6 @@ module.exports = function(opts, callback) {
             cert: certificate
         };
 
-        var uuid = require('node-uuid');
 
 
         var doProxyReq = function(req, res) {
@@ -567,6 +570,23 @@ module.exports = function(opts, callback) {
         app.use('/v1/logsene', logsene.router);
     }
 
+    let pingTask;
+    function addPingTask()
+    {
+        if (pingTask) {
+            pingTask.destroy();
+        }
+        //15th hour run 3am.
+        // var scheduledTime = '0 3 * * *';
+
+        //run every second.
+        var scheduledTime = '* * * * * *';
+
+        pingTask = cron.schedule(scheduledTime,function() {
+            mainLogger.info('server time',Date.now())
+        });
+    }
+
     function createTvnotificationTask()
     {
         if (tvshownotificationTask) {
@@ -576,9 +596,16 @@ module.exports = function(opts, callback) {
         // var scheduledTime = '0 3 * * *';
 
         //run every hour.
-        var scheduledTime = '1 * * * * *';
+        var scheduledTime = '0 * * * *';
 
-        tvshownotificationTask = cron.schedule(scheduledTime,tvshowNotificationTaskFunc);
+        (function() {
+            var task_id = uuid.v1();
+            tvshownotificationTask = cron.schedule(scheduledTime,function() {
+                mainLogger.info('tvshowNotificationTaskFunc',task_id,Date.now());
+                tvshowNotificationTaskFunc();
+            });
+        })();
+
     }
 
     function addTvshowNotification(data)
@@ -586,6 +613,10 @@ module.exports = function(opts, callback) {
 
         var Notification = database.collection('notification');
         data.type = 'tvshow_airdate';
+
+        todosModule.broadcastToUserId(data.user_id,
+            'notification', JSON.stringify(data));
+
 
         Notification.update({
             user_id: data.user_id,
@@ -749,6 +780,8 @@ module.exports = function(opts, callback) {
     function addSelftestRouter() {
         var router = express.Router();
 
+        let sinonClock;
+
         if (process.env.NODE_ENV === 'TEST' || process.env.NODE_ENV === 'DEV') {
             require('./apitests/apitests')({app:app,logger:mainLogger});
 
@@ -759,6 +792,9 @@ module.exports = function(opts, callback) {
                 });
             });
 
+            // router.post('/tasks/refresh', function(req,res) {
+            // });
+
             router.post('/selftest/main/runfail', function (req, res) {
 
                 runFailTest(function(testResults) {
@@ -768,8 +804,28 @@ module.exports = function(opts, callback) {
 
             var testInterval;
 
+            router.post('/faketimer/clear', function(req,res) {
+                if (sinonClock)
+                {
+                    sinonClock.restore();
+                }
+                // addPingTask();
+                createTvnotificationTask();
+                res.json({now:Date.now()});
+
+            });
+
             router.post('/faketimer', function(req,res) {
-                clock = sinon.useFakeTimers(req.body.timestamp);
+                if (sinonClock)
+                {
+                    sinonClock.restore();
+                }
+                sinonClock = sinon.useFakeTimers(req.body.timestamp);
+
+                // addPingTask();
+                createTvnotificationTask();
+
+                res.json({});
             });
 
             /**
@@ -777,17 +833,21 @@ module.exports = function(opts, callback) {
              * {seconds: 100}
              */
             router.post('/faketimer/increment', function(req,res) {
-                if (!clock) {
+                if (!sinonClock) {
                     res.end();
                     return;
                 }
                 var seconds = req.body.seconds;
 
                 while(seconds > 0) {
-                    clock.tick(1000);
+                    sinonClock.tick(1000);
+                    // if (( parseInt(moment().format('mm')) == 0)) {
+                    //     mainLogger.info(seconds,moment().format('HH:mm:ss'));
+                    // }
                     seconds--;
                 }
-                clock = sinon.useFakeTimers(req.body.timestamp);
+
+                res.json({});
             });
 
 
@@ -1483,16 +1543,20 @@ module.exports = function(opts, callback) {
         }).router);
     }
 
+    let todosModule;
+
     function addTodosRouter() {
         const todos = mongo_db.collection('todos');
         app.use("/v1/todos/public", express.static(__dirname + "/v1/todos/public"));
 
-        app.use('/v1/todos', require('./v1/todos/main.js')({
+        todosModule =  require('./v1/todos/main.js')({
             winston: mainLogger,
             db: mongo_db,
             io: todosnsp,
             sessionMiddleware: sessionMiddleware
-        }).router);
+        });
+
+        app.use('/v1/todos', todosModule.router);
     }
 
 

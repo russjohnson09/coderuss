@@ -9,6 +9,8 @@ module.exports = function (opts) {
     var doDelete = true;
     var ObjectID = require('mongodb').ObjectID;
     var uuid = require('node-uuid');
+    var module = {};
+
 
     const LOGIN_PATH = '/public/login';
 
@@ -75,7 +77,9 @@ module.exports = function (opts) {
     }
 
     //socket.broadcast.to(id).emit('my message', msg);
-    function broadcastToUserId(user_id, event, msg) {
+    let broadcastToUserId = module.broadcastToUserId = function(user_id, event, msg) {
+        winston.info('broadcastToUserId',user_id,event,msg);
+
         if (!user_id) {
             user_id = 'anon';
         }
@@ -138,7 +142,6 @@ module.exports = function (opts) {
     var multer = require('multer');
 
 
-    var module = {};
 
     const db = opts.db;
 

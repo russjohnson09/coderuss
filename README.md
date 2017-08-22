@@ -75,6 +75,9 @@ Add orders, products, anything needed for a full featured ecommerce site. Use ht
 for reference. Pwinty groups all order items as photos even though they have other products.
 Maybe use something more generic. 
 
+Tracking an orders as billable components is probably enough. 
+https://developer.paypal.com/docs/api/invoicing/ is a good reference for invoicing.
+
 ###Idempotent Request
 Not creating duplicate orders is something very important. https://lob.com/docs#idempotent-requests 
 has a implementation of idempotent requests.

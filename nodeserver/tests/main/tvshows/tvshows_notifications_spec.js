@@ -237,6 +237,10 @@ describe(path.basename(__dirname), function () {
 
         let startMoment = moment('2017-07-25').startOf('day');
 
+        /**
+         * When /v1/faketimer creates a new sinon fake timer cron jobs need to be
+         * recreated.
+         */
         it('/v1/faketimer POST', function (done) {
             request({
                     method: 'POST',

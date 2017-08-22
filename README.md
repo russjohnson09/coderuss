@@ -22,6 +22,19 @@ unit tests when a service is not practical or not efficient.
 * Start node server ```npm start```
 * Run tests ```npm run test```
 
+# Features
+There is an attempt to document features here but this list should not be considered
+complete. Reference tests as the source of truth.
+
+## TV Shows
+See ```nodeserver/tests/main/tvshows/tvshows_notifications_spec.js``` for tests.
+###Endpoints
+* /v1/proxy/tvmaze/* proxy to tvmaze api (public but not over https)
+
+###Cron
+Check tv shows for next air date and notify user. Todos module manages user
+socket io for the time being.
+
 
 # Changelog
 * /github/webhook POST webhook added
@@ -49,3 +62,34 @@ unit tests when a service is not practical or not efficient.
 
 # TODOS
 * Checkout with unique id for postcards to prevent duplication.
+
+## Billing Invoicing
+Something like this https://github.com/overshard/timestrap for time tracking
+and invoicing. Tmetric did a good job but billing is now a paid feature.
+
+## Release Notes
+Send release notes to users from some directory in the repo.
+
+##Checkout
+Add orders, products, anything needed for a full featured ecommerce site. Use https://www.pwinty.com/ApiDocs/Photos/2_3#Create
+for reference. Pwinty groups all order items as photos even though they have other products.
+Maybe use something more generic. 
+
+Tracking an orders as billable components is probably enough. 
+https://developer.paypal.com/docs/api/invoicing/ is a good reference for invoicing.
+
+###Idempotent Request
+Not creating duplicate orders is something very important. https://lob.com/docs#idempotent-requests 
+has a implementation of idempotent requests.
+
+
+## Unstable tests
+## https://travis-ci.org/russjohnson09/coderuss/jobs/267275160
+/v1/postcards POST timeout 2000. relies on lob service so this is probably the source
+of the timeout. Fix is either stub this and loose integration, increase timeout which 
+could lead to other problems or just monitor.
+
+##https://travis-ci.org/russjohnson09/coderuss/jobs/267284600
+/v1/proxy/tvmaze/episodes/4189 GET timeout
+
+

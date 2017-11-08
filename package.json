@@ -12,6 +12,7 @@
     "build:angular": "cd ./my-app && npm install && npm run build:angular",
     "heroku-postbuild": "bash ./postbuild.sh",
     "start": "node nodeserver/server.js",
+    "test:mocha": "mocha ./nodeserver/tests/main/**/*.js",
     "test": "npm run test:main",
     "test:main": "npm run test:wdio:phantomjs && npm run dredd:test && mocha ./nodeserver/tests/main/**/*.js",
     "spectacle:watch": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs -d",

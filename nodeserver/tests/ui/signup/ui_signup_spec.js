@@ -10,7 +10,7 @@ const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
 
-describe(path.basename(__filename), function() {
+describe(path.resolve(__filename), function() {
 
     this.timeout(5000);
     var client;

@@ -14,7 +14,7 @@
     "start": "node nodeserver/server.js",
     "test:mocha": "mocha ./nodeserver/tests/main/**/*.js",
     "test": "npm run test:main",
-    "test:main": "npm run test:wdio:phantomjs && npm run dredd:test && mocha ./nodeserver/tests/main/**/*.js",
+    "test:main": "mocha ./nodeserver/tests/main/**/*.js",
     "spectacle:watch": "spectacle nodeserver/public/v1-swagger.yml --target-dir nodeserver/public/docs -d",
     "test:load": "mocha ./nodeserver/tests/load/**/*.js --reporter spec",
     "test:main:blanket": "mocha --require blanket --reporter mocha-lcov-reporter ./nodeserver/tests/main/**/*.js --reporter spec && cat ./coverage/lcov.info | coveralls",

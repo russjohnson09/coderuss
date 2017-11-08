@@ -204,6 +204,10 @@
                 templateUrl: "templates/login.html",
                 controller: "loginCtl"
             })
+            .when("/users", {
+                templateUrl: "routes/users/users.html",
+                controller: 'usersCtl'
+            })
             .when("/signup", {
                 templateUrl: "templates/signup.html",
                 controller: "signupCtl"
@@ -898,9 +902,11 @@
 
     }]);
 
-    app.factory('UserService', ['$http', '$q', function ($http, $q) {
+    app.factory('UserService', ['$http', '$q', 'ErrorService', '$timeout',
+        function ($http, $q,
+                  ErrorService, $timeout) {
 
-        var service = {};
+            var service = {};
 
         var baseurl = '';
 
@@ -1003,6 +1009,34 @@
             }
             return service._user;
 
+        };
+
+        service.getUsers = function (params = []) {
+            var result = {
+                status: 'loading',
+                data: null,
+            };
+
+            var url = baseurl + '/v1/users';
+            $http(
+                {
+                    method: 'GET',
+                    params: params,
+                    url: url
+                }).then(
+                function (res) {
+                    let objs = [];
+                    for (let i in res.data) {
+                        let obj = new User(res.data[i]);
+                        objs.push(obj);
+                    }
+                    $timeout(function () {
+                        Object.assign(result, {status: 'success', data: objs});
+                    }, 200)
+                },
+                ErrorService.handleHttpError);
+
+            return result;
         };
 
         return service;
@@ -2004,6 +2038,9 @@
 <script src="routes/apitests/apitests.js">
 
 </script>
+
+<script src="routes/users/users.js"></script>
+
 
 <footer class="footer">
     <!--<kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd>-->

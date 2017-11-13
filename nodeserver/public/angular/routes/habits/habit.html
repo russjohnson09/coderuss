@@ -1,0 +1,11 @@
+<h1>Users</h1>
+
+
+<div class="habit">
+    <!--style="border-bottom:1px solid black" -->
+    <div ng-if="'loading' === habit._status">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+        <span class="sr-only">Loading...</span>
+    </div>
+    <pre>{{habit}}</pre>
+</div>

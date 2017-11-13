@@ -246,5 +246,36 @@ module.exports = function(opts) {
     });
 
 
+
+    if (process.env.NODE_ENV === 'DEV') {
+        let cp = require('child_process');
+        let spawn = cp.spawn;
+        console.log('habits',process.env.NODE_ENV,'run test:main');
+        // var child = spawn("npm",['run','test:main'],
+        //     { cwd: __dirname, env: process.env });
+
+        //mocha ./nodeserver/v1/**/*_spec.js
+        let child = spawn("mocha", ['./**/*_spec.js'],
+            {cwd: __dirname, env: process.env});
+
+        //requires mocha installed globally.
+
+        child.stdout.on('data', function(data) {
+            process.stdout.write(data);
+        });
+
+        child.stderr.on('data', function(data) {
+            process.stderr.write(data);
+            // process.exit(1);
+        });
+        child.on('exit', function(exitcode) {
+            if (exitcode !== 0) {
+                process.exit(exitcode);
+            }
+        })
+    }
+
+
+
     return module;
 };

@@ -178,11 +178,88 @@ module.exports = function (opts) {
         }
     );
 
+    function refreshToken(user)
+    {
+        let fitbit_user = user.fitbit_user;
+        let access_token = fitbit_user.access_token;
+        let refresh_token = fitbit_user.refresh_token;
+
+
+        let requestForm = {
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token
+        };
+
+        winston.info(JSON.stringify(requestForm));
+
+
+        let url = 'https://api.fitbit.com/oauth2/token';
+        request({
+            method: 'POST',
+            auth: {
+                user: FITBIT_CLIENT_ID,
+                password: FITBIT_CLIENT_SECRET
+            },
+            url: url,
+            form: requestForm
+        }, function (err, response, body) {
+
+            winston.info(body);
+
+            let access_token_response = JSON.parse(body);
+            let access_token = access_token_response.access_token;
+            let user_id = access_token_response.user_id;
+            let refresh_token = access_token_response.refresh_token;
+            let scope = access_token_response.scope;
+            let expires_in = access_token_response.expires_in;
+
+            if (response.statusCode !== 200) {
+                winston.error(response.statusCode);
+                winston.error('invalid response');
+                return;
+            }
+
+            User.findOne({
+                _id: user._id
+            }, function (err, result) {
+                if (err) {
+                    winston.error(err);
+                }
+                if (!result) {
+                    winston.error('could not find user', user)
+                    return expressRes.redirect('/angular/#!/fitbit');
+                }
+                else {
+                    winston.info(result);
+
+                    User.updateOne({
+                        _id: user._id
+                    }, {
+                        $set: {
+                            fitbit_user: {
+                                access_token: access_token,
+                                expires_in: expires_in,
+                                refresh_token: refresh_token,
+                                scope: scope,
+                                user_id: user_id,
+                            }
+                        }
+                    }, function (error, result) {
+                        winston.info(result.result);
+                        winston.info(result.upsertedId);
+                    });
+                }
+            });
+        });
+
+    }
 
     //v1/proxy
     var getProxy = function(req,res)
     {
         let url = req._url;
+
+        refreshToken(req.user);
 
         let fitbit_user = req.user.fitbit_user;
         let access_token = fitbit_user.access_token;

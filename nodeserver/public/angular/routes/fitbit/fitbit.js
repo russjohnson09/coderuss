@@ -1,5 +1,24 @@
-app.factory('FitbitService', ['$http', '$q', '$timeout', function ($http, $q,
-    $timeout) {
+app.factory('FitbitProfile',['$http', '$q', '$timeout', function ($http, $q,
+                                                                  $timeout) {
+    function FitbitProfile(data) {
+        if (data) {
+            this.setData(data);
+        }
+    }
+
+    FitbitProfile.prototype = {
+        setData: function (data) {
+            angular.extend(this, data);
+        },
+    };
+
+    return FitbitProfile;
+}]);
+
+
+app.factory('FitbitService', ['$http', '$q', '$timeout','FitbitProfile',
+    function ($http, $q,
+    $timeout, FitbitProfile) {
 
     var baseurl = '';
 
@@ -89,6 +108,7 @@ app.factory('FitbitService', ['$http', '$q', '$timeout', function ($http, $q,
     service.getCurrentUserProfile = function()
     {
 
+        let fitbitProfile = new FitbitProfile({_status: 'loading'});
         let url = '/v1/fitbit/api/1/user/-/profile.json';
         $http(
             {
@@ -101,11 +121,15 @@ app.factory('FitbitService', ['$http', '$q', '$timeout', function ($http, $q,
         ).then(function (response) {
             if (response.data) {
                 $timeout(function () {
-                    console.log(response.data);
-                    // $.extend(true, habit, response.data);
-                }, 0);
+                    let data = $.extend(true,response.data,{_status:'loaded'})
+                    fitbitProfile.setData(data);
+                    console.log(fitbitProfile);
+                }, 500);
             }
         });
+
+        console.log(fitbitProfile);
+        return fitbitProfile;
     };
 
     service.getHabitById = function (id) {

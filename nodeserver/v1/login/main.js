@@ -3,6 +3,7 @@ module.exports = function(opts) {
     var url = require('url');
     var express = require('express');
     var winston = opts.winston || require('winston');
+    winston.debug('loginmain');
     var fs = require('fs');
     var ObjectID = require('mongodb').ObjectID;
 
@@ -390,8 +391,10 @@ module.exports = function(opts) {
 
     //http://passportjs.org/docs/authenticate
     router.post('/login', function(req, res, next) {
+        winston.debug(req.body);
         return passport.authenticate('local', function(err, user, info) {
             if (err) {
+                winston.error(err);
                 return next(err);
             }
 

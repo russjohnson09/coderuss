@@ -276,6 +276,14 @@ module.exports = function(opts, callback) {
                 passport: passport,
             }).router);
 
+            app.use('/v1/fitbit', require(__dirname + '/v1/fitbit/fitbit')({
+                FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
+                FITBIT_CLIENT_SECRET: process.env.FITBIT_CLIENT_SECRET,
+                BASE_URL: CODERUSS_BASE_URL + '/v1/fitbit',
+                winston: winston,
+                User: db.collection('user')
+            }));
+
 
             addLogseneRouter();
             addFaxRouter();

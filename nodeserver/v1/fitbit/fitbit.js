@@ -30,6 +30,12 @@
 
     winston.info('hello fitbit.js');
 
+    function addUpdateUser(opts,cb) {
+        winston.info('addUpdateUser' + JSON.stringify(opts));
+
+        cb(null,{});
+    }
+
     passport.use(new FitbitStrategy({
             clientID:     FITBIT_CLIENT_ID,
             clientSecret: FITBIT_CLIENT_SECRET,
@@ -39,7 +45,10 @@
             // callbackURL: "http://127.0.0.1:3000/auth/fitbit/callback"
         },
         function(token, tokenSecret, profile, cb) {
-            addUpdateUser({ fitbitId: profile.id });
+            addUpdateUser({ fitbitId: profile.id, token : token,
+                tokenSecret: tokenSecret}, function(err,user) {
+                return cb(err, user);
+            });
             // User.findOrCreate({ fitbitId: profile.id }, function (err, user) {
             //     return cb(err, user);
             // });
@@ -68,6 +77,25 @@
     // const GITHUB_API_URL = 'https://api.github.com';
 
     router.get('/auth/callback',function(req,res,next) {
+
+        return passport.authenticate('fitbit'
+            , function(err, user, info) {
+                console.log('/auth/callback',err,user,info);
+
+                if (err) {
+                    winston.error('bad fitbit auth')
+                    return res.redirect('/err');
+                }
+                else {
+                    return res.redirect('/test')
+                }
+                // Generate a JSON response reflecting authentication status
+                if (! user) {
+
+                    return res.send({ success : false, message : 'authentication failed' });
+                }
+            }
+        )(req, res, next);
 
         console.log('/auth/callback')
         winston.info('/auth/callback');
@@ -199,34 +227,57 @@
          //     exitOnError: process.env.NODE_ENV == 'DEV'
          // });
 
-         app.listen(3000, function () {
-             let router = module.exports({
-                 FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
-                 FITBIT_CLIENT_SECRET: process.env.FITBIT_CLIENT_SECRET,
-                 BASE_URL: 'http://localhost:3000/v1/fitbit',
-                 winston: winston
-             });
-             app.use('/v1/fitbit', router);
+         const MONGO_URI = process.env.MONGO_URI;
+         const MongoClient = require('mongodb').MongoClient;
+         let passport = require('passport');
 
-             let cp = require('child_process');
-             let spawn = cp.spawn;
+         MongoClient.connect(MONGO_URI, function(err, db) {
+             if (err) {
+                 throw err;
+             }
+             app.listen(3000, function () {
+                 let router = module.exports({
+                     FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
+                     FITBIT_CLIENT_SECRET: process.env.FITBIT_CLIENT_SECRET,
+                     BASE_URL: 'http://localhost:3000/v1/fitbit',
+                     winston: winston
+                 });
+                 app.use('/v1/fitbit', function(req,res,next) {
+                     winston.info('user');
+                     winston.info(req.user);
 
-             let child = spawn("mocha", ['./**/*_spec.js'],
-                 {cwd: __dirname, env: process.env});
-             child.stdout.on('data', function(data) {
-                 process.stdout.write(data);
-             });
+                     next();
+                 } ,router);
 
-             child.stderr.on('data', function(data) {
-                 process.stderr.write(data);
-             });
-             child.on('exit', function(exitcode) {
-                 if (exitcode !== 0) {
-                     process.exit(exitcode);
-                 }
+                 app.use('/v1', require(__dirname + '/../../v1/login/main.js')({
+                     winston: winston,
+                     database: db,
+                     passport: passport,
+                 }).router);
+
+                 let cp = require('child_process');
+                 let spawn = cp.spawn;
+
+                 let child = spawn("mocha", ['./**/*_spec.js'],
+                     {cwd: __dirname, env: process.env});
+                 child.stdout.on('data', function(data) {
+                     process.stdout.write(data);
+                 });
+
+                 child.stderr.on('data', function(data) {
+                     process.stderr.write(data);
+                 });
+                 child.on('exit', function(exitcode) {
+                     if (exitcode !== 0) {
+                         process.exit(exitcode);
+                     }
+                 });
+
              });
 
          });
+
+
      })();
 
 

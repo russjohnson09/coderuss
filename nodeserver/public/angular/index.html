@@ -134,6 +134,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="#!/profile">Profile</a></li>
                         <li><a href="#!/habits">Habits</a></li>
+                        <li><a href="#!/fitbit">Fitbit</a></li>
                         <li ng-show="true"><a href="#!/tvshows/showstatus">TV</a></li>
                         <li ng-show="getCurrentUser().isAdmin()"><a href="#!/postcards">Postcards</a></li>
                         <!--<li ng-show="getCurrentUser().isAdmin()"><a href="#!/tvshows">TV</a></li>-->
@@ -218,6 +219,11 @@
             })
             .when('/anchors', {
                 templateUrl: 'templates/anchors.html'
+            })
+            .when("/fitbit", {
+                templateUrl: "routes/fitbit/fitbit.html",
+                controller: "fitbitCtl",
+                resolve: userResolve,
             })
             .when("/habits", {
                 templateUrl: "templates/habits.html",
@@ -1850,6 +1856,7 @@
 
 <script src="routes/users/users.js"></script>
 <script src="routes/habits/habits.js"></script>
+<script src="routes/fitbit/fitbit.js"></script>
 
 
 <footer class="footer">

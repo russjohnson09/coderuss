@@ -1,0 +1,14 @@
+<h1>Fitbit</h1>
+
+<div>
+    <a href="/v1/fitbit/auth">Link fitbit</a>
+</div>
+
+<div class="fitbit">
+    <!--style="border-bottom:1px solid black" -->
+    <div ng-if="'loading' === fitbit._status">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+        <span class="sr-only">Loading...</span>
+    </div>
+    <pre>{{habit}}</pre>
+</div>

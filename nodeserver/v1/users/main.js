@@ -188,7 +188,7 @@ module.exports = function(opts) {
         router.get('/', function(req, res) {
 
             User.find({},
-                {dollars_available: 1, username: 1}).sort({
+                {dollars_available: 1, username: 1,fitbit_user: 1}).sort({
                 "username": 1
             }).toArray(function (err, results) {
                 res.json(results).end();

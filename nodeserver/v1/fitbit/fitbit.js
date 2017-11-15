@@ -312,13 +312,8 @@ module.exports = function (opts) {
         let fitbit_user = req.user.fitbit_user;
         let access_token = fitbit_user.access_token;
 
-        // delete req.headers['referer'];
-        // delete req.headers['host'];
-        // req.headers['accept-encoding'] = 'deflate';
-        // req.headers['Authorization'] = 'Bearer ' + access_token;
-
         let headers = {
-            'accept-encoding': 'default',
+            'accept-encoding': 'deflate',
             'authorization': 'Bearer ' + access_token,
             'content-type': 'application/json'
         };
@@ -336,8 +331,6 @@ module.exports = function (opts) {
             opts.body = JSON.stringify(req.body);
         }
 
-        console.log(opts);
-
         request(opts, function (err, proxyResponse, proxyBody) {
 
             if (err) {
@@ -347,8 +340,6 @@ module.exports = function (opts) {
             let responseHeaders = {
                 'content-type': proxyResponse.headers['content-type']
             };
-
-            responseHeaders = proxyResponse.headers;
 
             winston.info(responseHeaders);
 

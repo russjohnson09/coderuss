@@ -19,9 +19,11 @@
         {{fitbitUserProfile.user.displayName}} - {{fitbitUserProfile.user.dateOfBirth}}
         <img ng-src="{{fitbitUserProfile.user.avatar}}">
         <!--<pre>{{fitbitUserProfile | json}}</pre>-->
-        <pre><json-formatter open="2" json="fitbitUserProfile"></json-formatter></pre>
+        <pre><json-formatter open="1" json="fitbitUserProfile"></json-formatter></pre>
 
-        <pre><json-formatter open="2" json="sleepLogsList"></json-formatter></pre>
+        <pre><json-formatter open="1" json="sleepLogsList"></json-formatter></pre>
 
+        <h3>Activites</h3>
+        <pre><json-formatter open="2" json="activityLogsList"></json-formatter></pre>
     </div>
 </div>

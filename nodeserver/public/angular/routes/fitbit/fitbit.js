@@ -148,6 +148,48 @@ app.factory('FitbitService', ['$http', '$q', '$timeout','FitbitProfile',
             return sleepLogsList;
         };
 
+
+        service.getActivityLogsList = function (afterDate, sort, limit, offset) {
+
+
+            afterDate = afterDate || moment().startOf('month').format('YYYY-MM-DD');
+            sort = sort || 'asc';
+            limit = limit || maxLimit;
+            offset = offset || 0;
+
+
+            let list = {_status: 'loading'};
+            let url = baseApiUrl + '/1/user/-/activities/list.json';
+
+            $http(
+                {
+                    method: 'GET',
+                    url: url,
+                    params: {
+                        afterDate: afterDate,
+                        sort: sort,
+                        limit: limit,
+                        offset: offset
+                    },
+                    headers: {
+                        'cache-control': 'no-cache'
+                    },
+                }
+            ).then(function (response) {
+                if (response.data) {
+                    $timeout(function () {
+
+                        $.extend(true,list,response.data,{_status:'loaded'});
+                        // let data = $.extend(true,response.data,{_status:'loaded'})
+                        // fitbitProfile.setData(data);
+                        // console.log(fitbitProfile);
+                    }, 500);
+                }
+            });
+
+            return list;
+        };
+
     /**
      * GET https://api.fitbit.com/1/user/[user-id]/body/log/fat/date/[date].json
      GET https://api.fitbit.com/1/user/[user-id]/body/log/fat/date/[date]/[period].json
@@ -313,6 +355,7 @@ app.controller('fitbitCtl', ['_user', '$rootScope', '$cookies', '$scope', '$loca
         FitbitService.getFoodGoal();
 
         $scope.sleepLogsList = FitbitService.getSleepLogsList();
+        $scope.activityLogsList = FitbitService.getActivityLogsList();
 
         $scope.devMode = false;
 

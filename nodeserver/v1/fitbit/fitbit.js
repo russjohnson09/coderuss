@@ -312,20 +312,33 @@ module.exports = function (opts) {
         let fitbit_user = req.user.fitbit_user;
         let access_token = fitbit_user.access_token;
 
-        delete req.headers['referer'];
-        delete req.headers['host'];
-        req.headers['accept-encoding'] = 'deflate';
-        req.headers['Authorization'] = 'Bearer ' + access_token;
+        // delete req.headers['referer'];
+        // delete req.headers['host'];
+        // req.headers['accept-encoding'] = 'deflate';
+        // req.headers['Authorization'] = 'Bearer ' + access_token;
+
+        let headers = {
+            'accept-encoding': 'default',
+            'authorization': 'Bearer ' + access_token,
+            'content-type': 'application/json'
+        };
 
         url += req.params.path;
 
-        request({
-            method: 'GET',
-            headers: req.headers,
+        let opts = {
+            method: req.method,
+            headers: headers,
             url: url,
-            // url: 'https://api.fitbit.com/1/user/-/profile.json',
-            qs: req.query
-        }, function (err, proxyResponse, proxyBody) {
+            qs: req.query,
+        };
+
+        if (req.body) {
+            opts.body = JSON.stringify(req.body);
+        }
+
+        console.log(opts);
+
+        request(opts, function (err, proxyResponse, proxyBody) {
 
             if (err) {
                 return res.status(500).send(err).end();
@@ -347,7 +360,8 @@ module.exports = function (opts) {
     };
 
 
-    router.get('/api:path(*)',function(req,res,next) {
+    function proxyApiGetToken(req,res,next) {
+        req._url = 'https://api.fitbit.com';
         let fitbit_user = req.user.fitbit_user || {};
 
         if (!fitbit_user) {
@@ -357,7 +371,7 @@ module.exports = function (opts) {
         let expires_at = fitbit_user.expires_at || 0;
         let now = Date.now();
         winston.info('check expiration of fitbit token ',{expires_at: expires_at,
-        now: now,expires_at_minus_now: (expires_at - now)});
+            now: now,expires_at_minus_now: (expires_at - now)});
         if (((expires_at - now) > (60 * 1000))) { //update a minute ahead of timeout
             winston.info('token has not expired.');
             return next();
@@ -367,11 +381,17 @@ module.exports = function (opts) {
             next();
         },function() {
             return res.status(401).json({message:'failed to refresh token'});
-        })
-    }, function(req,res,next) {
-        req._url = 'https://api.fitbit.com';
+        });
+
         next();
-    },getProxy);
+    }
+
+    router.use('/api:path(*)',
+        function(req,res,next) {
+            next();
+        },
+        proxyApiGetToken,
+        getProxy);
 
 
 

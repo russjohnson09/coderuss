@@ -12,10 +12,16 @@
         <span class="sr-only">Loading...</span>
     </div>
     <div ng-if="'loading' !== fitbitUserProfile._status">
+        <div>
+            <button class="btn btn-lg btn-primary btn-block"
+                    ng-click="fitbitUserProfile.logSleep()">Log 8 hour sleep</button>
+        </div>
         {{fitbitUserProfile.user.displayName}} - {{fitbitUserProfile.user.dateOfBirth}}
         <img ng-src="{{fitbitUserProfile.user.avatar}}">
         <!--<pre>{{fitbitUserProfile | json}}</pre>-->
         <pre><json-formatter open="2" json="fitbitUserProfile"></json-formatter></pre>
+
+        <pre><json-formatter open="2" json="sleepLogsList"></json-formatter></pre>
 
     </div>
 </div>

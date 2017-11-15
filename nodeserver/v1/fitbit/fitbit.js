@@ -4,6 +4,12 @@ console.log('loaded fitbit.js', Date.now());
  *
  * https://github.com/jaredhanson/passport-fitbit
  *
+ *
+ * https://dev.fitbit.com/reference/web-api/basics/#hitting-the-rate-limit
+ * Rate limit is currently 150 per user per hour.
+ *
+ *
+ *
  * @param opts
  * @returns router
  */
@@ -22,6 +28,9 @@ module.exports = function (opts) {
     const FITBIT_CLIENT_ID = opts.FITBIT_CLIENT_ID;
     const FITBIT_CLIENT_SECRET = opts.FITBIT_CLIENT_SECRET;
     const BASE_URL = opts.BASE_URL;
+    const CODERUSS_BASE_URL = opts.CODERUSS_BASE_URL;
+    const TOKEN_EXPIRE = opts.TOKEN_EXPIRE || (60 * 60); //Default refresh
+
 
     let callbackUrl = BASE_URL + '/auth/callback';
 
@@ -178,107 +187,158 @@ module.exports = function (opts) {
         }
     );
 
-    function refreshToken(user)
-    {
+    /**
+     * Refresh the current user's token.
+     */
+    router.get('/refresh', function(req,res,next) {
+
+        let redirect_uri = req.query.redirect_uri ||
+            CODERUSS_BASE_URL + '/angular/#!/fitbit';
+
+        refreshToken(req.user).then(function () {
+                res.redirect(redirect_uri);
+            },
+            function () {
+                console.log('error redirect to link fitbit');
+                res.redirect('../auth');
+            });
+    });
+
+    let promisesByRefreshToken = {};
+    function refreshToken(user) {
         let fitbit_user = user.fitbit_user;
-        let access_token = fitbit_user.access_token;
         let refresh_token = fitbit_user.refresh_token;
 
 
-        let requestForm = {
-            grant_type: 'refresh_token',
-            refresh_token: refresh_token
-        };
+        if (promisesByRefreshToken[refresh_token]) {
+            return promisesByRefreshToken[refresh_token];
+        }
 
-        winston.info(JSON.stringify(requestForm));
+        let promise = (function() {
+            let fitbit_user = user.fitbit_user;
+            let access_token = fitbit_user.access_token;
+            let refresh_token = fitbit_user.refresh_token;
+            let expires_at = fitbit_user.expires_at || 0;
+
+            let now = Date.now();
+
+            let requestForm = {
+                grant_type: 'refresh_token',
+                refresh_token: refresh_token,
+                expires_in: TOKEN_EXPIRE
+                // expires_in: 5
+            };
+
+            let my_expires_at = now + (TOKEN_EXPIRE * 1000);
+
+            winston.info('refresh token ' + JSON.stringify(requestForm));
+            let url = 'https://api.fitbit.com/oauth2/token';
+
+            let promise =  new Promise(function (resolve, reject) {
+                winston.info('request new token ' + user._id);
+                request({
+                    method: 'POST',
+                    auth: {
+                        user: FITBIT_CLIENT_ID,
+                        password: FITBIT_CLIENT_SECRET
+                    },
+                    url: url,
+                    form: requestForm
+                }, function (err, response, body) {
+
+                    let access_token_response = JSON.parse(body);
+                    winston.info('requested new token ',access_token_response);
 
 
-        let url = 'https://api.fitbit.com/oauth2/token';
-        request({
-            method: 'POST',
-            auth: {
-                user: FITBIT_CLIENT_ID,
-                password: FITBIT_CLIENT_SECRET
-            },
-            url: url,
-            form: requestForm
-        }, function (err, response, body) {
+                    let access_token = access_token_response.access_token;
+                    let user_id = access_token_response.user_id;
+                    let refresh_token = access_token_response.refresh_token;
+                    let scope = access_token_response.scope;
+                    let expires_in = access_token_response.expires_in;
 
-            winston.info(body);
+                    if (response.statusCode !== 200) {
+                        winston.error(response.statusCode);
+                        winston.error('invalid response');
+                        promisesByRefreshToken[refresh_token] = undefined;
+                        return reject();
+                    }
 
-            let access_token_response = JSON.parse(body);
-            let access_token = access_token_response.access_token;
-            let user_id = access_token_response.user_id;
-            let refresh_token = access_token_response.refresh_token;
-            let scope = access_token_response.scope;
-            let expires_in = access_token_response.expires_in;
-
-            if (response.statusCode !== 200) {
-                winston.error(response.statusCode);
-                winston.error('invalid response');
-                return;
-            }
-
-            User.findOne({
-                _id: user._id
-            }, function (err, result) {
-                if (err) {
-                    winston.error(err);
-                }
-                if (!result) {
-                    winston.error('could not find user', user)
-                    return expressRes.redirect('/angular/#!/fitbit');
-                }
-                else {
-                    winston.info(result);
-
-                    User.updateOne({
+                    User.findOne({
                         _id: user._id
-                    }, {
-                        $set: {
-                            fitbit_user: {
-                                access_token: access_token,
-                                expires_in: expires_in,
-                                refresh_token: refresh_token,
-                                scope: scope,
-                                user_id: user_id,
-                            }
+                    }, function (err, result) {
+                        if (err) {
+                            winston.error(err);
                         }
-                    }, function (error, result) {
-                        winston.info(result.result);
-                        winston.info(result.upsertedId);
-                    });
-                }
-            });
-        });
+                        if (!result) {
+                            winston.error('could not find user', user)
+                            return expressRes.redirect('/angular/#!/fitbit');
+                        }
+                        else {
+                            winston.info(result);
 
+                            User.updateOne({
+                                _id: user._id
+                            }, {
+                                $set: {
+                                    fitbit_user: {
+                                        access_token: access_token,
+                                        expires_in: expires_in, //not really sure about the expires_in request on a refresh token. I think the original token needs to have the expires_in set ?
+                                        expires_at: my_expires_at,
+                                        refresh_token: refresh_token,
+                                        scope: scope,
+                                        user_id: user_id,
+                                    }
+                                }
+                            }, function (error, result) {
+                                winston.info('updated user',result.result);
+                                winston.info(result.upsertedId);
+                                promisesByRefreshToken[refresh_token] = undefined;
+                                resolve();
+                            });
+                        }
+                    });
+                });
+            });
+            return promise;
+        })(user);
+        promisesByRefreshToken[refresh_token] = promise;
+        return promise;
     }
 
     //v1/proxy
     var getProxy = function(req,res)
     {
         let url = req._url;
-
-        refreshToken(req.user);
-
         let fitbit_user = req.user.fitbit_user;
         let access_token = fitbit_user.access_token;
 
-        delete req.headers['referer'];
-        delete req.headers['host'];
-        req.headers['accept-encoding'] = 'deflate';
-        req.headers['Authorization'] = 'Bearer ' + access_token;
+        // delete req.headers['referer'];
+        // delete req.headers['host'];
+        // req.headers['accept-encoding'] = 'deflate';
+        // req.headers['Authorization'] = 'Bearer ' + access_token;
+
+        let headers = {
+            'accept-encoding': 'default',
+            'authorization': 'Bearer ' + access_token,
+            'content-type': 'application/json'
+        };
 
         url += req.params.path;
 
-        console.log(url);
-        request({
-            method: 'GET',
-            headers: req.headers,
+        let opts = {
+            method: req.method,
+            headers: headers,
             url: url,
-            // url: 'https://api.fitbit.com/1/user/-/profile.json',
-            qs: req.query
-        }, function (err, proxyResponse, proxyBody) {
+            qs: req.query,
+        };
+
+        if (req.body) {
+            opts.body = JSON.stringify(req.body);
+        }
+
+        console.log(opts);
+
+        request(opts, function (err, proxyResponse, proxyBody) {
 
             if (err) {
                 return res.status(500).send(err).end();
@@ -287,7 +347,11 @@ module.exports = function (opts) {
             let responseHeaders = {
                 'content-type': proxyResponse.headers['content-type']
             };
-            console.log(proxyResponse.headers);
+
+            responseHeaders = proxyResponse.headers;
+
+            winston.info(responseHeaders);
+
             return res
                 .header(responseHeaders)
                 .status(proxyResponse.statusCode)
@@ -296,14 +360,38 @@ module.exports = function (opts) {
     };
 
 
-    router.get('/api:path(*)', function(req,res,next) {
-        console.log(req.user);
-
-        // return res.json(req.user);
-        // req.headers[''] = access_token;
+    function proxyApiGetToken(req,res,next) {
         req._url = 'https://api.fitbit.com';
+        let fitbit_user = req.user.fitbit_user || {};
+
+        if (!fitbit_user) {
+            return res.status(401).json({message: 'no fitbit user link'})
+        }
+
+        let expires_at = fitbit_user.expires_at || 0;
+        let now = Date.now();
+        winston.info('check expiration of fitbit token ',{expires_at: expires_at,
+            now: now,expires_at_minus_now: (expires_at - now)});
+        if (((expires_at - now) > (60 * 1000))) { //update a minute ahead of timeout
+            winston.info('token has not expired.');
+            return next();
+        }
+
+        refreshToken(req.user).then(function() {
+            next();
+        },function() {
+            return res.status(401).json({message:'failed to refresh token'});
+        });
+
         next();
-    },getProxy);
+    }
+
+    router.use('/api:path(*)',
+        function(req,res,next) {
+            next();
+        },
+        proxyApiGetToken,
+        getProxy);
 
 
 
@@ -381,13 +469,13 @@ if (require.main === module) {
                 }).router);
 
                 app.use('/v1/fitbit', function (req, res, next) {
-                    winston.info('user');
-                    winston.info(req.user);
+                    winston.info('user',{_id: req.user._id + ''});
                     next();
                 },  module.exports({
                     FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
                     FITBIT_CLIENT_SECRET: process.env.FITBIT_CLIENT_SECRET,
                     BASE_URL: 'http://localhost:3000/v1/fitbit',
+                    CODERUSS_BASE_URL: 'http://localhost:3000',
                     winston: winston,
                     User: db.collection('user')
                 }));

@@ -280,6 +280,7 @@ module.exports = function(opts, callback) {
                 FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
                 FITBIT_CLIENT_SECRET: process.env.FITBIT_CLIENT_SECRET,
                 BASE_URL: CODERUSS_BASE_URL + '/v1/fitbit',
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
                 winston: winston,
                 User: db.collection('user')
             }));

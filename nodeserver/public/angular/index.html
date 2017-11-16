@@ -225,6 +225,11 @@
                 controller: "fitbitCtl",
                 resolve: userResolve,
             })
+            .when("/fitbit/dev", {
+                templateUrl: "routes/fitbit/fitbitdev.html",
+                controller: "fitbitDevCtl",
+                resolve: userResolve,
+            })
             .when("/habits", {
                 templateUrl: "templates/habits.html",
                 controller: "habitsCtl",

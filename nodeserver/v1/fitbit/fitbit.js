@@ -270,8 +270,8 @@ module.exports = function (opts) {
                             winston.error(err);
                         }
                         if (!result) {
-                            winston.error('could not find user', user)
-                            return expressRes.redirect('/angular/#!/fitbit');
+                            winston.error('could not find user', user);
+                            return reject();
                         }
                         else {
                             winston.info(result);
@@ -373,8 +373,6 @@ module.exports = function (opts) {
         },function() {
             return res.status(401).json({message:'failed to refresh token'});
         });
-
-        next();
     }
 
     router.use('/api:path(*)',

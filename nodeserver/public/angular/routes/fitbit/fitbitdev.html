@@ -1,0 +1,27 @@
+<h1>Fitbit</h1>
+
+<div>
+    <a href="/v1/fitbit/auth">Link fitbit</a>
+</div>
+
+<div class="fitbit">
+    <h2>Fitbit Profile</h2>
+    <button ng-click="getSleepGoal()">Get Sleep Goal</button>
+    <button ng-click="updateSleepGoal()">Update Sleep Goal</button>
+    <button ng-click="logSleep()">Log Sleep</button>
+
+    <h2>Query Params</h2>
+
+
+    <form>
+        <div>
+           <label>Url</label> <input ng-model="request.url">
+        </div>
+        <div>
+            <label>Method</label> <input ng-model="request.method">
+        </div>
+
+        <textarea ng-model="request.body"></textarea>
+        <button ng-click="doRequest()">Do Request</button>
+    </form>
+</div>

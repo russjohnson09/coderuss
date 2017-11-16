@@ -1,4 +1,5 @@
 let baseApiUrl = '/v1/fitbit/api';
+let fitbitApiUrl = '/v1/fitbit/api';
 
 
 app.factory('FitbitProfile',['$http', '$q', '$timeout', function ($http, $q,
@@ -110,7 +111,8 @@ app.factory('FitbitService', ['$http', '$q', '$timeout','FitbitProfile',
         service.getSleepLogsList = function (afterDate, sort, limit, offset) {
 
 
-            afterDate = afterDate || moment().startOf('month').format('YYYY-MM-DD');
+            // afterDate = afterDate || moment().startOf('month').format('YYYY-MM-DD');
+            afterDate = afterDate || moment().subtract(maxLimit,'days').format('YYYY-MM-DD');
             sort = sort || 'asc';
             limit = limit || maxLimit;
             offset = offset || 0;
@@ -358,5 +360,113 @@ app.controller('fitbitCtl', ['_user', '$rootScope', '$cookies', '$scope', '$loca
         $scope.activityLogsList = FitbitService.getActivityLogsList();
 
         $scope.devMode = false;
+
+    }]);
+
+app.controller('fitbitDevCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
+    '$http', '$routeParams', 'FitbitService', 'hotkeys', 'User','$timeout',
+    function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams,
+              FitbitService,
+              hotkeys,
+              User,
+                $timeout) {
+
+            $scope.request = {};
+
+            $scope.response = null;
+
+            $scope.responses = [];
+
+            //GET https://api.fitbit.com/<api-version>/user/-/sleep/goal.json
+            $scope.getSleepGoal = function() {
+                $scope.request = {
+                    url: fitbitApiUrl + '/1/user/-/sleep/goal.json',
+                    method: 'GET'
+                };
+                $scope.doRequest();
+            };
+
+        /**
+         * Log sleep for the last 360 days.
+         */
+        $scope.logSleep = function() {
+                let i = 0;
+                // let hours = 8;
+                let hours = 7;
+
+                let duration = hours * 60 * 60 * 1000; //duration in milliseconds
+
+                let date = moment().startOf('day');
+
+                let rangeDays = 360;
+
+
+                while (i < rangeDays) {
+                    let date2 = moment(date).subtract(i,'days');
+                    // let date2 = date.subtract(i,'days')
+                    console.log(date2.format('YYYY-MM-DD HH:ss'));
+                    i++;
+                    $scope.request = {
+                        url: fitbitApiUrl + '/1/user/-/sleep.json',
+                        method: 'POST',
+                        // headers: {
+                        //     'content-type': 'application/json'
+                        // },
+                        params: {
+                            duration: duration,
+                            startTime: date2.format('HH:ss'),
+                            date: date2.format('YYYY-MM-DD'),
+                        }
+                    };
+
+                    $scope.doRequest();
+                }
+                return;
+
+
+            };
+
+
+
+            //https://dev.fitbit.com/reference/web-api/sleep/#get-sleep-goal
+            $scope.updateSleepGoal = function() {
+                $scope.request = {
+                    url: fitbitApiUrl + '/1/user/-/sleep/goal.json',
+                    method: 'POST',
+                    // headers: {
+                    //     'content-type': 'application/json'
+                    // },
+                    params: {
+                        minDuration: 60 * 7,
+                    },
+                    // data: JSON.stringify(
+                    //     {
+                    //         minDuration: 60 * 7,
+                    //     }
+                    // )
+                };
+                $scope.doRequest();
+            };
+
+            $scope.doRequest = function() {
+                console.log($scope.request);
+                $scope.response = {
+                    _request: JSON.parse(JSON.stringify($scope.request)),
+                    _status: 'loading',
+                    _meta: {
+                        start: Date.now(),
+                    }
+                };
+                $scope.responses.push($scope.response);
+                $http(
+                    $scope.request
+                ).then(function (response) {
+                    $scope.response._meta.end = Date.now();
+
+                    $timeout(function () {
+                        $.extend(true, $scope.response, response);
+                    }, 0);
+                });
+            }
 
     }]);

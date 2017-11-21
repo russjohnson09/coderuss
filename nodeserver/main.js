@@ -285,6 +285,13 @@ module.exports = function(opts, callback) {
                 User: db.collection('user')
             }));
 
+            app.use('/v1/users/me',  require(__dirname + '/v1/addresses/addresses')({
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
+                winston: winston,
+                db: db,
+                User: db.collection('user'),
+            }));
+
 
             addLogseneRouter();
             addFaxRouter();

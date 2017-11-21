@@ -180,8 +180,8 @@ module.exports = function(opts) {
     }
 
     (function() {
-        router.use('/',isAdminRouter);
-        router.use('/:id',isAdminRouter);
+        // router.use('/',isAdminRouter);
+        // router.use('/:id',isAdminRouter);
         router.use('/:id/inc',isAdminRouter);
         router.use('/:id/dec',isAdminRouter);
 

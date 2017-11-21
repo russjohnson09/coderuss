@@ -171,17 +171,30 @@ module.exports = function(opts) {
     
     
     function isAdminRouter(req,res,next) {
-        // return function(req,res,next) {
-            if (!isAdmin(req.user.username)) {
-                return res.status(401).json({message:'Not authorized.'}).end();
-            }
-            return next();
-        // }
+        if (!isAdmin(req.user.username)) {
+            // let error;
+            // try {
+            //     throw new Error();
+            // }
+            // catch (e) {
+            //     error = e;
+            // }
+            return res.status(401).json({message:'Not authorized.',
+            meta: {
+                file: 'users/main.js',
+                params: req.params,
+                // error: error
+            }}).end();
+        }
+        return next();
     }
 
     (function() {
-        // router.use('/',isAdminRouter);
-        // router.use('/:id',isAdminRouter);
+        router.use('/',isAdminRouter);
+        router.use('/me:path(*)',function(req,res,next) {
+            next();
+        });
+        router.use('/:id',isAdminRouter);
         router.use('/:id/inc',isAdminRouter);
         router.use('/:id/dec',isAdminRouter);
 

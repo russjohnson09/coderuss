@@ -12,6 +12,7 @@ const usersendpoint = baseurl + '/v1/users';
 const loginurl = baseurl + '/v1/login';
 
 const winston = require('winston');
+const path = require('path');
 
 winston.loggers.add('testlogger', {
     console: {

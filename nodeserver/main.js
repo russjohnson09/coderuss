@@ -268,6 +268,19 @@ module.exports = function(opts, callback) {
         }, function() {
             database = mongo_db = db;
             todosnsp = io.of('/v1/todos');
+
+            //the order that these routes is applied in goes top down.
+            //I need to make sure more specific routes are before the
+            // /v1/users general route.
+            // A better solution is probably just to have /v1admin route
+            // or some better role/routing control.
+            app.use('/v1/users/me',  require(__dirname + '/v1/addresses/addresses')({
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
+                winston: winston,
+                db: db,
+                User: db.collection('user'),
+            }));
+
             addLoginRouter();
 
             app.use('/v1/users', require(__dirname + '/v1/users/main')({
@@ -284,14 +297,6 @@ module.exports = function(opts, callback) {
                 winston: winston,
                 User: db.collection('user')
             }));
-
-            app.use('/v1/users/me',  require(__dirname + '/v1/addresses/addresses')({
-                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
-                winston: winston,
-                db: db,
-                User: db.collection('user'),
-            }));
-
 
             addLogseneRouter();
             addFaxRouter();

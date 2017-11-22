@@ -22,6 +22,9 @@ module.exports = function (opts) {
     winston.info('loaded winston');
     let router = opts.router || require('express').Router();
 
+    let ObjectID = require('mongodb').ObjectID;
+
+
 
     router.use(function (req, res, next) {
         if (req.user) {
@@ -33,31 +36,125 @@ module.exports = function (opts) {
         }
     });
 
-    let models = [
-        {
-            'collection': 'address',
-            'endpoint': '/addresses',
+    let addressListModel = {
+            'collection': 'addresslist',
             'columns': [
                 {
                     'name': 'name',
                 },
                 {
-                    'name': 'address',
+                    'name': 'address_id',
+                }
+            ],
+            'validation_rules': [
+                function (obj) {
+                    return new Promise(function(resolve,reject) {
+                       if (obj['address_id'] === undefined) {
+                           reject('address_id is required');
+                       }
+                       else {
+                           resolve();
+                       }
+                    });
                 },
-                {
-                    'name': 'city',
-                },
-                {
-                    'name': 'state',
-                },
-                {
-                    'name': 'zip',
-                },
-                {
-                    'name': 'created',
+                function (obj) {
+                    let val = obj['address_id'];
+                    if (val) {
+                        if (typeof val === 'string') {
+                            val = [val];
+                        }
+                        let Address = db.collection('address');
+                        return new Promise(function (resolve, reject) {
+                            console.log('validation',obj,'address_id')
+                            let length = val.length;
+                            let processed = 0;
+                            if (val.length === 0) {
+                                return resolve();
+                            }
+                            for (let i in val) {
+                                let address_id;
+                                try {
+                                    address_id = ObjectID(val[i]);
+                                }
+                                catch (e) {
+                                    reject(e);
+                                }
+                                Address.findOne({'_id': address_id,'user_id':obj['user_id']}, function (err,obj) {
+                                    console.log('find address', address_id,err,obj);
+                                    if (obj) {
+                                        processed++;
+                                        if (length === processed) {
+                                            return resolve();
+                                        }
+                                    }
+                                    else {
+                                        return reject(err);
+                                    }
+                                })
+
+                            }
+                        });
+                    }
                 }
             ]
-        }
+        };
+
+    let addressModel = {
+        'collection': 'address',
+        'columns': [
+            {
+                'name': 'name',
+            },
+            {
+                'name': 'address',
+            },
+            {
+                'name': 'city',
+            },
+            {
+                'name': 'state',
+            },
+            {
+                'name': 'zip',
+            },
+            {
+                'name': 'created',
+            },
+            {
+                'name': 'tags',
+            },
+        ],
+        'search': {
+            //https://docs.mongodb.com/manual/reference/operator/projection/elemMatch/
+            //https://stackoverflow.com/questions/16198429/mongodb-how-to-find-out-if-an-array-field-contains-an-element
+            'tags': {}
+        },
+        'validation_rules': [
+            function (obj) {
+                return new Promise(function(resolve,reject) {
+                    if (obj['tags'] === undefined) {
+                        obj['tags'] = [];
+                        return resolve();
+                    }
+                    if (typeof obj['tags'] === 'string') {
+                        obj['tags'] = [obj['tags']];
+                        return resolve();
+                    }
+                    for (let i in obj['tags']) {
+                        let tag = obj['tags'][i];
+                        if (typeof tag !== 'string') {
+                            reject();
+                        }
+                    }
+                    return resolve();
+                });
+            },
+        ]
+    };
+
+    let models = [
+        addressModel,
+        addressListModel
     ];
 
     for (let i in models) {
@@ -65,13 +162,38 @@ module.exports = function (opts) {
         createUserRelationEndpoints(model);
     }
 
+    function validateModel(obj,validationRules)
+    {
+        return new Promise(function(resolve,reject) {
+            if (validationRules === undefined) {
+                return resolve();
+            }
+            let length = validationRules.length;
+            let count = 0;
+            for (let i in validationRules) {
+                let validationRule = validationRules[i];
+                // console.log('validactionRule',i,validationRule);
+                validationRule(obj).then(function() {
+                    count++;
+                    console.log('validationRule',count,length);
+                    if (count === length) {
+                        return resolve();
+                    }
+                },function(err){
+                    return reject(err);
+                })
+
+            }
+        })
+    }
+
     function createUserRelationEndpoints(model)
     {
         let collectionName = model.collection;
-        let Collection = db.collection('collectionName');
-        let pathName = model.endpoint;
+        let Collection = db.collection(collectionName);
+        let pathName = model.endpoint || ('/' + collectionName);
 
-        console.log(pathName);
+        console.log('adding',pathName);
 
         router.post(pathName,function(req,res) {
             winston.info('request params=' + JSON.stringify(req.params));
@@ -90,15 +212,29 @@ module.exports = function (opts) {
                 }
             }
 
-            Collection.insertOne(obj, function(error, result) {
-                if (error) {
-                    winston.error(error);
-                    return res.status(500).json({
-                        error: error
-                    })
-                }
-                obj._id = result.insertedId;
-                res.json(obj);
+            validateModel(obj, model.validation_rules).then(function () {
+                Collection.insertOne(obj, function (error, result) {
+                    if (error) {
+                        winston.error(error);
+                        return res.status(500).json({
+                            error: error
+                        })
+                    }
+                    obj._id = result.insertedId;
+                    let resObj = {
+                        data: obj,
+                        meta: {}
+                    };
+                    res.json(resObj);
+                });
+            }, function (err) {
+                return res.status(400).json({
+                    meta: {
+                        message: 'validation failed',
+                        error: err,
+                        obj: obj
+                    }
+                });
             });
         });
 
@@ -107,9 +243,16 @@ module.exports = function (opts) {
          * data: [Collection1,Collection2]
          */
         router.get(pathName,function(req,res) {
+            let queryParams = req.query;
             let query = {
                 'user_id': req.user_id
             };
+            for(let k in queryParams) {
+                console.log(k);
+                if (model.search !== undefined && model.search[k]) {
+                    query[k] = queryParams[k];
+                }
+            }
             Collection.find(query).sort({
                 "created": -1,
             }).toArray((function(err, collectionResults) {
@@ -119,28 +262,89 @@ module.exports = function (opts) {
 
                 let objResponse = {
                     data: collectionResults,
-                    meta: {}
+                    meta: {
+                        query: query
+                    }
                 };
                 res.json(objResponse);
             }));
         });
 
+        function validateObjectID(req,res,next) {
+            try {
+                let id = ObjectID(req.params.id);
+                req.params.id = id;
+            }
+            catch(e) {
+                return res.status(400).json(
+                    {
+                        data: null,
+                        meta: {
+                            message: 'invalid id'
+                        }
+                    });
+            }
+            return next();
+        }
 
-        router.get(pathName + '/:id',function(req,res) {
+
+        router.get(pathName + '/:id',validateObjectID,function(req,res) {
+            let id = req.params.id;
             let query = {
                 'user_id': req.user_id,
-                '_id': req.params.id
+                '_id': id
             };
-            winston.info(query);
+            winston.info('query: ',JSON.stringify(query));
             Collection.findOne(query,function(err, collectionEl) {
                 if (err) {
                     winston.error(err);
                 }
 
-                let objResponse = collectionEl;
+                winston.info('collection ',JSON.stringify(collectionEl));
+
+                // var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+                let objResponse = {
+                    data: collectionEl,
+                    _meta: {
+                        location: req.path,
+                        // fullUrl: fullUrl,
+                        protocol: req.protocol,
+                        host: req.get('host'),
+                        // host: req.get('host'),
+                        originalUrl: req.originalUrl
+                    }
+                };
                 res.json(objResponse);
             });
         });
+
+
+        router.delete(pathName + '/:id',validateObjectID,function(req,res) {
+            let id = req.params.id;
+            let query = {
+                'user_id': req.user_id,
+                '_id': id
+            };
+            Collection.deleteOne(query,function(err, collectionEl) {
+                if (err) {
+                    winston.error(err);
+                    return res.status(400).json({
+                        _meta: {
+                            error: err,
+                            query: query,
+                        }
+                    })
+                }
+                else {
+                    res.json({_meta: {
+                        message: 'deleted ' + id,
+                        query: query,
+                    }})
+                }
+            });
+        });
+
 
 
     }
@@ -213,12 +417,6 @@ if (require.main === module) {
                     passport: passport,
                 }).router);
 
-                app.use('/v1/users', require(__dirname + '/../../v1/users/main')({
-                    winston: mainLogger,
-                    database: db,
-                    passport: passport,
-                }).router);
-
                 app.use('/v1/users/me', function (req, res, next) {
                     winston.info('user',{_id: req.user._id + ''});
                     next();
@@ -226,35 +424,18 @@ if (require.main === module) {
                     CODERUSS_BASE_URL: 'http://localhost:3000',
                     winston: winston,
                     db: db,
-                    User: db.collection('user'),
-                    // models: [
-                    //     {
-                    //         'collection': 'address',
-                    //         'columns': [
-                    //             {
-                    //                 'name': 'name',
-                    //             },
-                    //             {
-                    //                 'name': 'address',
-                    //             },
-                    //             {
-                    //                 'name': 'city',
-                    //             },
-                    //             {
-                    //                 'name': 'state',
-                    //             },
-                    //             {
-                    //                 'name': 'zip',
-                    //             }
-                    //         ]
-                    //     }
-                    // ]
                 }));
+
+                app.use('/v1/users', require(__dirname + '/../../v1/users/main')({
+                    winston: mainLogger,
+                    database: db,
+                    passport: passport,
+                }).router);
 
                 let cp = require('child_process');
                 let spawn = cp.spawn;
 
-                let child = spawn("mocha", ['./**/*_spec.js'],
+                let child = spawn("mocha", ['./**/*_spec.js','--bail'],
                     {cwd: __dirname, env: process.env});
                 child.stdout.on('data', function (data) {
                     process.stdout.write(data);

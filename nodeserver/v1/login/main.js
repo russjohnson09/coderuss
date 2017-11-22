@@ -65,7 +65,7 @@ module.exports = function(opts) {
                 callback(err, hash);
             });
         });
-    }
+    };
 
     passport.use(new LocalStrategy(
         function(username, password, done) {

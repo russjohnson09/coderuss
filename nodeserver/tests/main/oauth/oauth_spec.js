@@ -51,6 +51,7 @@ describe(path.basename(__dirname), function() {
         },
         uri: BASE_URL + '/v1/login'
       }, function(error, response, body) {
+        console.log(body);
         expect(error).to.be.equal(null);
         expect(response.statusCode).to.equal(201);
         expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');

@@ -269,6 +269,13 @@ module.exports = function(opts, callback) {
             database = mongo_db = db;
             todosnsp = io.of('/v1/todos');
 
+            let OauthToken = database.collection('oauth_token');
+            let User = database.collection('user');
+
+            addOauth(OauthToken,User);
+
+            addLoginRouter();
+
             //the order that these routes is applied in goes top down.
             //I need to make sure more specific routes are before the
             // /v1/users general route.
@@ -280,8 +287,6 @@ module.exports = function(opts, callback) {
                 db: db,
                 User: db.collection('user'),
             }));
-
-            addLoginRouter();
 
             app.use('/v1/users', require(__dirname + '/v1/users/main')({
                 winston: mainLogger,
@@ -1534,8 +1539,45 @@ module.exports = function(opts, callback) {
         app.use('/api/v1/voice', voice.router);
     }
 
-    function addLoginRouter() {
+    function addOauth(OauthToken,User)
+    {
+        //authorization=token 2a3e269cb969fd914fc183328d879b06e1d00aed1126928123bd0e93936961acbf88f021ddbfc9ab686b9853d42893b944a684b2c202d121551abb5bb06c3008
+        app.use(function(req, res, next) {
+            if (req.isAuthenticated()) {
+                return next();
+            }
 
+            if (req.headers && req.headers.authorization) {
+                var access_token = req.headers.authorization.substr(6);
+                OauthToken.findOne({
+                    access_token: access_token,
+                }, function(err, oauthToken) {
+                    if (oauthToken && oauthToken.user_id) {
+                        User.findOne({
+                            _id: oauthToken.user_id
+                        }, function(err, user) {
+                            if (user) {
+                                req.user = user;
+                                return next();
+                            }
+                            else {
+                                return next();
+                            }
+                        })
+                    }
+                    else {
+                        return next();
+                    }
+
+                });
+            }
+            else {
+                return next();
+            }
+        });
+    }
+
+    function addLoginRouter() {
         app.use('/v1', require(__dirname + '/v1/login/main.js')({
             winston: mainLogger,
             database: database,

@@ -46,7 +46,6 @@ describe(path.basename(__filename), function () {
             var data = JSON.parse(body);
 
             expect(data.message, 'human readable message in response body').not.to.be.undefined;
-            expect(data.status, 'status in 401 response body').not.to.be.undefined;
 
             done();
         });

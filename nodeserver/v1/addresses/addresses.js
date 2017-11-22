@@ -48,6 +48,16 @@ module.exports = function (opts) {
             ],
             'validation_rules': [
                 function (obj) {
+                    return new Promise(function(resolve,reject) {
+                       if (obj['address_id'] === undefined) {
+                           reject('address_id is required');
+                       }
+                       else {
+                           resolve();
+                       }
+                    });
+                },
+                function (obj) {
                     let val = obj['address_id'];
                     if (val) {
                         if (typeof val === 'string') {
@@ -55,19 +65,30 @@ module.exports = function (opts) {
                         }
                         let Address = db.collection('address');
                         return new Promise(function (resolve, reject) {
+                            console.log('validation',obj,'address_id')
                             let length = val.length;
                             let processed = 0;
+                            if (val.length === 0) {
+                                return resolve();
+                            }
                             for (let i in val) {
-                                let address_id = val[i];
-                                Address.findOne({'_id': address_id}, function (obj) {
+                                let address_id;
+                                try {
+                                    address_id = ObjectID(val[i]);
+                                }
+                                catch (e) {
+                                    reject(e);
+                                }
+                                Address.findOne({'_id': address_id,'user_id':obj['user_id']}, function (err,obj) {
+                                    console.log('find address', address_id,err,obj);
                                     if (obj) {
                                         processed++;
-                                        if (lenth === processed) {
-                                            resolve();
+                                        if (length === processed) {
+                                            return resolve();
                                         }
                                     }
                                     else {
-                                        return reject();
+                                        return reject(err);
                                     }
                                 })
 
@@ -113,22 +134,22 @@ module.exports = function (opts) {
     function validateModel(obj,validationRules)
     {
         return new Promise(function(resolve,reject) {
-            let length = validationRules.length;
-            let count = 0;
             if (validationRules === undefined) {
                 return resolve();
             }
+            let length = validationRules.length;
+            let count = 0;
             for (let i in validationRules) {
                 let validationRule = validationRules[i];
-                console.log('validactionRule',validationRule);
+                // console.log('validactionRule',i,validationRule);
                 validationRule(obj).then(function() {
                     count++;
                     console.log('validationRule',count,length);
                     if (count === length) {
                         return resolve();
                     }
-                },function(){
-                    return reject();
+                },function(err){
+                    return reject(err);
                 })
 
             }
@@ -160,7 +181,7 @@ module.exports = function (opts) {
                 }
             }
 
-            validateModel(obj, model.validationRules).then(function () {
+            validateModel(obj, model.validation_rules).then(function () {
                 Collection.insertOne(obj, function (error, result) {
                     if (error) {
                         winston.error(error);
@@ -169,27 +190,21 @@ module.exports = function (opts) {
                         })
                     }
                     obj._id = result.insertedId;
-                    res.json(obj);
+                    let resObj = {
+                        data: obj,
+                        meta: {}
+                    };
+                    res.json(resObj);
                 });
             }, function (err) {
                 return res.status(400).json({
                     meta: {
                         message: 'validation failed',
-                        error: err
+                        error: err,
+                        obj: obj
                     }
                 });
             });
-
-            // Collection.insertOne(obj, function(error, result) {
-            //     if (error) {
-            //         winston.error(error);
-            //         return res.status(500).json({
-            //             error: error
-            //         })
-            //     }
-            //     obj._id = result.insertedId;
-            //     res.json(obj);
-            // });
         });
 
         /**
@@ -251,7 +266,7 @@ module.exports = function (opts) {
 
                 let objResponse = {
                     data: collectionEl,
-                    meta: {
+                    _meta: {
                         location: req.path,
                         // fullUrl: fullUrl,
                         protocol: req.protocol,

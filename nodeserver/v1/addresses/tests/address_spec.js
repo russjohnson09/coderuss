@@ -40,6 +40,100 @@ describe(path.basename(__dirname), function () {
     });
 
     describe('address', function () {
+
+        describe('/v1/users/me/address POST with tags', function () {
+            describe('malformed tags', function() {
+                it("object tags", function (done) {
+                    let bodyObj = {
+                        name: 'test address', 'address': 'test address',
+                        'city': 'Detroit',
+                        'state': 'MI',
+                        tags: [{model: 1}]
+                    };
+
+                    request({
+                        method: "POST",
+                        uri: BASE_URL + '/v1/users/me/address',
+                        headers: {
+                            Cookie: cookie,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify(bodyObj)
+                    }, function (error, response, body) {
+                        console.log(body);
+
+                        body = JSON.stringify(body);
+                        expect(error).to.be.equal(null);
+                        expect(response.statusCode).to.equal(400);
+                        expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                        done();
+                    })
+                });
+
+                it("numeric tags", function (done) {
+                    let bodyObj = {
+                        name: 'test address', 'address': 'test address',
+                        'city': 'Detroit',
+                        'state': 'MI',
+                        tags: [1]
+                    };
+
+                    request({
+                        method: "POST",
+                        uri: BASE_URL + '/v1/users/me/address',
+                        headers: {
+                            Cookie: cookie,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify(bodyObj)
+                    }, function (error, response, body) {
+                        console.log(body);
+
+                        body = JSON.stringify(body);
+                        expect(error).to.be.equal(null);
+                        expect(response.statusCode).to.equal(400);
+                        expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                        done();
+                    })
+                });
+
+            });
+
+            describe('good tags', function() {
+                it("numeric tags", function (done) {
+                    let bodyObj = {
+                        name: 'test address with christmas_list tag',
+                        'address': 'test address',
+                        'city': 'Detroit',
+                        'state': 'MI',
+                        tags: ['christmas_list']
+                    };
+
+                    request({
+                        method: "POST",
+                        uri: BASE_URL + '/v1/users/me/address',
+                        headers: {
+                            Cookie: cookie,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify(bodyObj)
+                    }, function (error, response, body) {
+                        console.log(body);
+
+                        body = JSON.stringify(body);
+                        expect(error).to.be.equal(null);
+                        expect(response.statusCode).to.equal(200);
+                        expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                        done();
+                    })
+                });
+
+            });
+        });
+
+
+
+
         describe('/v1/users/me/address POST', function () {
             it("successfully login", function (done) {
                 request({
@@ -97,6 +191,9 @@ describe(path.basename(__dirname), function () {
                 });
             });
         });
+
+        //db.student.find({},
+        //{_id:0, name:1, students:{$elemMatch:{$eq:ObjectId("51780f796ec4051a536015cf")}}})
 
         let address1;
         describe('/v1/users/me/address/:id GET', function () {
@@ -393,8 +490,6 @@ describe(path.basename(__dirname), function () {
                 });
             });
         });
-
-        return;
 
 
         //login for user with no address

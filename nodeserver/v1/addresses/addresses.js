@@ -99,30 +99,61 @@ module.exports = function (opts) {
             ]
         };
 
-    let models = [
-        {
-            'collection': 'address',
-            'columns': [
-                {
-                    'name': 'name',
-                },
-                {
-                    'name': 'address',
-                },
-                {
-                    'name': 'city',
-                },
-                {
-                    'name': 'state',
-                },
-                {
-                    'name': 'zip',
-                },
-                {
-                    'name': 'created',
-                }
-            ]
+    let addressModel = {
+        'collection': 'address',
+        'columns': [
+            {
+                'name': 'name',
+            },
+            {
+                'name': 'address',
+            },
+            {
+                'name': 'city',
+            },
+            {
+                'name': 'state',
+            },
+            {
+                'name': 'zip',
+            },
+            {
+                'name': 'created',
+            },
+            {
+                'name': 'tags',
+            },
+        ],
+        'search': {
+            //https://docs.mongodb.com/manual/reference/operator/projection/elemMatch/
+            //https://stackoverflow.com/questions/16198429/mongodb-how-to-find-out-if-an-array-field-contains-an-element
+            'tags': {}
         },
+        'validation_rules': [
+            function (obj) {
+                return new Promise(function(resolve,reject) {
+                    if (obj['tags'] === undefined) {
+                        obj['tags'] = [];
+                        return resolve();
+                    }
+                    if (typeof obj['tags'] === 'string') {
+                        obj['tags'] = [obj['tags']];
+                        return resolve();
+                    }
+                    for (let i in obj['tags']) {
+                        let tag = obj['tags'][i]
+                        if (typeof tag !== 'string') {
+                            reject();
+                        }
+                    }
+                    return resolve();
+                });
+            },
+        ]
+    };
+
+    let models = [
+        addressModel,
         addressListModel
     ];
 
@@ -212,9 +243,16 @@ module.exports = function (opts) {
          * data: [Collection1,Collection2]
          */
         router.get(pathName,function(req,res) {
+            let queryParams = req.query;
             let query = {
                 'user_id': req.user_id
             };
+            for(let k in queryParams) {
+                console.log(k);
+                if (model.search !== undefined && model.search[k]) {
+                    query[k] = queryParams[k];
+                }
+            }
             Collection.find(query).sort({
                 "created": -1,
             }).toArray((function(err, collectionResults) {
@@ -224,7 +262,9 @@ module.exports = function (opts) {
 
                 let objResponse = {
                     data: collectionResults,
-                    meta: {}
+                    meta: {
+                        query: query
+                    }
                 };
                 res.json(objResponse);
             }));

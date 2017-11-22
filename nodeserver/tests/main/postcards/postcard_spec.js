@@ -24,7 +24,7 @@ const http = require('http');
 winston.loggers.add('testlogger', {
     transports: [
         new(winston.transports.Console)({
-            level: CONSOLE_LOG_LEVEL
+            level: 'info'
         }),
     ]
 });
@@ -91,14 +91,16 @@ describe(path.basename(__dirname), function() {
     describe('get nonadmin by id', function() {
         it("/v1/:id GET returns status 401 for non admin user", function() {
             return new Promise(function(resolve) {
-                var url = BASE_URL + "/v1/users/" + userIdNotAdmin
-                var req = request({
-                        method: 'GET',
-                        headers: headersNotAdmin,
-                        url: url,
-                    },
+                var url = BASE_URL + "/v1/users/" + userIdNotAdmin;
+                let opts = {
+                    method: 'GET',
+                    headers: headersNotAdmin,
+                    url: url,
+                };
+                var req = request(opts,
                     function(err, response, body) {
                         expect(err).to.be.null;
+                        logger.info(opts);
                         logger.info(response.statusCode);
                         logger.info(body);
                         logger.info(response.headers);

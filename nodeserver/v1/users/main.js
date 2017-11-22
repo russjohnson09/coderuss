@@ -22,62 +22,6 @@ module.exports = function(opts) {
 
 
     const User = db.collection('user');
-    const OauthToken = db.collection('oauth_token');
-
-
-    //authorization=token 2a3e269cb969fd914fc183328d879b06e1d00aed1126928123bd0e93936961acbf88f021ddbfc9ab686b9853d42893b944a684b2c202d121551abb5bb06c3008
-    router.use(function(req, res, next) {
-        winston.debug(req.body);
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
-        winston.info(req.headers);
-
-        if (req.isAuthenticated()) {
-            return next();
-        }
-
-        if (req.headers && req.headers.authorization) {
-            var access_token = req.headers.authorization.substr(6)
-            OauthToken.findOne({
-                access_token: access_token,
-            }, function(err, oauthToken) {
-
-                if (oauthToken && oauthToken.user_id) {
-                    User.findOne({
-                        _id: oauthToken.user_id
-                    }, function(err, user) {
-                        if (user) {
-                            req.user = user;
-                            return next();
-                        }
-                        else {
-                            res.status(401);
-                            return res.end(JSON.stringify({
-                                "message": 'Unauthorized',
-                                status: "unauthorized"
-                            }));
-                        }
-                    })
-                }
-                else {
-                    res.status(401);
-                    return res.end(JSON.stringify({
-                        "message": 'Unauthorized',
-                        status: "unauthorized"
-                    }));
-                }
-
-            });
-        }
-        else {
-            res.status(401);
-            return res.end(JSON.stringify({
-                "message": 'Unauthorized',
-                status: "unauthorized"
-            }));
-        }
-
-    });
 
     router.get('/me', function(req, res) {
 
@@ -88,12 +32,12 @@ module.exports = function(opts) {
             if (err) {
                 winston.error(err);
                 res.status(401);
-                return res.end(JSON.stringify({
+                return res.json({
                     "message": 'Unauthorized',
                     status: "unauthorized"
-                }));
+                });
             }
-            return res.status(200).send(JSON.stringify({
+            return res.status(200).json({
                 _id: user._id,
                 username: user.username,
                 email: user.email || null,
@@ -101,7 +45,7 @@ module.exports = function(opts) {
                 logsene_token: user.logsene_token || null,
                 dollars_available: user.dollars_available || null,
                 is_admin: isAdmin(user.username) ? 1 : 0
-            })).end();
+            }).end();
         });
     });
 
@@ -126,10 +70,10 @@ module.exports = function(opts) {
         }
         if (!set.name && !set.email) {
             res.status(400);
-            return res.end(JSON.stringify({
+            return res.json({
                 "message": 'Name or email are required fields',
                 status: "Bad Request"
-            }));
+            });
             return;
         }
         User.updateOne({
@@ -148,17 +92,18 @@ module.exports = function(opts) {
                 if (err) {
                     winston.error(err);
                     res.status(401);
-                    return res.end(JSON.stringify({
-                        "message": 'Unauthorized',
-                        status: "unauthorized"
-                    }));
+                    return res.json({
+                            "message": 'Unauthorized',
+                            status: "unauthorized"
+                        }
+                    );
                 }
-                return res.status(201).send(JSON.stringify({
+                return res.status(201).json({
                     _id: user._id,
                     username: user.username,
                     email: user.email || null,
                     name: user.name || null
-                })).end();
+                }).end();
             });
         });
 
@@ -171,16 +116,29 @@ module.exports = function(opts) {
     
     
     function isAdminRouter(req,res,next) {
-        // return function(req,res,next) {
-            if (!isAdmin(req.user.username)) {
-                return res.status(401).json({message:'Not authorized.'}).end();
-            }
-            return next();
-        // }
+        if (!isAdmin(req.user.username)) {
+            // let error;
+            // try {
+            //     throw new Error();
+            // }
+            // catch (e) {
+            //     error = e;
+            // }
+            return res.status(401).json({message:'Not authorized.',
+            meta: {
+                file: 'users/main.js',
+                params: req.params,
+                // error: error
+            }}).end();
+        }
+        return next();
     }
 
     (function() {
         router.use('/',isAdminRouter);
+        router.use('/me:path(*)',function(req,res,next) {
+            next();
+        });
         router.use('/:id',isAdminRouter);
         router.use('/:id/inc',isAdminRouter);
         router.use('/:id/dec',isAdminRouter);
@@ -197,9 +155,6 @@ module.exports = function(opts) {
 
 
         router.get('/:id', function(req, res) {
-            // if (!isAdmin(req.user.username)) {
-            //     return res.status(401).json({}).end();
-            // }
             User.findOne({
                 _id: ObjectID(req.params.id)
             }, function(err, user) {
@@ -207,19 +162,19 @@ module.exports = function(opts) {
                 if (err) {
                     winston.error(err);
                     res.status(401);
-                    return res.end(JSON.stringify({
+                    return res.json({
                         "message": 'Unauthorized',
                         status: "unauthorized"
-                    }));
+                    });
                 }
-                return res.status(200).send(JSON.stringify({
+                return res.status(200).json({
                     _id: user._id,
                     username: user.username,
                     email: user.email || null,
                     name: user.name || null,
                     logsene_token: user.logsene_token || null,
                     dollars_available: user.dollars_available || null,
-                })).end();
+                }).end();
             });
         });
 
@@ -229,7 +184,6 @@ module.exports = function(opts) {
             }
             User.updateOne({
                 _id: ObjectID(req.params.id),
-                // dollars_available: { $gt: 0 }
             }, {
                 $inc: {
                     dollars_available: req.body.inc,

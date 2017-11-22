@@ -141,7 +141,7 @@ module.exports = function (opts) {
                         return resolve();
                     }
                     for (let i in obj['tags']) {
-                        let tag = obj['tags'][i]
+                        let tag = obj['tags'][i];
                         if (typeof tag !== 'string') {
                             reject();
                         }
@@ -318,6 +318,33 @@ module.exports = function (opts) {
                 res.json(objResponse);
             });
         });
+
+
+        router.delete(pathName + '/:id',validateObjectID,function(req,res) {
+            let id = req.params.id;
+            let query = {
+                'user_id': req.user_id,
+                '_id': id
+            };
+            Collection.deleteOne(query,function(err, collectionEl) {
+                if (err) {
+                    winston.error(err);
+                    return res.status(400).json({
+                        _meta: {
+                            error: err,
+                            query: query,
+                        }
+                    })
+                }
+                else {
+                    res.json({_meta: {
+                        message: 'deleted ' + id,
+                        query: query,
+                    }})
+                }
+            });
+        });
+
 
 
     }

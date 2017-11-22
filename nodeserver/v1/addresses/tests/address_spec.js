@@ -437,6 +437,69 @@ describe(path.basename(__dirname), function () {
         });
 
 
+        describe('/v1/users/me/address/:id DELETE', function () {
+            let addressCount;
+
+            it("get address count", function (done) {
+                request({
+                    method: "GET",
+                    uri: BASE_URL + '/v1/users/me/address',
+                    headers: {
+                        Cookie: cookie
+                    }
+                }, function (error, response, body) {
+                    console.log(body);
+
+                    body = JSON.parse(body);
+                    expect(error).to.be.equal(null);
+                    expect(response.statusCode).to.equal(200);
+                    addressCount = body.data.length;
+                    expect(addressCount).to.be.greaterThan(0);
+                    expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                    done();
+                });
+            });
+
+            it("delete address", function (done) {
+                request({
+                    method: "DELETE",
+                    uri: BASE_URL + '/v1/users/me/address/' + address1._id + '?t=1',
+                    headers: {
+                        Cookie: cookie
+                    }
+                }, function (error, response, body) {
+                    console.log(body);
+
+                    body = JSON.parse(body);
+                    expect(error).to.be.equal(null);
+                    expect(response.statusCode).to.equal(200);
+                    addressCount--;
+                    expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                    done();
+                });
+            });
+
+
+            it("confirm address count -1 after delete", function (done) {
+                request({
+                    method: "GET",
+                    uri: BASE_URL + '/v1/users/me/address',
+                    headers: {
+                        Cookie: cookie
+                    }
+                }, function (error, response, body) {
+                    console.log(body);
+
+                    body = JSON.parse(body);
+                    expect(error).to.be.equal(null);
+                    expect(response.statusCode).to.equal(200);
+                    expect(body.data.length).to.be.equal(addressCount);
+                    expect(response.headers['content-type']).to.be.equal('application/json; charset=utf-8');
+                    done();
+                });
+            });
+        });
+
         let addressList1;
         describe('/v1/users/me/addresslist GET', function() {
             it("get addresslist for me", function (done) {

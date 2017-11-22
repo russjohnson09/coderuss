@@ -22,6 +22,9 @@ module.exports = function (opts) {
     winston.info('loaded winston');
     let router = opts.router || require('express').Router();
 
+    let ObjectID = require('mongodb').ObjectID;
+
+
 
     router.use(function (req, res, next) {
         if (req.user) {
@@ -33,10 +36,51 @@ module.exports = function (opts) {
         }
     });
 
+    let addressListModel = {
+            'collection': 'addresslist',
+            'columns': [
+                {
+                    'name': 'name',
+                },
+                {
+                    'name': 'address_id',
+                }
+            ],
+            'validation_rules': [
+                function (obj) {
+                    let val = obj['address_id'];
+                    if (val) {
+                        if (typeof val === 'string') {
+                            val = [val];
+                        }
+                        let Address = db.collection('address');
+                        return new Promise(function (resolve, reject) {
+                            let length = val.length;
+                            let processed = 0;
+                            for (let i in val) {
+                                let address_id = val[i];
+                                Address.findOne({'_id': address_id}, function (obj) {
+                                    if (obj) {
+                                        processed++;
+                                        if (lenth === processed) {
+                                            resolve();
+                                        }
+                                    }
+                                    else {
+                                        return reject();
+                                    }
+                                })
+
+                            }
+                        });
+                    }
+                }
+            ]
+        };
+
     let models = [
         {
             'collection': 'address',
-            'endpoint': '/addresses',
             'columns': [
                 {
                     'name': 'name',
@@ -57,7 +101,8 @@ module.exports = function (opts) {
                     'name': 'created',
                 }
             ]
-        }
+        },
+        addressListModel
     ];
 
     for (let i in models) {
@@ -65,13 +110,38 @@ module.exports = function (opts) {
         createUserRelationEndpoints(model);
     }
 
+    function validateModel(obj,validationRules)
+    {
+        return new Promise(function(resolve,reject) {
+            let length = validationRules.length;
+            let count = 0;
+            if (validationRules === undefined) {
+                return resolve();
+            }
+            for (let i in validationRules) {
+                let validationRule = validationRules[i];
+                console.log('validactionRule',validationRule);
+                validationRule(obj).then(function() {
+                    count++;
+                    console.log('validationRule',count,length);
+                    if (count === length) {
+                        return resolve();
+                    }
+                },function(){
+                    return reject();
+                })
+
+            }
+        })
+    }
+
     function createUserRelationEndpoints(model)
     {
         let collectionName = model.collection;
-        let Collection = db.collection('collectionName');
-        let pathName = model.endpoint;
+        let Collection = db.collection(collectionName);
+        let pathName = model.endpoint || ('/' + collectionName);
 
-        console.log(pathName);
+        console.log('adding',pathName);
 
         router.post(pathName,function(req,res) {
             winston.info('request params=' + JSON.stringify(req.params));
@@ -90,16 +160,36 @@ module.exports = function (opts) {
                 }
             }
 
-            Collection.insertOne(obj, function(error, result) {
-                if (error) {
-                    winston.error(error);
-                    return res.status(500).json({
-                        error: error
-                    })
-                }
-                obj._id = result.insertedId;
-                res.json(obj);
+            validateModel(obj, model.validationRules).then(function () {
+                Collection.insertOne(obj, function (error, result) {
+                    if (error) {
+                        winston.error(error);
+                        return res.status(500).json({
+                            error: error
+                        })
+                    }
+                    obj._id = result.insertedId;
+                    res.json(obj);
+                });
+            }, function (err) {
+                return res.status(400).json({
+                    meta: {
+                        message: 'validation failed',
+                        error: err
+                    }
+                });
             });
+
+            // Collection.insertOne(obj, function(error, result) {
+            //     if (error) {
+            //         winston.error(error);
+            //         return res.status(500).json({
+            //             error: error
+            //         })
+            //     }
+            //     obj._id = result.insertedId;
+            //     res.json(obj);
+            // });
         });
 
         /**
@@ -125,19 +215,51 @@ module.exports = function (opts) {
             }));
         });
 
+        function validateObjectID(req,res,next) {
+            try {
+                let id = ObjectID(req.params.id);
+                req.params.id = id;
+            }
+            catch(e) {
+                return res.status(400).json(
+                    {
+                        data: null,
+                        meta: {
+                            message: 'invalid id'
+                        }
+                    });
+            }
+            return next();
+        }
 
-        router.get(pathName + '/:id',function(req,res) {
+
+        router.get(pathName + '/:id',validateObjectID,function(req,res) {
+            let id = req.params.id;
             let query = {
                 'user_id': req.user_id,
-                '_id': req.params.id
+                '_id': id
             };
-            winston.info(query);
+            winston.info('query: ',JSON.stringify(query));
             Collection.findOne(query,function(err, collectionEl) {
                 if (err) {
                     winston.error(err);
                 }
 
-                let objResponse = collectionEl;
+                winston.info('collection ',JSON.stringify(collectionEl));
+
+                // var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+                let objResponse = {
+                    data: collectionEl,
+                    meta: {
+                        location: req.path,
+                        // fullUrl: fullUrl,
+                        protocol: req.protocol,
+                        host: req.get('host'),
+                        // host: req.get('host'),
+                        originalUrl: req.originalUrl
+                    }
+                };
                 res.json(objResponse);
             });
         });
@@ -213,12 +335,6 @@ if (require.main === module) {
                     passport: passport,
                 }).router);
 
-                app.use('/v1/users', require(__dirname + '/../../v1/users/main')({
-                    winston: mainLogger,
-                    database: db,
-                    passport: passport,
-                }).router);
-
                 app.use('/v1/users/me', function (req, res, next) {
                     winston.info('user',{_id: req.user._id + ''});
                     next();
@@ -226,35 +342,18 @@ if (require.main === module) {
                     CODERUSS_BASE_URL: 'http://localhost:3000',
                     winston: winston,
                     db: db,
-                    User: db.collection('user'),
-                    // models: [
-                    //     {
-                    //         'collection': 'address',
-                    //         'columns': [
-                    //             {
-                    //                 'name': 'name',
-                    //             },
-                    //             {
-                    //                 'name': 'address',
-                    //             },
-                    //             {
-                    //                 'name': 'city',
-                    //             },
-                    //             {
-                    //                 'name': 'state',
-                    //             },
-                    //             {
-                    //                 'name': 'zip',
-                    //             }
-                    //         ]
-                    //     }
-                    // ]
                 }));
+
+                app.use('/v1/users', require(__dirname + '/../../v1/users/main')({
+                    winston: mainLogger,
+                    database: db,
+                    passport: passport,
+                }).router);
 
                 let cp = require('child_process');
                 let spawn = cp.spawn;
 
-                let child = spawn("mocha", ['./**/*_spec.js'],
+                let child = spawn("mocha", ['./**/*_spec.js','--bail'],
                     {cwd: __dirname, env: process.env});
                 child.stdout.on('data', function (data) {
                     process.stdout.write(data);

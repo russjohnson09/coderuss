@@ -63,6 +63,10 @@ socket io for the time being.
 # TODOS
 * Checkout with unique id for postcards to prevent duplication.
 
+##Fitbit oauth
+TypeError: Cannot read property 'refresh_token' of undefined
+    at refreshToken (/home/vagrant/coderuss/nodeserver/v1/fitbit/fitbit.js:210:40)
+
 ## Billing Invoicing
 Something like this https://github.com/overshard/timestrap for time tracking
 and invoicing. Tmetric did a good job but billing is now a paid feature.

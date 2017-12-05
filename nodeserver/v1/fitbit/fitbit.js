@@ -198,14 +198,19 @@ module.exports = function (opts) {
         refreshToken(req.user).then(function () {
                 res.redirect(redirect_uri);
             },
-            function () {
-                console.log('error redirect to link fitbit');
+            function (err) {
+                console.log('error redirect to link fitbit',err);
                 res.redirect('../auth');
             });
     });
 
     let promisesByRefreshToken = {};
     function refreshToken(user) {
+        if (!user.fitbit_user) {
+            return new Promise(function(res,rej) {
+                rej('no user.fitbit_user');
+            })
+        }
         let fitbit_user = user.fitbit_user;
         let refresh_token = fitbit_user.refresh_token;
 
@@ -370,7 +375,8 @@ module.exports = function (opts) {
 
         refreshToken(req.user).then(function() {
             next();
-        },function() {
+        },function(err) {
+            console.log(err);
             return res.status(401).json({message:'failed to refresh token'});
         });
     }

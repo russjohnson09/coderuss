@@ -177,145 +177,6 @@
     var app = angular.module('app',
         ['ngRoute', 'ngCookies', 'cfp.hotkeys', 'ngSanitize', 'jsonFormatter']);
 
-    app.config(function ($routeProvider, $locationProvider) {
-        console.log('routeProviderConfig', $routeProvider);
-        var userResolve = {
-            _user: function (User) {
-                console.log('resolve profile');
-                var UserService = new User();
-                console.log(UserService);
-                return new Promise(function (resolve) {
-                    UserService.getCurrentUser().then(function (user) {
-                        console.log(user);
-                        resolve(user);
-                    });
-                })
-            }
-        };
-        $routeProvider
-            .when("/login", {
-                templateUrl: "templates/login.html",
-                controller: "loginCtl"
-            })
-            .when("/address", {
-                templateUrl: "routes/address/address.html",
-                controller: "addressCtl"
-            })
-            .when("/signin", {
-                templateUrl: "templates/login.html",
-                controller: "loginCtl"
-            })
-            .when("/users", {
-                templateUrl: "routes/users/users.html",
-                controller: 'usersCtl'
-            })
-            .when("/signup", {
-                templateUrl: "templates/signup.html",
-                controller: "signupCtl"
-            })
-            .when("/logout", {
-                controller: "logoutCtl",
-                templateUrl: "templates/logout.html"
-            })
-            .when('/anchors', {
-                templateUrl: 'templates/anchors.html'
-            })
-            .when("/fitbit", {
-                templateUrl: "routes/fitbit/fitbit.html",
-                controller: "fitbitCtl",
-                resolve: userResolve,
-            })
-            .when("/fitbit/dev", {
-                templateUrl: "routes/fitbit/fitbitdev.html",
-                controller: "fitbitDevCtl",
-                resolve: userResolve,
-            })
-            .when("/habits", {
-                templateUrl: "templates/habits.html",
-                controller: "habitsCtl",
-                resolve: userResolve,
-            })
-            .when("/habits/:id", {
-                templateUrl: "routes/habits/habit.html",
-                controller: "habitsIdCtl",
-                resolve: userResolve,
-            })
-            .when("/postcards", {
-                templateUrl: "templates/postcards/postcards.html",
-                controller: "postcardsCtl",
-                resolve: userResolve,
-            })
-            .when('/movie', {
-                templateUrl: 'templates/movie.html',
-                controller: "movieCtl"
-            })
-            .when('/gitreview/:sha', {
-                templateUrl: 'templates/gitreview.html',
-                controller: "gitreviewCtl"
-            })
-            .when('/apitests/testsuites', {
-                templateUrl: "routes/apitests/testsuites.html",
-                controller: 'apitestsTestSuitesCtl'
-            })
-            .when('/apitests/testsuites/:id', {
-                templateUrl: "routes/apitests/testsuites-view.html",
-                controller: 'apitestsTestSuitesViewCtl'
-            })
-            .when('/apitests/testsuites/:id/runs', {
-                templateUrl: "routes/apitests/testsuites-runs.html",
-                controller: 'apitestsTestSuitesRunsCtl'
-            })
-            .when("/tests", {
-                templateUrl: "templates/tests.html",
-                controller: "testsCtl"
-            })
-            .when("/tvshows", {
-                templateUrl: "templates/tvshows/tvshows.html",
-                controller: "tvshowsCtl",
-                resolve: userResolve,
-            })
-            .when("/tvshows/details/:id", {
-                templateUrl: "templates/tvshows/tvshows_id.html",
-                controller: "tvshowsIdCtl",
-                resolve: userResolve,
-            })
-            .when("/tvshows/search", {
-                templateUrl: "templates/tvshows/search-tvshows.html",
-                controller: "searchTvshowsCtl",
-                resolve: userResolve,
-            })
-            .when("/tvshows/showstatus", {
-                templateUrl: "templates/tvshows/showstatus.html",
-                controller: "tvshowsShowstatusCtl",
-                resolve: userResolve,
-            })
-            .when("/profile", {
-                templateUrl: "templates/profile/profile.html",
-                controller: "profileCtl",
-                resolve: userResolve,
-            })
-            .when('/shewaspretty', {
-                templateUrl: 'templates/shewaspretty.html',
-                controller: "shewasprettyCtl"
-            })
-            .when('/hello', {
-                templateUrl: 'templates/hello.html',
-                controller: "helloCtl"
-            })
-            .otherwise({
-                redirectTo: '/profile'
-            });
-    });
-
-    app.run(function ($rootScope, LoggedInService) {
-        $rootScope.$on("$routeChangeStart", function (event, next, current) {
-            console.log(event, next, current);
-        });
-        $rootScope.$on("$routeChangeSuccess", function (event, next, current) {
-            console.log(event, next, current);
-        });
-    });
-
     app.factory('ErrorService', ['$http', '$q', function ($http, $q) {
 
         var service = {};
@@ -994,6 +855,26 @@
             return new User({_id: 'anon'});
         };
 
+//        service.getCurrentUser = function () {
+//                return $q(function (resolve) {
+//                    var url = baseurl + '/v1/users/me';
+//                    $http(
+//                        {
+//                            method: 'GET',
+//                            url: url,
+//                            headers: {},
+//                        }
+//                    ).then(function (response) {
+//                        var user = new User(response.data);
+//                        resolve(user);
+//                    }, function(err) {
+////                        var user = new User({});
+//                        reject(err);
+//                    });
+//                });
+//
+//            };
+
 
         service.populateCurrentUser = function () {
             if (service._user == undefined) {
@@ -1012,7 +893,8 @@
                     service._user = new User(response.data);
                     resolve(service._user);
                 }, function () {
-                    console.log('populateCurrentUser');
+                    console.log('err','populateCurrentUser');
+//                    window.location = '#!/signin';
                     service.setCurrentUserToAnon();
                     resolve(service._user);
                 });
@@ -1024,7 +906,6 @@
                 service.populateCurrentUser();
             }
             return service._user;
-
         };
 
         service.getUsers = function (params = []) {
@@ -1086,6 +967,9 @@
                     ).then(function (response) {
                         var user = new User(response.data);
                         resolve(user);
+                    }, function(err) {
+                        console.log('getCurrentUser','err',err);
+                        window.location = '#!/signin';
                     });
                 });
 
@@ -1383,6 +1267,8 @@
                       hotkeys, ErrorService,
                       NotificationService,Notification) {
                 $scope._user = _user;
+
+                console.log(_user);
 
                 hotkeys.bindTo($scope)
                     .add({
@@ -1863,6 +1749,215 @@
 <script src="routes/habits/habits.js"></script>
 <script src="routes/fitbit/fitbit.js"></script>
 <script src="routes/address/address.js"></script>
+
+
+<script>
+    app.config(function ($routeProvider, $locationProvider) {
+        console.log('routeProviderConfig', $routeProvider);
+        var userResolve = {
+            _user: function (User) {
+                console.log('resolve profile',User);
+                var UserService = new User();
+                console.log(UserService);
+                return new Promise(function (resolve) {
+                    UserService.getCurrentUser().then(function (user) {
+                        console.log('resolved user',user);
+                        resolve(user);
+                    });
+                })
+            }
+        };
+        $routeProvider
+            .when("/login", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
+            .when("/address", {
+                templateUrl: "routes/address/address.html",
+                controller: "addressCtl"
+            })
+            .when("/signin", {
+                templateUrl: "templates/login.html",
+                controller: "loginCtl"
+            })
+            .when("/users", {
+                templateUrl: "routes/users/users.html",
+                controller: 'usersCtl'
+            })
+            .when("/signup", {
+                templateUrl: "templates/signup.html",
+                controller: "signupCtl"
+            })
+            .when("/logout", {
+                controller: "logoutCtl",
+                templateUrl: "templates/logout.html"
+            })
+            .when('/anchors', {
+                templateUrl: 'templates/anchors.html'
+            })
+            .when("/fitbit", {
+                templateUrl: "routes/fitbit/fitbit.html",
+                controller: "fitbitCtl",
+                resolve: {
+                    _user: function(UserService,FitbitService) {
+//                        return;
+                        console.log('resolve','/fitbit');
+                        return new Promise(function (resolve,reject) {
+                            console.log('begin promise _user',UserService);
+//                            var UserService = new User();
+                            try {
+                                UserService.populateCurrentUser().then(function (user) {
+                                    console.log('/fitbit', 'populateCurrentUser');
+
+                                    return FitbitService.populateCurrentUserProfile().then(function() {
+                                        console.log('/fitbit','resolved profile');
+                                        resolve(user);
+                                    },function(err) {
+                                        console.log('/fitbit','resolve',err);
+                                        return window.location = '/v1/fitbit/auth';
+                                    });
+
+                                    console.log('/fitbit',user);
+                                    if (!user || user._id === 'anon') {
+                                        return window.location = '#!/signin';
+                                    }
+                                    else if ( !user.fitbit_user) {
+                                        return window.location = '/v1/fitbit/auth';
+                                    }
+                                    console.log('resolved user',user);
+                                    resolve(user);
+                                }, function(err) {
+                                    window.location = '#!/signin';
+                                }).catch(function(err) {
+                                    console.log('err',err);
+                                });
+                            }
+                            catch (e)
+                            {
+                                console.log(e);
+                                reject(e);
+                            }
+
+                        })
+                    }
+                }            })
+            .when("/fitbit/dev", {
+                templateUrl: "routes/fitbit/fitbitdev.html",
+                controller: "fitbitDevCtl",
+                resolve: userResolve,
+            })
+            .when("/habits", {
+                templateUrl: "templates/habits.html",
+                controller: "habitsCtl",
+                resolve: userResolve,
+            })
+            .when("/habits/:id", {
+                templateUrl: "routes/habits/habit.html",
+                controller: "habitsIdCtl",
+                resolve: userResolve,
+            })
+            .when("/postcards", {
+                templateUrl: "templates/postcards/postcards.html",
+                controller: "postcardsCtl",
+                resolve: userResolve,
+            })
+            .when('/movie', {
+                templateUrl: 'templates/movie.html',
+                controller: "movieCtl"
+            })
+            .when('/gitreview/:sha', {
+                templateUrl: 'templates/gitreview.html',
+                controller: "gitreviewCtl"
+            })
+            .when('/apitests/testsuites', {
+                templateUrl: "routes/apitests/testsuites.html",
+                controller: 'apitestsTestSuitesCtl'
+            })
+            .when('/apitests/testsuites/:id', {
+                templateUrl: "routes/apitests/testsuites-view.html",
+                controller: 'apitestsTestSuitesViewCtl'
+            })
+            .when('/apitests/testsuites/:id/runs', {
+                templateUrl: "routes/apitests/testsuites-runs.html",
+                controller: 'apitestsTestSuitesRunsCtl'
+            })
+            .when("/tests", {
+                templateUrl: "templates/tests.html",
+                controller: "testsCtl"
+            })
+            .when("/tvshows", {
+                templateUrl: "templates/tvshows/tvshows.html",
+                controller: "tvshowsCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/details/:id", {
+                templateUrl: "templates/tvshows/tvshows_id.html",
+                controller: "tvshowsIdCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/search", {
+                templateUrl: "templates/tvshows/search-tvshows.html",
+                controller: "searchTvshowsCtl",
+                resolve: userResolve,
+            })
+            .when("/tvshows/showstatus", {
+                templateUrl: "templates/tvshows/showstatus.html",
+                controller: "tvshowsShowstatusCtl",
+                resolve: userResolve,
+            })
+            .when("/profile", {
+                templateUrl: "templates/profile/profile.html",
+                controller: "profileCtl",
+                resolve: {
+                    _user: function(UserService) {
+                        return new Promise(function (resolve,reject) {
+                            console.log('begin promise _user',UserService);
+//                            var UserService = new User();
+                            try {
+                                UserService.populateCurrentUser().then(function (user) {
+                                    if (user._id === 'anon') {
+                                        return window.location = '#!/signin';
+                                    }
+                                    console.log('resolved user',user);
+                                    resolve(user);
+                                }, function(err) {
+                                    window.location = '#!/signin';
+                                }).catch(function(err) {
+                                    console.log('err',err);
+                                });
+                            }
+                            catch (e)
+                            {
+                                console.log(e);
+                                reject(e);
+                            }
+
+                        })
+                    }
+                }
+            })
+            .when('/shewaspretty', {
+                templateUrl: 'templates/shewaspretty.html',
+                controller: "shewasprettyCtl"
+            })
+            .when('/hello', {
+                templateUrl: 'templates/hello.html',
+                controller: "helloCtl"
+            })
+            .otherwise({
+                redirectTo: '/profile'
+            });
+    });
+
+    app.run(function ($rootScope, LoggedInService) {
+        $rootScope.$on("$routeChangeStart", function (event, next, current) {
+            console.log(event, next, current);
+        });
+        $rootScope.$on("$routeChangeSuccess", function (event, next, current) {
+            console.log(event, next, current);
+        });
+    });
+</script>
 
 
 <footer class="footer">

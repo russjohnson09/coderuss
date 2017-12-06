@@ -110,29 +110,20 @@ module.exports = function(opts) {
     });
 
 
-    function isAdmin(username) {
+    let isAdmin = self.isAdmin = function (username) {
         return username === process.env.MAIN_ADMIN_USERNAME;    
-    }
-    
-    
-    function isAdminRouter(req,res,next) {
+    };
+
+    let isAdminRouter = self.isAdminRouter = function (req,res,next) {
         if (!isAdmin(req.user.username)) {
-            // let error;
-            // try {
-            //     throw new Error();
-            // }
-            // catch (e) {
-            //     error = e;
-            // }
             return res.status(401).json({message:'Not authorized.',
             meta: {
                 file: 'users/main.js',
                 params: req.params,
-                // error: error
             }}).end();
         }
         return next();
-    }
+    };
 
     (function() {
         router.use('/',isAdminRouter);

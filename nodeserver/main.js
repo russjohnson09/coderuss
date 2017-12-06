@@ -288,11 +288,13 @@ module.exports = function(opts, callback) {
                 User: db.collection('user'),
             }));
 
-            app.use('/v1/users', require(__dirname + '/v1/users/main')({
+            let UserService = require(__dirname + '/v1/users/main')({
                 winston: mainLogger,
                 database: database,
                 passport: passport,
-            }).router);
+            });
+
+            app.use('/v1/users',UserService.router);
 
             app.use('/v1/fitbit', require(__dirname + '/v1/fitbit/fitbit')({
                 FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
@@ -302,6 +304,18 @@ module.exports = function(opts, callback) {
                 winston: winston,
                 User: db.collection('user')
             }));
+
+            app.use('/v1/admin/transaction', function (req, res, next) {
+                winston.info('user',{_id: req.user._id + ''});
+                next();
+            },  require(__dirname + '/v1/admin/transactions/transactions')({
+                UserService: UserService,
+                BASE_URL: CODERUSS_BASE_URL + '/v1/admin/transaction',
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
+                winston: winston,
+                User: db.collection('user'),
+                db: db
+            }).router);
 
             app.use('/v1/googlefit', require(__dirname + '/v1/googlefit/googlefit')({
                 CLIENT_ID: process.env.GOOGLE_FIT_CLIENT_ID,

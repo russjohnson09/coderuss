@@ -63,6 +63,11 @@ socket io for the time being.
 # TODOS
 * Checkout with unique id for postcards to prevent duplication.
 
+##Fix /v1/postcards/send/test TIMEOUT
+https://travis-ci.org/russjohnson09/coderuss/jobs/312962892
+
+Exceeds 2000ms to create test postcard.
+
 ##Fitbit oauth
 TypeError: Cannot read property 'refresh_token' of undefined
     at refreshToken (/home/vagrant/coderuss/nodeserver/v1/fitbit/fitbit.js:210:40)

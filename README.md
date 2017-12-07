@@ -63,6 +63,14 @@ socket io for the time being.
 # TODOS
 * Checkout with unique id for postcards to prevent duplication.
 
+##Fix /v1/postcards/send/test TIMEOUT
+https://travis-ci.org/russjohnson09/coderuss/jobs/312962892
+https://travis-ci.org/russjohnson09/coderuss/jobs/312968884
+  1) postcards /v1/postcards POST 200 response /v1/postcards POST 200 response:
+     Error: Timeout of 2000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.
+     
+Exceeds 2000ms to create test postcard.
+
 ##Fitbit oauth
 TypeError: Cannot read property 'refresh_token' of undefined
     at refreshToken (/home/vagrant/coderuss/nodeserver/v1/fitbit/fitbit.js:210:40)

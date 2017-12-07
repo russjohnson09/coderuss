@@ -23,7 +23,20 @@ module.exports = function(opts) {
 
     const User = db.collection('user');
 
-    router.get('/me', function(req, res) {
+
+
+    let isLoggedInRouter = self.isLoggedInRouter = function (req,res,next) {
+        if (req.user === undefined || req.user._id === undefined) {
+            return res.status(401).json({message:'Not authorized.',
+                meta: {
+                    file: 'users/main.js',
+                    params: req.params,
+                }}).end();
+        }
+        return next();
+    };
+
+    router.get('/me',isLoggedInRouter, function(req, res) {
 
         User.findOne({
             _id: req.user._id
@@ -44,6 +57,7 @@ module.exports = function(opts) {
                 name: user.name || null,
                 logsene_token: user.logsene_token || null,
                 dollars_available: user.dollars_available || null,
+                amount: user.amount || 0,
                 is_admin: isAdmin(user.username) ? 1 : 0
             }).end();
         });
@@ -125,11 +139,10 @@ module.exports = function(opts) {
         return next();
     };
 
+
     (function() {
         router.use('/',isAdminRouter);
-        router.use('/me:path(*)',function(req,res,next) {
-            next();
-        });
+        router.use('/me:path(*)',isLoggedInRouter);
         router.use('/:id',isAdminRouter);
         router.use('/:id/inc',isAdminRouter);
         router.use('/:id/dec',isAdminRouter);

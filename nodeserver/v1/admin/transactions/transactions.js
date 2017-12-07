@@ -16,7 +16,8 @@ console.log('loaded ' + __filename, Date.now());
 module.exports = function (opts) {
     let request = require('request');
     let db = opts.db;
-    let User = opts.User;
+    // let User = opts.User;
+    let User = db.collection('user');
     let UserService = opts.UserService;
     console.log(UserService.isAdmin);
     // process.exit();
@@ -42,11 +43,16 @@ module.exports = function (opts) {
     //     }
     // });
 
-    self.addTransaction = function(user_id,amount,description)
+    //https://docs.mongodb.com/manual/tutorial/perform-two-phase-commits/
+    self.addTransaction = function(user_id,amount,description,not_less_than)
     {
         if (description === undefined) {
             description = null;
         }
+        if (not_less_than === undefined) {
+            not_less_than = 0;
+        }
+
         amount = parseInt(amount);
 
         let Collection = Transaction;
@@ -61,23 +67,59 @@ module.exports = function (opts) {
 
         return new Promise(function(resolve,reject) {
 
-            Collection.insertOne(obj, function (error, result) {
-                console.log('insert',obj);
-                if (error) {
-                    winston.error(error);
-                    return reject({error:error});
+            User.findOne({
+                _id: user_id
+            }, function(err, user) {
+                winston.info(user);
+                if (err) {
+                    winston.error(err);
+                    return reject(err);
                 }
-                obj._id = result.insertedId;
-                let resObj = {
-                    data: obj,
-                    meta: {}
-                };
-                return resolve(resObj);
-            });
-        }).catch(function(err) {
-            return reject({error:error});
+                if (!user) {
+                    let err = {'error': 'user not found'};
+                    winston.error(err);
+                    return reject(err);
+                }
+                if (user.amount === undefined) {
+                    winston.info('set user amount to 0');
+                    user.amount = 0;
+                }
+                let user_amount = user.amount;
+                user_amount += amount;
+                if (user_amount < not_less_than) {
+                    let err = {'error': 'user requires funds'};
+                    winston.error(err);
+                    return reject(err);
+                }
 
-        });
+                Collection.insertOne(obj, function (error, result) {
+                    console.log('insert', obj);
+                    if (error) {
+                        winston.error(error);
+                        return reject({error: error});
+                    }
+                    obj._id = result.insertedId;
+                    let resObj = {
+                        data: obj,
+                        meta: {}
+                    };
+
+                    User.updateOne({
+                        _id: ObjectID(user_id)
+                    }, {
+                        $inc: {
+                            amount: amount,
+                        }
+                    }, function(err, result) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        return resolve(resObj);
+                    });
+                });
+            });
+        })
     };
 
     router.post('/', function(req, res) {
@@ -86,11 +128,18 @@ module.exports = function (opts) {
             req.user._id,
             req.body.amount,
             req.body.description
-        ).then(function(resObj) {
+        ).then(function (resObj) {
                 res.json(resObj);
             },
-        function(resObj) {
-            res.status(400).json(resObj);
+            function (resObj) {
+                console.log(resObj);
+                res.status(400).json(resObj);
+            }).catch(function (err) {
+            // console.log(err);
+            // return res.status(400).json(err);
+            // winston.error(err);
+            // return reject({error: error});
+
         });
     });
 
@@ -198,7 +247,7 @@ if (require.main === module) {
             }
             app.listen(3000, function () {
 
-                app.use(express.static(path.join(__dirname,'..','..', 'public/')));
+                app.use(express.static(path.join(__dirname,'..','..','..', 'public/')));
 
                 app.use('/v1', require(__dirname + '/../../../v1/login/main.js')({
                     winston: mainLogger,

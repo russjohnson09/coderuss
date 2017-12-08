@@ -13,7 +13,7 @@ const LOB_LIVE_API_KEY = process.env.LOB_LIVE_API_KEY || LOB_TEST_API_KEY;
 
 const LOB_API_V1_ENDPONT = process.env.LOB_API_V1_ENDPONT;
 
-const POSTCARD_COST = 1;
+const POSTCARD_COST = 100; //1 dollar in cents
 
 module.exports = function(opts) {
     let TransactionService = opts.TransactionService;

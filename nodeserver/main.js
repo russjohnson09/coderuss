@@ -288,11 +288,25 @@ module.exports = function(opts, callback) {
                 User: db.collection('user'),
             }));
 
+
             let UserService = require(__dirname + '/v1/users/main')({
                 winston: mainLogger,
                 database: database,
                 passport: passport,
+                // TransactionService: TransactionService,
             });
+
+            let TransactionService = require(__dirname + '/v1/admin/transactions/transactions')({
+                UserService: UserService,
+                BASE_URL: CODERUSS_BASE_URL + '/v1/admin/transaction',
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
+                winston: winston,
+                User: db.collection('user'),
+                db: db
+            });
+
+
+            UserService.addTransaction =  TransactionService.addTransaction;
 
             app.use('/v1/users',UserService.router);
 
@@ -304,15 +318,6 @@ module.exports = function(opts, callback) {
                 winston: winston,
                 User: db.collection('user')
             }));
-
-            let TransactionService = require(__dirname + '/v1/admin/transactions/transactions')({
-                UserService: UserService,
-                BASE_URL: CODERUSS_BASE_URL + '/v1/admin/transaction',
-                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
-                winston: winston,
-                User: db.collection('user'),
-                db: db
-            });
 
             app.use('/v1/admin/transaction', function (req, res, next) {
                 winston.info('user',{_id: req.user._id + ''});

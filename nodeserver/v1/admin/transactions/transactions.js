@@ -29,6 +29,7 @@ module.exports = function (opts) {
     let router = opts.router || require('express').Router();
 
     let ObjectID = require('mongodb').ObjectID;
+    let NumberLong = require('mongodb').NumberLong;
 
 
     router.use(UserService.isAdminRouter);
@@ -74,9 +75,11 @@ module.exports = function (opts) {
                     winston.error(err);
                     return reject(err);
                 }
+                // let setInc = "$inc";
                 if (user.amount === undefined) {
                     winston.info('set user amount to 0');
                     user.amount = 0;
+                    // setInc = "$set";
                 }
                 let user_amount = user.amount;
                 user_amount += amount;
@@ -102,7 +105,7 @@ module.exports = function (opts) {
                     User.updateOne({
                         _id: ObjectID(user_id)
                     }, {
-                        $inc: {
+                        $inc: { //set will cause a race condition
                             amount: amount,
                         }
                     }, function(err, result) {

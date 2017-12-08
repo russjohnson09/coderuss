@@ -8,6 +8,18 @@ cents unless given $ and formatted
 <!--<div>-->
     <!--<pre>{{transactionList}}</pre>-->
 <!--</div>-->
+<div>
+    <form>
+        <label> Description
+            <input ng-model="transactionForm.description">
+        </label>
+        <label> Amount
+            <input ng-model="transactionForm.amount">
+        </label>
+        <button type="submit" ng-click="createTransaction()">Submit</button>
+    </form>
+
+</div>
 
 <div ng-if="'loading' === transactionList._status">
     <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
@@ -16,7 +28,7 @@ cents unless given $ and formatted
 <div ng-if="'loading' !== transactionList._status">
     <div ng-repeat="transaction in transactionList.data track by $index">
         <!--<pre>{{ transaction}}</pre>-->
-        <div>{{transaction.amount}}: {{transaction.description}}: {{transaction.created}}</div>
+        <div>{{transaction.amount}}: {{transaction.description}}: {{transaction.getCreatedDateTime()}}</div>
 
     </div>
 </div>

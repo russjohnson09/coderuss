@@ -1,7 +1,52 @@
 <h1>Addresses</h1>
 
+
+
+<!--{ _id: '5a2a33c323421f316427d54a',-->
+<!--created: 1512715203642,-->
+<!--user_id: '5a29e5637b25df2af7a626e9',-->
+<!--name: 'test address',-->
+<!--address: 'test address',-->
+<!--city: 'Detroit',-->
+<!--state: 'MI',-->
+<!--zip: 48339-->
+<!--tags: [] },-->
+
+<div>
+    <form>
+        <div ng-repeat="(key, value) in addressForm" >
+            <label> {{key}}
+                <input ng-model="addressForm[key]">
+            </label>
+        </div>
+
+        <button type="submit" ng-click="createAddress()">Submit</button>
+    </form>
+
+</div>
+
 <label>Tag
 <input ng-model="params.tags">
 </label>
 
-<pre>{{addressList}}</pre>
+<div ng-if="'loading' === addressList._status">
+    <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+    <span class="sr-only">Loading...</span>
+</div>
+<div ng-if="'loading' !== addressList._status">
+
+    <div ng-repeat="address in addressList.data track by $index">
+        <h2>{{$index}}. {{address.name}} {{address.city}} {{address.state}}
+            <a href="" ng-click="deleteAddress($index)">
+                <i class="cr-panel-icon danger fa fa-window-close"
+                   aria-hidden="true"></i>
+            </a>
+        </h2>
+        <table>
+            <tr ng-repeat="(key, value) in address">
+                <td>{{key}}</td><td>{{value}}</td>
+            </tr>
+        </table>
+        <!--<pre>{{address}}</pre>-->
+    </div>
+</div>

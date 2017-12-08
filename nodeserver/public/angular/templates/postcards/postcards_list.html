@@ -1,0 +1,71 @@
+<h1>Postcards <span ng-if="addressList.data">{{addressList.data.length}}</span></h1>
+<pre>{{addressList}}</pre>
+<div>
+    <div class="form-group">
+        <label for="body">To Tag</label>
+        <input class="form-control" name="body" ng-model="addressTag" required>
+    </div>
+</div>
+
+<div ng-if="addressList.data">
+    <ol>
+        <li ng-repeat="address in addressList.data">
+            {{address.name}} {{address.address}}</li>
+    </ol>
+
+</div>
+
+<div ng-repeat="(key, val) in postcard.from">
+    <div class="form-group">
+        <label for="body">From {{key}}</label>
+        <input class="form-control" name="body" ng-model="postcard.from[key]" required>
+    </div>
+</div>
+
+<label for="selectedTemplate">Template</label>
+<select ng-model="selectedTemplate"
+        ng-options="template.value as template.label for template in templates">
+</select>
+
+<div ng-if="selectedTemplate.type=='birthday'">
+    <div class="form-group">
+        <label for="body">Name</label>
+        <input class="form-control"
+               ng-model="postcard.data.front_to_name">
+        </input>
+    </div>
+
+
+
+    <div class="form-group">
+        <label for="back_body">Message</label>
+        <textarea class="form-control" name="back_body"
+                  ng-model="postcard.data.back_body"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="signature">Signature</label>
+        <input class="form-control" name="signature" ng-model="postcard.data.back_from_name"
+        >
+    </div>
+</div>
+
+<button class="btn btn-lg btn-primary btn-block" ng-click="postcardPreview()">Preview</button>
+
+<div ng-if="postcardCheckout.status == 'preview'">
+    <div ng-repeat="preview in previews">
+        <div>
+            <h1>Front</h1>
+            <a target="_blank" ng-href={{preview.front_src}}>
+                <img style="border: 1px solid black;" ng-src="{{preview.front_src}}"></a>
+        </div>
+        <div>
+            <h1>Back</h1>
+            <a target="_blank" ng-href={{preview.back_src}}>
+                <img style="border: 1px solid black;" ng-src="{{preview.back_src}}"></a>
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-lg btn-primary btn-block" ng-click="submitCompletePostcard()">Complete</button>
+    </div>
+</div>

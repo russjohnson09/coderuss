@@ -288,11 +288,25 @@ module.exports = function(opts, callback) {
                 User: db.collection('user'),
             }));
 
+
             let UserService = require(__dirname + '/v1/users/main')({
                 winston: mainLogger,
                 database: database,
                 passport: passport,
+                // TransactionService: TransactionService,
             });
+
+            let TransactionService = require(__dirname + '/v1/admin/transactions/transactions')({
+                UserService: UserService,
+                BASE_URL: CODERUSS_BASE_URL + '/v1/admin/transaction',
+                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
+                winston: winston,
+                User: db.collection('user'),
+                db: db
+            });
+
+
+            UserService.addTransaction =  TransactionService.addTransaction;
 
             app.use('/v1/users',UserService.router);
 
@@ -308,14 +322,7 @@ module.exports = function(opts, callback) {
             app.use('/v1/admin/transaction', function (req, res, next) {
                 winston.info('user',{_id: req.user._id + ''});
                 next();
-            },  require(__dirname + '/v1/admin/transactions/transactions')({
-                UserService: UserService,
-                BASE_URL: CODERUSS_BASE_URL + '/v1/admin/transaction',
-                CODERUSS_BASE_URL: CODERUSS_BASE_URL,
-                winston: winston,
-                User: db.collection('user'),
-                db: db
-            }).router);
+            },  TransactionService.router);
 
             app.use('/v1/googlefit', require(__dirname + '/v1/googlefit/googlefit')({
                 CLIENT_ID: process.env.GOOGLE_FIT_CLIENT_ID,
@@ -328,7 +335,7 @@ module.exports = function(opts, callback) {
 
             addLogseneRouter();
             addFaxRouter();
-            addPostcardRouter();
+            addPostcardRouter(TransactionService);
             addProxyRouter();
             addShewasprettyRouter();
             addTvShowsRouter();
@@ -1527,8 +1534,9 @@ module.exports = function(opts, callback) {
         app.use('/v1/proxy', result.router);
     }
 
-    function addPostcardRouter() {
+    function addPostcardRouter(TransactionService) {
         var result = require('./v1/postcards/postcards')({
+            TransactionService: TransactionService,
             winston: mainLogger,
             app: app,
             database: database,

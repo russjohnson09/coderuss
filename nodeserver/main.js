@@ -320,7 +320,7 @@ module.exports = function(opts, callback) {
             app.use('/v1/googlefit', require(__dirname + '/v1/googlefit/googlefit')({
                 CLIENT_ID: process.env.GOOGLE_FIT_CLIENT_ID,
                 CLIENT_SECRET: process.env.GOOGLE_FIT_CLIENT_SECRET,
-                BASE_URL: CODERUSS_BASE_URL + '/v1/fitbit',
+                BASE_URL: CODERUSS_BASE_URL + '/v1/googlefit',
                 CODERUSS_BASE_URL: CODERUSS_BASE_URL,
                 winston: winston,
                 User: db.collection('user')

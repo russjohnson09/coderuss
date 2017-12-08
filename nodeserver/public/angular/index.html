@@ -855,26 +855,6 @@
             return new User({_id: 'anon'});
         };
 
-//        service.getCurrentUser = function () {
-//                return $q(function (resolve) {
-//                    var url = baseurl + '/v1/users/me';
-//                    $http(
-//                        {
-//                            method: 'GET',
-//                            url: url,
-//                            headers: {},
-//                        }
-//                    ).then(function (response) {
-//                        var user = new User(response.data);
-//                        resolve(user);
-//                    }, function(err) {
-////                        var user = new User({});
-//                        reject(err);
-//                    });
-//                });
-//
-//            };
-
 
         service.populateCurrentUser = function () {
             if (service._user == undefined) {
@@ -890,7 +870,7 @@
                         headers: {},
                     }
                 ).then(function (response) {
-                    service._user = new User(response.data);
+                    service._user.setData(response.data);
                     resolve(service._user);
                 }, function () {
                     console.log('err','populateCurrentUser');
@@ -901,9 +881,10 @@
             })
         };
 
-        service.getCurrentUser = function () {
-            if (service._user == undefined) {
-                service.populateCurrentUser();
+        service.getCurrentUser = function (refresh) {
+            if (service._user == undefined || refresh) {
+                console.log('getCurrentUser');
+                service.populateCurrentUser(service._user);
             }
             return service._user;
         };

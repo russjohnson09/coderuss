@@ -173,9 +173,10 @@
                 });
             };
 
-            $scope.deleteAddress = function($idx)
+            $scope.deleteAddress = function(index)
             {
-                let address = $scope.addressList.data.slice($idx,1)[0];
+                console.log('deleteAddress',index,$scope.addressList.data);
+                let address = $scope.addressList.data.splice(index,1)[0];
                 console.log('deleteAddress',address);
 
                 address.delete().then(function() {

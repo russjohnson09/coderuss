@@ -16,6 +16,7 @@ const LOB_API_V1_ENDPONT = process.env.LOB_API_V1_ENDPONT;
 const POSTCARD_COST = 1;
 
 module.exports = function(opts) {
+    let TransactionService = opts.TransactionService;
     var module = {};
     var router = express.Router();
     var app = opts.app;
@@ -62,26 +63,14 @@ module.exports = function(opts) {
             });
     });
 
-    router.post('/', function(req, res) {
-        User.updateOne({
-            _id: req.user._id,
-            dollars_available: {
-                $gt: 0
-            }
-        }, {
-            $inc: {
-                dollars_available: -POSTCARD_COST,
-            }
-        }, function(err, result) {
-            if (err) {
-                winston.error(err);
-            }
-            if (result.result.nModified == 0) {
-                var statusCode = 429;
-                return res.status(statusCode).json({meta: {statusCode: statusCode,
-                    message: 'Insufficient funds'
-                }});
-            }
+    router.post('/', function (req, res) {
+
+        let description = "postcard to " + req.body.to.name;
+
+        TransactionService.addTransaction(req.user._id,
+            -POSTCARD_COST, description
+        ).then(function () {
+
             var url = LOB_API_V1_ENDPONT + '/postcards';
             var requestBody = req.body;
             winston.info(url);
@@ -93,11 +82,14 @@ module.exports = function(opts) {
                     'user': LOB_LIVE_API_KEY,
                     'pass': ''
                 }
-            }, function(error, response, body) {
+            }, function (error, response, body) {
                 if (error) winston.error(error);
                 res.set(response.headers);
                 return res.status(response.statusCode).send(body).end();
             });
+
+        }, function (rej) {
+            return res.status(400).json(rej);
         });
     });
 

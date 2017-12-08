@@ -1048,56 +1048,110 @@
 
                 $scope.postcardPreview = function() {
 
-                    $scope.getTemplate(function() {
+                    for (let i in $scope.addressList.data)
+                    {
+                        let address = $scope.addressList.data[i];
+                        $scope.getTemplate(function() {
 
-                        $http.post('/v1/postcards/preview', $scope.postcard, {
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        }).then(function successCallback(res) {
-                                new Noty({
-                                    text: JSON.stringify(res.data, null, '  '),
-                                    animation: {}
-                                }).show();
-                                if (res.status === 200) {
-                                    $timeout(function () {
-                                        $scope.preview.front_src = res.data.thumbnails[0].large;
-                                        $scope.preview.back_src = res.data.thumbnails[1].large;
-                                        $scope.postcardCheckout.status = 'preview';
-                                    }, 8000)
+                            let to = {
+                                name: address.name,
+                                address_line1: address.address,
+                                address_city: address.city,
+                                address_state: address.state,
+                                address_zip: address.zip,
+                            };
+                            let data = $.extend(true, {
+                                    to: to
+                                },
+
+                                $scope.postcard);
+//                            let data = Object.assign({
+//                            },$scope.postcard);
+
+                            console.log('postcardPreview',data,address);
+
+                            $http.post('/v1/postcards/preview',
+                                data,
+                                {
+                                headers: {
+                                    'Content-Type': 'application/json'
                                 }
-                            },
-                            ErrorService.handleHttpError);
-                    });
+                            }).then(function successCallback(res) {
+                                    new Noty({
+                                        text: JSON.stringify(res.data, null, '  '),
+                                        animation: {}
+                                    }).show();
+                                    if (res.status === 200) {
+                                        $scope.previews.push({
+                                            front_src: res.data.thumbnails[0].large,
+                                            back_src: res.data.thumbnails[1].large
+                                        });
+                                        $timeout(function () {
+//                                            $scope.preview.front_src = res.data.thumbnails[0].large;
+//                                            $scope.preview.back_src = res.data.thumbnails[1].large;
+                                            $scope.postcardCheckout.status = 'preview';
+                                        }, 8000)
+                                    }
+                                },
+                                ErrorService.handleHttpError);
+                        });
+
+                    }
                 };
 
                 $scope.submitCompletePostcard = function() {
                     $scope.preview = {};
+                    $scope.previews = [];
+                    $scope.postcardCheckout.status = '';
 
                     if ($scope.isSubmitted) {
                         return;
                     }
                     $scope.isSubmitted = true;
 
-                    $http.post('/v1/postcards', $scope.postcard, {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    }).then(function successCallback(res) {
-                            new Noty({
-                                text: JSON.stringify(res.data, null, '  '),
-                                animation: {}
-                            }).show();
-                            if (res.status === 200) {
-                                $timeout(function() {
-                                    console.log($scope);
-                                    $scope.preview.front_src = res.data.thumbnails[0].large;
-                                    $scope.preview.back_src = res.data.thumbnails[1].large;
-                                    console.log($scope.preview);
-                                }, 8000)
-                            }
-                        },
-                        ErrorService.handleHttpError);
+                    for (let i in $scope.addressList.data)
+                    {
+                        let address = $scope.addressList.data[i];
+                        $scope.getTemplate(function() {
+
+                            let to = {
+                                name: address.name,
+                                address_line1: address.address,
+                                address_city: address.city,
+                                address_state: address.state,
+                                address_zip: address.zip,
+                            };
+                            let data = $.extend(true, {
+                                    to: to
+                                },
+
+                                $scope.postcard);
+
+                            $http.post('/v1/postcards',
+                                data,
+                                {
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                }).then(function successCallback(res) {
+                                    new Noty({
+                                        text: JSON.stringify(res.data, null, '  '),
+                                        animation: {}
+                                    }).show();
+                                    if (res.status === 200) {
+                                        $scope.previews.push({
+                                            front_src: res.data.thumbnails[0].large,
+                                            back_src: res.data.thumbnails[1].large
+                                        });
+                                        $timeout(function () {
+                                            $scope.postcardCheckout.status = 'preview';
+                                        }, 8000)
+                                    }
+                                },
+                                ErrorService.handleHttpError);
+                        });
+
+                    }
                 };
 
                 $scope.templates = [{

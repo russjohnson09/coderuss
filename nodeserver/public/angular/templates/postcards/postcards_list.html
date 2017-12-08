@@ -52,16 +52,18 @@
 
 <button class="btn btn-lg btn-primary btn-block" ng-click="postcardPreview()">Preview</button>
 
-<div ng-show="postcardCheckout.status == 'preview'">
-    <div>
-        <h1>Front</h1>
-        <a ng-href={{preview.front_src}}>
-            <img style="border: 1px solid black;" ng-src="{{preview.front_src}}"></a>
-    </div>
-    <div>
-        <h1>Back</h1>
-        <a ng-href={{preview.back_src}}>
-            <img style="border: 1px solid black;" ng-src="{{preview.back_src}}"></a>
+<div ng-if="postcardCheckout.status == 'preview'">
+    <div ng-repeat="preview in previews">
+        <div>
+            <h1>Front</h1>
+            <a target="_blank" ng-href={{preview.front_src}}>
+                <img style="border: 1px solid black;" ng-src="{{preview.front_src}}"></a>
+        </div>
+        <div>
+            <h1>Back</h1>
+            <a target="_blank" ng-href={{preview.back_src}}>
+                <img style="border: 1px solid black;" ng-src="{{preview.back_src}}"></a>
+        </div>
     </div>
     <div>
         <button class="btn btn-lg btn-primary btn-block" ng-click="submitCompletePostcard()">Complete</button>

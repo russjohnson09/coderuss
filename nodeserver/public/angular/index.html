@@ -963,6 +963,164 @@
 
     (function addPostcards() {
 
+//        postcardsListCtl
+        app.controller('postcardsListCtl', ['_user', '$rootScope',
+            '$cookies', '$scope', '$location',
+            '$http', '$routeParams', 'hotkeys','$timeout',
+            'ErrorService',
+            'AddressService',
+            function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams, hotkeys,
+                      $timeout,
+                      ErrorService,
+                      AddressService) {
+                $scope._user = _user;
+
+                $scope.getTemplate = function(callback) {
+                    $http.get($scope.selectedTemplate.front).then(function successCallback(res) {
+                        $scope.postcard.front = res.data;
+                        $http.get($scope.selectedTemplate.back).then(function successCallback(res) {
+                            $scope.postcard.back = res.data;
+                            callback();
+                        });
+                    });
+                };
+
+                $scope.addressCount = 0;
+
+                $scope.addressList = {};
+
+                $scope.postcard = {
+                    to: {
+                        name: null,
+                        address_line1: null,
+                        address_city: null,
+                        address_state: null,
+                        address_zip: null,
+                    },
+                    from: {
+                        name: null,
+                        address_line1: null,
+                        address_city: null,
+                        address_state: null,
+                        address_zip: null,
+                    },
+                    front: null,
+                    back: null,
+                    data: {
+                        front_to_name: '',
+                        back_body: '',
+                        back_from_name: ''
+                    },
+//                    _front: '/angular/templates/postcards/postcardtemplates/_birthday_front.html',
+//                    _back: '/angular/templates/postcards/postcardtemplates/_birthday_front.html'
+                };
+
+
+                $scope.$watch("addressTag", function(newValue, oldValue) {
+
+                        $scope.addressList = AddressService.getAddressList(
+                            {tags: $scope.addressTag});
+
+                        },
+                    true);
+
+                $scope.postcardCheckout = {
+                    status: 'incomplete'
+                };
+
+
+                $scope.postcard = {};
+                //TODO user from address, address tagged with home?
+                $scope.postcard.from = {
+                    name: 'Joe',
+                    address_line1: 'Detroit',
+                    address_city: 'Detroit',
+                    address_state: 'MI',
+                    address_zip: 48339,
+                };
+
+                $scope.previews = [];
+
+                $scope.addressList = [
+
+                ];
+                $scope.preview = {};
+
+                $scope.postcardPreview = function() {
+
+                    $scope.getTemplate(function() {
+
+                        $http.post('/v1/postcards/preview', $scope.postcard, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(function successCallback(res) {
+                                new Noty({
+                                    text: JSON.stringify(res.data, null, '  '),
+                                    animation: {}
+                                }).show();
+                                if (res.status === 200) {
+                                    $timeout(function () {
+                                        $scope.preview.front_src = res.data.thumbnails[0].large;
+                                        $scope.preview.back_src = res.data.thumbnails[1].large;
+                                        $scope.postcardCheckout.status = 'preview';
+                                    }, 8000)
+                                }
+                            },
+                            ErrorService.handleHttpError);
+                    });
+                };
+
+                $scope.submitCompletePostcard = function() {
+                    $scope.preview = {};
+
+                    if ($scope.isSubmitted) {
+                        return;
+                    }
+                    $scope.isSubmitted = true;
+
+                    $http.post('/v1/postcards', $scope.postcard, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(function successCallback(res) {
+                            new Noty({
+                                text: JSON.stringify(res.data, null, '  '),
+                                animation: {}
+                            }).show();
+                            if (res.status === 200) {
+                                $timeout(function() {
+                                    console.log($scope);
+                                    $scope.preview.front_src = res.data.thumbnails[0].large;
+                                    $scope.preview.back_src = res.data.thumbnails[1].large;
+                                    console.log($scope.preview);
+                                }, 8000)
+                            }
+                        },
+                        ErrorService.handleHttpError);
+                };
+
+                $scope.templates = [{
+                    value: {
+                        type: 'birthday',
+                        name: 'birthday',
+                        front: '/angular/templates/postcards/postcardtemplates/_birthday_front.html',
+                        back: '/angular/templates/postcards/postcardtemplates/_birthday_back.html'
+                    },
+                    'label': 'Birthday'
+                },
+                    {
+                        value: {
+                            type: 'birthday',
+                            name: 'birthday',
+                            front: '/angular/templates/postcards/postcardtemplates/_birthday2_front.html',
+                            back: '/angular/templates/postcards/postcardtemplates/_birthday2_back.html'
+                        },
+                        'label': 'Birthday2'
+                    },
+                ];
+            }]);
+
         app.controller('postcardsCtl', ['_user', '$rootScope',
             '$cookies', '$scope', '$location',
             '$http', '$routeParams', 'hotkeys','$timeout',
@@ -1666,7 +1824,12 @@
                 controller: "habitsIdCtl",
                 resolve: userResolve,
             })
-            .when("/postcards", {
+            .when("/postcards/list", { //send postcards to a list of people
+                templateUrl: "templates/postcards/postcards_list.html",
+                controller: "postcardsListCtl",
+                resolve: userResolve,
+            })
+            .when('/postcards', {
                 templateUrl: "templates/postcards/postcards.html",
                 controller: "postcardsCtl",
                 resolve: userResolve,

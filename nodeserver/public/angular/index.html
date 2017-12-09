@@ -1006,11 +1006,11 @@
                     },
                     front: null,
                     back: null,
-                    data: {
-                        front_to_name: '',
-                        back_body: '',
-                        back_from_name: ''
-                    },
+//                    data: {
+//                        front_to_name: '',
+//                        back_body: '',
+//                        back_from_name: ''
+//                    },
 //                    _front: '/angular/templates/postcards/postcardtemplates/_birthday_front.html',
 //                    _back: '/angular/templates/postcards/postcardtemplates/_birthday_front.html'
                 };
@@ -1029,8 +1029,6 @@
                 };
 
 
-                $scope.postcard = {};
-                //TODO user from address, address tagged with home?
                 $scope.postcard.from = {
                     name: 'Joe',
                     address_line1: 'Detroit',
@@ -1060,16 +1058,29 @@
                                 address_state: address.state,
                                 address_zip: address.zip,
                             };
-                            let data = $.extend(true, {
-                                    to: to
-                                },
+                            let from = $scope.postcard.from;
 
-                                $scope.postcard);
-//                            let data = Object.assign({
-//                            },$scope.postcard);
+                            let lob_data = {
 
+                            };
+
+                            for (let key in to) {
+                                lob_data["to_" + key] = to[key];
+                            }
+
+                            for (let key in from) {
+                                lob_data["from_" + key] = from[key];
+                            }
+
+                            let data = {
+                                front: $scope.postcard.front,
+                                back: $scope.postcard.back,
+                                to: Object.assign({}, to),
+                                from: Object.assign({}, from),
+                                data:  lob_data
+
+                            };
                             console.log('postcardPreview',data,address);
-
                             $http.post('/v1/postcards/preview',
                                 data,
                                 {
@@ -1086,6 +1097,7 @@
                                             front_src: res.data.thumbnails[0].large,
                                             back_src: res.data.thumbnails[1].large
                                         });
+
                                         $timeout(function () {
 //                                            $scope.preview.front_src = res.data.thumbnails[0].large;
 //                                            $scope.preview.back_src = res.data.thumbnails[1].large;
@@ -1121,11 +1133,28 @@
                                 address_state: address.state,
                                 address_zip: address.zip,
                             };
-                            let data = $.extend(true, {
-                                    to: to
-                                },
+                            let from = $scope.postcard.from;
 
-                                $scope.postcard);
+                            let lob_data = {
+
+                            };
+
+                            for (let key in to) {
+                                lob_data["to_" + key] = to[key];
+                            }
+
+                            for (let key in from) {
+                                lob_data["from_" + key] = from[key];
+                            }
+
+                            let data = {
+                                front: $scope.postcard.front,
+                                back: $scope.postcard.back,
+                                to: Object.assign({}, to),
+                                from: Object.assign({}, from),
+                                data:  lob_data
+
+                            };
 
                             $http.post('/v1/postcards',
                                 data,
@@ -1154,7 +1183,17 @@
                     }
                 };
 
-                $scope.templates = [{
+                $scope.templates = [
+                    {
+                        value: {
+                            type: 'christmas',
+                            name: 'christmas',
+                            front: '/angular/templates/postcards/postcardtemplates/_christmas_creepy_front.html',
+                            back: '/angular/templates/postcards/postcardtemplates/_christmas_creepy_back.html'
+                        },
+                        'label': 'Christmas'
+                    },
+                    {
                     value: {
                         type: 'birthday',
                         name: 'birthday',

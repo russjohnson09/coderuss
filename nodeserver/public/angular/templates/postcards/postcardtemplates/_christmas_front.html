@@ -1,0 +1,200 @@
+<html>
+<!--https://github.com/lob/lob-templates-->
+<!--http://lorempixel.com/ -->
+<!--rgb(252, 84, 110)-->
+<!--https://www.greetingsisland.com/images/Cards/birthday/Birthday-greetings.jpg-->
+
+<!--localhost:3000/angular/templates/postcards/postcardtemplates/_christmas_front.html-->
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Bellefair" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
+
+
+    <meta charset="UTF-8">
+    <title>Lob.com Thank You 4x6 Postcard Template Front</title>
+    <style>
+        *, *:before, *:after {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        div#outer {
+            overflow: hidden;
+
+            display: block;
+            width: 6.25in;
+            height: 4.25in;
+            box-shadow: 0px 0px 100px black;
+            background-color: #a2d1f8;
+        }
+
+        body.rotated {
+            -ms-transform: rotate(-90deg); /* IE 9 */
+            -webkit-transform: rotate(-90deg); /* Chrome, Safari, Opera */
+            transform: rotate(-90deg);
+            position: absolute;
+            left: 1in;
+            top: -1in;
+            width: 4.25in;
+            height: 6.25in;
+            margin: 0;
+            padding: 0;
+        }
+
+        div#outer.rotated {
+            display: block;
+            width: 4.25in;
+            height: 6.25in;
+            box-shadow: 0px 0px 100px black;
+            /*background-color: #a2d1f8;*/
+        }
+
+        #inner {
+            width: 5.5in;
+            height: 3.5in;
+            position: absolute;
+            left: .375in;
+            top: .375in;
+            /*border: .03in solid white;*/
+        }
+
+        /* do not put text outside of the safe area */
+        #safe-area {
+            position: absolute;
+            width: 5.875in;
+            height: 3.875in;
+            left: 0in;
+            top: 0in;
+            text-align: center;
+            /*font-family: "Kaushan Script", "Helvetica Neue", Helvetica, Arial, cursive;*/
+            font-size: .55in;
+            color: white;
+            text-shadow: -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
+            padding-top: .6in;
+        }
+
+        #front-title {
+            z-index: 100;
+            font-family: "Bellefair", serif;
+            font-size: 33px;
+            position: absolute;
+            top: 230px;
+            width: 4.25in;
+            text-align: center;
+            /*color: white;*/
+            color: red;
+            /*padding: 0 0 0 10px;*/
+        }
+
+        img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            /*min-width: 100%;*/
+            /*min-height: 100%;*/
+            /*max-width: 110%;*/
+            /*max-height: auto;*/
+        }
+
+
+        @import url('https://fonts.googleapis.com/css?family=Megrim');
+
+        body {
+
+            /*width: 6.25in;*/
+            /*height: 4.25in;*/
+            /*margin: 0;*/
+            /*padding: 0;*/
+            /*overflow: hidden;*/
+            /*display: flex;*/
+            /*justify-content: center;*/
+            /*align-items: center;*/
+            /*flex-direction: column;*/
+
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            background: #961227;
+
+        }
+
+        .container {
+            animation: fade 6s;
+        }
+
+        .mint {
+            height: 20px;
+            width: 20px;
+            margin-bottom: 25px;
+            background: #DDDDDD;
+            border: 7px dotted #368E7A;
+            border-radius: 50%;
+            animation: spin 4s infinite;
+        }
+
+        .text {
+            font-family: Megrim;
+            font-size: 2em;
+            color: #DDDDDD;
+            font-weight: bold;
+            letter-spacing: 20px;
+            margin-right: -30px;
+        }
+
+        /*@keyframes fade {*/
+        /*0% {*/
+        /*opacity: 0;*/
+        /*}*/
+        /*}*/
+
+        /*@keyframes spin {*/
+        /*100% {*/
+        /*transform: rotate(360deg);*/
+        /*animation-timing-function: ease-in;*/
+        /*}*/
+        /*}*/
+        /*https://codepen.io/EricAcampora/pen/zGJpzE*/
+    </style>
+
+
+</head>
+
+<body>
+<div class="container">
+    <div class="mint"></div>
+</div>
+<div class="text">Merry Christmas</div>
+</body>
+
+<!--<img src="https://static.pexels.com/photos/260485/pexels-photo-260485.jpeg">-->
+
+<div id="outer">
+    <!--<img src="https://static.pexels.com/photos/383646/pexels-photo-383646.jpeg">-->
+    <!--<img src="https://static.pexels.com/photos/260485/pexels-photo-260485.jpeg">-->
+    <!--<img src="https://www.greetingsisland.com/images/Cards/birthday/Birthday-greetings.jpg">-->
+    <div id="inner">
+
+        <div class="container">
+            <div class="mint"></div>
+        </div>
+        <div class="text">Purgatory</div>
+    </div>
+</div>
+
+<div class="text">Purgatory</div>
+
+<!-- do not put text outside of the safe area -->
+<!--<div id="safe-area">-->
+
+<!--</div>-->
+
+</body>
+
+</html>

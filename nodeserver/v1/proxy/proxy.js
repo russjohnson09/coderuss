@@ -338,6 +338,9 @@ module.exports = function(opts) {
         else if ('tvmaze' === proxy) {
            url = TVMAZE_API_URL;
         }
+        else if ('travelwarning' === proxy) {
+            url = 'https://www.reisewarnung.net/';
+        }
         url += req.params.path;
         r({
             method: 'GET',
@@ -359,7 +362,7 @@ module.exports = function(opts) {
         });
     };
 
-    router.get('/:proxy(github|tvmaze):path(*)', doStub,getProxy);
+    router.get('/:proxy(github|tvmaze|travelwarning):path(*)', doStub,getProxy);
 
     router.post('/github:path(*)', function(req, res) {
         delete req.headers['referer'];

@@ -28,6 +28,8 @@ var clock;
 var tvshownotificationTask;
 var moment = require('moment-timezone');
 
+let MiscService = {};
+
 
 
 
@@ -154,6 +156,7 @@ module.exports = function(opts, callback) {
         exitOnError: process.env.NODE_ENV == 'DEV'
     });
 
+    mainLogger.info('test');
 
 
     var morgan = require('morgan');
@@ -305,10 +308,25 @@ module.exports = function(opts, callback) {
                 db: db
             });
 
+            MiscService =  require(__dirname + '/v1/misc/misc')({
+                winston: mainLogger,
+                database: database,
+                passport: passport,
+                adminlogsNsp: io.of('/v1/adminlogs'),
+                CODERUSS_BASE_URL: 'http://localhost:3000',
+                sessionMiddleware: sessionMiddleware,
+                // User: db.collection('user'),
+                tcpPort: 3000,
+                UserService: UserService
+            });
 
             UserService.addTransaction =  TransactionService.addTransaction;
 
             app.use('/v1/users',UserService.router);
+
+
+            app.use('/v1',MiscService.router);
+
 
             app.use('/v1/fitbit', require(__dirname + '/v1/fitbit/fitbit')({
                 FITBIT_CLIENT_ID: process.env.FITBIT_CLIENT_ID,
@@ -1707,7 +1725,21 @@ function getMainLoggerTransports() {
             level: CONSOLE_LOG_LEVEL,
             colorize: true,
             // json: true
-        })
+        }),
+        (function() {
+            let self = {};
+            self.log = function(lvl,msg) {
+                if (MiscService.emitAdminlog) {
+                    MiscService.emitAdminlog(
+                        JSON.stringify(
+                            {type: 'adminlog',
+                                'message': msg,
+                                'level': lvl,
+                            }));
+                }
+            };
+            return self;
+        })()
     ];
 
     winston.info(LOGSENE_LOG_TYPE);

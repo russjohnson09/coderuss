@@ -160,7 +160,8 @@ module.exports = function (opts) {
 
 
     //echo netcat_test | netcat localhost 1337
-    let testtcp = 1337;
+    // let testtcp = 1337;
+    let testtcp = 0;
     server.listen(testtcp,function() {
 
     });

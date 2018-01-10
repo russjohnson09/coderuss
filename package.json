@@ -104,6 +104,8 @@
     "vue-loader": "^9.0.0",
     "winston": "^2.3.0",
     "winston-logsene": "^1.2.1",
+    "winston-rsyslog": "0.0.2",
+    "winston-udp": "0.0.7",
     "www-authenticate": "^0.6.2"
   },
   "devDependencies": {

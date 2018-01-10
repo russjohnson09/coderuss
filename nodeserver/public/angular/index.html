@@ -72,6 +72,9 @@
     </style>
 
 
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+
     <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
 
 
@@ -1603,6 +1606,7 @@
 <script src="routes/profile/profile.js"></script>
 <script src="routes/funds/funds.js"></script>
 <script src="routes/travel/travel.js"></script>
+<script src="routes/misc/misc.js"></script>
 
 
 <script>
@@ -1647,8 +1651,13 @@
                 templateUrl: "templates/logout.html"
             })
             .when('/travel', {
-                templateUrl: "routes/travel/travel.html",
-                controller: "travelCtl",
+            templateUrl: "routes/travel/travel.html",
+            controller: "travelCtl",
+            resolve: userResolve,
+        })
+            .when('/adminlogs', {
+                templateUrl: "routes/misc/adminlogs.html",
+                controller: "adminlogsCtl",
                 resolve: userResolve,
             })
             .when('/funds', {

@@ -29,19 +29,10 @@ module.exports = function (opts) {
     let router = opts.router || require('express').Router();
 
     let ObjectID = require('mongodb').ObjectID;
+    let NumberLong = require('mongodb').NumberLong;
 
 
-    router.use(UserService.isAdminRouter)
-
-    // router.use(function (req, res, next) {
-    //     if (req.user && UserService.isAdmin(req.user)) {
-    //         req.user_id = req.user._id;
-    //         return next();
-    //     }
-    //     else {
-    //         return res.status(401).json({message: 'must be logged in'});
-    //     }
-    // });
+    router.use(UserService.isAdminRouter);
 
     //https://docs.mongodb.com/manual/tutorial/perform-two-phase-commits/
     self.addTransaction = function(user_id,amount,description,not_less_than)
@@ -70,6 +61,10 @@ module.exports = function (opts) {
             User.findOne({
                 _id: user_id
             }, function(err, user) {
+                if (isNaN(amount)) {
+                    return reject({error: 'amount is not a number'});
+                }
+                else if (typeof user.amount)
                 winston.info(user);
                 if (err) {
                     winston.error(err);
@@ -80,9 +75,11 @@ module.exports = function (opts) {
                     winston.error(err);
                     return reject(err);
                 }
+                // let setInc = "$inc";
                 if (user.amount === undefined) {
                     winston.info('set user amount to 0');
                     user.amount = 0;
+                    // setInc = "$set";
                 }
                 let user_amount = user.amount;
                 user_amount += amount;
@@ -104,17 +101,20 @@ module.exports = function (opts) {
                         meta: {}
                     };
 
+                    winston.info('increment user amount by ' + amount + ' on user_id ' + user_id);
                     User.updateOne({
                         _id: ObjectID(user_id)
                     }, {
-                        $inc: {
+                        $inc: { //set will cause a race condition
                             amount: amount,
                         }
                     }, function(err, result) {
                         if (err) {
                             return reject(err);
                         }
-
+                        resObj.meta.user_update = {result: result.result,
+                            user_id:user_id,amount:amount};
+                        winston.info(result.result);
                         return resolve(resObj);
                     });
                 });

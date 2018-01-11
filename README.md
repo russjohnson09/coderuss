@@ -63,6 +63,13 @@ socket io for the time being.
 # TODOS
 * Checkout with unique id for postcards to prevent duplication.
 
+##Notifications
+Do not require having the tab open to receive notifications from the site.
+
+###Notes on implementations
+https://developers.google.com/web/fundamentals/codelabs/push-notifications/
+
+
 ##Fix /v1/postcards/send/test TIMEOUT
 https://travis-ci.org/russjohnson09/coderuss/jobs/312962892
 https://travis-ci.org/russjohnson09/coderuss/jobs/312968884

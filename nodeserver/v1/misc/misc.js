@@ -349,7 +349,7 @@ if (require.main === module) {
                     });
                 };
 
-                // doTests();
+                doTests();
 
 
             });

@@ -67,14 +67,6 @@ describe(path.basename(__dirname), function () {
     });
 
 
-    describe.skip('todo', function() {
-        it('test udp', function(done) {
-
-        })
-    });
-
-
-
     //https://www.npmjs.com/package/winston-rsyslog
 
     //https://blog.heroku.com/websockets-public-beta

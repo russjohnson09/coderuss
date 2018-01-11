@@ -10,7 +10,6 @@ const PORT = 3000;
 const BASE_URL = "http://localhost:" + PORT;
 
 
-//TODO add to other user funds
 describe(path.basename(__dirname), function () {
 
     let headers = {};

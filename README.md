@@ -66,6 +66,21 @@ socket io for the time being.
 ##Notifications
 Do not require having the tab open to receive notifications from the site.
 
+First steps for this are a more reliable form of notifications and
+a dashboard for tasks due today. I don't want to leave work until I can confirm they are completed.
+
+Tasks/todos can have a complete message associated with them. "Task does not need to be completed
+because x" message would be a use case and close the task.
+
+Task resolution similar to jira's task resolution ```done```, ```won't do``` as the basics.
+
+The api on the resolution will be a free form field. Angular front end can give control over the 
+resolution types. I want the api to be pretty flexible. It should handle tasks that the frontend
+cannot (save to db, session perssistance, push notifications, tasks), but no more.
+
+###Task schedule
+Is a grouping of tasks to be completed. Create a new task when it is available to be completed.
+
 ###Notes on implementations
 https://developers.google.com/web/fundamentals/codelabs/push-notifications/
 

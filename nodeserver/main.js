@@ -15,6 +15,8 @@ const TRAVIS_MASTER_BRANCH = "https://api.travis-ci.org/repos/russjohnson09/code
 const THEMOVIEDB_BASE_URL = process.env.THEMOVIEDB_BASE_URL;
 const THEMOVIEDB_API_KEY = process.env.THEMOVIEDB_API_KEY;
 const CODERUSS_BASE_URL = process.env.CODERUSS_BASE_URL;
+const CODERUSS_EXIT_ON_ERROR = process.env.CODERUSS_EXIT_ON_ERROR || false;
+
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 const async = require('async');
@@ -84,10 +86,10 @@ const MONGO_CONNECTION = MONGO_URI;
 const alexa = require(__dirname + '/v1/alexa');
 
 var exceptionHandlers;
-if (process.env.NODE_ENV == 'DEV') {
-    exceptionHandlers == null;
-}
-else {
+// if (process.env.NODE_ENV == 'DEV') {
+//     exceptionHandlers == null;
+// }
+// else {
     exceptionHandlers = [
         new winston.transports.File({
             filename: path.join(__dirname, 'exceptions.log'),
@@ -95,13 +97,13 @@ else {
             maxFiles: 5,
             colorize: false
         }),
-        new winston.transports.Console({
-            colorize: true,
-            json: true
-        })
+        // new winston.transports.Console({
+        //     colorize: true,
+        //     json: true
+        // })
     ];
 
-}
+// }
 
 
 
@@ -127,6 +129,34 @@ module.exports = function(opts, callback) {
     const PROXIED_PORT = process.env.PROXIED_PORT || 0;
 
     var app = express();
+
+    app.use(function(req,res,next) {
+        //req.fresh  last-modified no-cache logic
+        //req.subdomains
+        //req.xhr
+        //req.query {}
+
+        //req.get('content-type')
+        //req.params
+        console.log('start');
+
+        //res.headersSent
+
+        console.log('headerssent',req.headersSent);
+
+        let timeoutSecs = 1;
+
+        setTimeout(function() {
+            let route = JSON.stringify(req.route);
+
+            console.log('headerssent',req.headersSent);
+            mainLogger.warn('timeout of ' + timeoutSecs + ' reached',req.originalUrl,route);
+
+            // console.log('timeout of ' + timeoutSecs + ' reached');
+        },timeoutSecs * 1000);
+        next();
+    });
+
     if (process.env.LOGSENE_TOKEN) {
         app.set('logsene_token', process.env.LOGSENE_TOKEN);
     }
@@ -153,7 +183,7 @@ module.exports = function(opts, callback) {
     var mainLogger = new winston.Logger({
         transports: transports,
         exceptionHandlers: exceptionHandlers,
-        exitOnError: process.env.NODE_ENV == 'DEV'
+        exitOnError: CODERUSS_EXIT_ON_ERROR
     });
 
     mainLogger.info('test');
@@ -244,7 +274,7 @@ module.exports = function(opts, callback) {
 
     child.stderr.on('data', function(data) {
         winston.error('stderr: ' + data.toString());
-        process.exit(1);
+        // process.exit(1);
     });
 
 
@@ -1741,6 +1771,30 @@ function getMainLoggerTransports() {
             return self;
         })()
     ];
+
+    if (exceptionHandlers) {
+        exceptionHandlers.push(
+            (function() {
+                let self = {};
+                self.logException = function (errMessage, info, next, err) {
+                    console.log('exceptionHandlers','custom');
+
+                    let fullMessage = err.stack || err.message;
+                    if (MiscService.emitAdminlog) {
+                        MiscService.emitAdminlog(
+                            JSON.stringify(
+                                {
+                                    type: 'uncaughtException',
+                                    'message': fullMessage,
+                                    'level': 'error',
+                                    'err': fullMessage
+                                }));
+                    }
+                };
+                return self;
+            })()
+        )
+    }
 
     winston.info(LOGSENE_LOG_TYPE);
     if (process.env.LOGSENE_TOKEN) {

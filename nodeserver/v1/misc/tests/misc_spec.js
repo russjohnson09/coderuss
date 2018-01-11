@@ -9,8 +9,6 @@ const PORT = 3000;
 
 const BASE_URL = "http://localhost:" + PORT;
 
-
-//TODO add to other user funds
 describe(path.basename(__dirname), function () {
 
     let headers = {};
@@ -134,16 +132,6 @@ describe(path.basename(__dirname), function () {
     // client.on('close', function() {
     //     console.log('Connection closed');
     // });
-
-
-
-    //sudo service rsyslog restart
-
-    describe('todo', function() {
-        it('test udp', function(done) {
-
-        })
-    });
 
 
     /**

@@ -134,10 +134,11 @@ module.exports = function (opts) {
         // adminlogsNsp.emit(msg);
     };
 
+
+    let pingInterval = 120 * 60;
     setInterval(function() {
-        emitAdminlog("{ping:1}");
         winston.info('ping');
-    },1000);
+    },pingInterval);
 
     var server = net.createServer(function(socket) {
         socket.write('Echo server\r\n');
@@ -267,11 +268,43 @@ if (require.main === module) {
                 })()
                 // MiscService
             ],
-            exceptionHandlers: [new winston.transports.Console({
-                colorize: true,
-                json: true
-            })],
-            exitOnError: process.env.NODE_ENV == 'DEV'
+            exceptionHandlers: [
+                (function() {
+                    let self = {};
+                    self.logException = function (errMessage, info, next, err) {
+                        console.log('exceptionHandlers','custom');
+                        // let fullErrMessage = errMessage + "\n" + err;
+                        // console.log(fullErrMessage);
+                        // err = '' + err;
+                        let e = err;
+                        let stack = e.stack || e;
+                        let stack2 = e.stack;
+
+                        let fullMessage = err.stack || err.message;
+
+                        // let fullMessage = err.message + "\n" + err.stack;
+                        console.log('fullmessage',fullMessage);
+                        // console.log('err',err,stack,stack2);
+                        // console.log(JSON.stringify(err));
+                        return next();
+                        if (MiscService.emitAdminlog) {
+                            MiscService.emitAdminlog(
+                                JSON.stringify(
+                                    {
+                                        type: 'uncaughtException',
+                                        'message': errMessage,
+                                        'level': 'error',
+                                        'err': err
+                                    }));
+                        }
+                    };
+                    return self;
+                })()
+                // new winston.transports.Console({
+                // colorize: true,
+                // json: true
+            ],
+            exitOnError: false
         });
 
         mainLogger.debug('mainLogger');
@@ -357,6 +390,10 @@ if (require.main === module) {
         });
 
 
+
+        //UNCAUGHT EXCEPTION
+        let x = JSON.parse(undefined);
+        console.log(x,'x');
     })();
 
 

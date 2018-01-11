@@ -6,6 +6,7 @@
 <h2>Messages</h2>
 <div ng-repeat="message in messages track by $index">
 
-    {{$index}} - {{message.datetime}}
-    <pre>{{message.rawData}}</pre>
+    {{$index}} - {{message.datetime}} - {{message.level}}
+    <pre>{{message.message}}</pre>
+    <!--<pre>{{message}}</pre>-->
 </div>

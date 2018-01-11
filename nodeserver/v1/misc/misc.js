@@ -281,12 +281,6 @@ if (require.main === module) {
                         let stack2 = e.stack;
 
                         let fullMessage = err.stack || err.message;
-
-                        // let fullMessage = err.message + "\n" + err.stack;
-                        console.log('fullmessage',fullMessage);
-                        // console.log('err',err,stack,stack2);
-                        // console.log(JSON.stringify(err));
-                        return next();
                         if (MiscService.emitAdminlog) {
                             MiscService.emitAdminlog(
                                 JSON.stringify(

@@ -1780,7 +1780,6 @@ function getMainLoggerTransports() {
                     console.log('exceptionHandlers','custom');
 
                     let fullMessage = err.stack || err.message;
-                    return next();
                     if (MiscService.emitAdminlog) {
                         MiscService.emitAdminlog(
                             JSON.stringify(

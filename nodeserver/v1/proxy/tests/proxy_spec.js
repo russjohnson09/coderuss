@@ -54,12 +54,17 @@ describe(path.basename(__dirname), function () {
                     'content-type': 'application/json'
                 },
             }, function (error, response, body) {
-                console.log(body);
+
                 expect(error).to.be.equal(null);
                 expect(response.statusCode).to.equal(200);
 
-                user_profile = JSON.parse(body);
-                // expect(user_profile.amount).not.to.be.undefined;
+                body = JSON.parse(body);
+
+                // console.log(JSON.stringify(body,null,' '));
+
+                expect(body).not.to.be.undefined;
+                expect(body.api_status).not.to.be.undefined;
+                console.log(JSON.stringify(body.api_status,null,' '));
                 done();
             });
         });

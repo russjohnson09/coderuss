@@ -348,13 +348,10 @@ module.exports = function(opts) {
             url: url,
             qs: req.query
         }, function (err, proxyResponse, proxyBody) {
-
             if (err) {
                 return res.status(500).send(err).end();
             }
-            // console.log('GET',proxyBody,proxyResponse.statusCode,proxyResponse.headers);
 
-            // 'transfer-encoding': 'chunked' error
             // res.set(proxyResponse.headers);
             return res
                 .status(proxyResponse.statusCode)

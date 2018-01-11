@@ -348,13 +348,10 @@ module.exports = function(opts) {
             url: url,
             qs: req.query
         }, function (err, proxyResponse, proxyBody) {
-
             if (err) {
                 return res.status(500).send(err).end();
             }
-            // console.log('GET',proxyBody,proxyResponse.statusCode,proxyResponse.headers);
 
-            // 'transfer-encoding': 'chunked' error
             // res.set(proxyResponse.headers);
             return res
                 .status(proxyResponse.statusCode)
@@ -387,3 +384,176 @@ module.exports = function(opts) {
 
     return module;
 };
+
+
+
+
+
+if (require.main === module) {
+    (function () {
+        let express = require('express');
+        let app = express();
+        let winston = require('winston');
+        let passport = require('passport');
+        let path = require('path');
+
+        require('dotenv').config();
+
+        const MONGO_URI = process.env.MONGO_URI;
+
+
+        var bodyParser = require('body-parser');
+        app.use(bodyParser.urlencoded({
+            extended: true
+        }));
+        app.use(bodyParser.json());
+        const cookieParser = require('cookie-parser');
+        app.use(cookieParser());
+        var expressSession = require('express-session');
+        var sessionMiddleware = expressSession({
+            secret: process.env.EXPRESS_SESSION_SECRET,
+            store: new (require("connect-mongo")(expressSession))({
+                url: MONGO_URI
+            })
+        });
+        app.use(sessionMiddleware);
+        app.use(passport.initialize());
+        app.use(passport.session());
+
+        var http = require('http');
+
+        var server = http.Server(app);
+
+        //https://wiki.gentoo.org/wiki/Rsyslog
+
+        //https://www.w3schools.com/nodejs/nodejs_http.asp
+        // http.createServer(function (req, res) {
+        //     console.log('http server create');
+        //     res.write('Hello World!'); //write a response to the client
+        //     res.end(); //end the response
+        // });
+        // return;
+
+        let io = require('socket.io')(server);
+
+        let adminlogsNsp = io.of('/v1/adminlogs');
+
+        let MiscService = {};
+
+        var mainLogger = new winston.Logger({
+            transports: [
+                new winston.transports.Console({
+                    level: 'info',
+                }),
+                (function() {
+                    let self = {};
+                    self.log = function(lvl,msg) {
+                        if (MiscService.emitAdminlog) {
+                            MiscService.emitAdminlog(
+                                JSON.stringify(
+                                    {type: 'adminlog',
+                                        'message': msg,
+                                        'level': lvl,
+                                    }));
+                        }
+                    };
+                    return self;
+                })()
+                // MiscService
+            ],
+            exceptionHandlers: [new winston.transports.Console({
+                colorize: true,
+                json: true
+            })],
+            exitOnError: process.env.NODE_ENV == 'DEV'
+        });
+
+        mainLogger.debug('mainLogger');
+        mainLogger.info('mainLogger');
+        mainLogger.error('mainLogger');
+
+        const MongoClient = require('mongodb').MongoClient;
+
+        //echo netcat_test | netcat localhost 3555
+        //echo netcat_test | netcat localhost 3000
+
+        //netcat -z -v localhost 3000
+        MongoClient.connect(MONGO_URI, function (err, db) {
+            if (err) {
+                throw err;
+            }
+            server.listen(3000, function () {
+
+                //https://github.com/expressjs/express/issues/3089
+                var net = require('net');
+
+                app.use(function(req,res,next) {
+                    next();
+                });
+
+                app.use(express.static(path.join(__dirname, '..', '..', 'public/')));
+
+                app.use('/v1', require(__dirname + '/../../v1/login/main.js')({
+                    winston: mainLogger,
+                    database: db,
+                    passport: passport,
+                }).router);
+
+                let UserService = require(__dirname + '/../../v1/users/main')({
+                    winston: mainLogger,
+                    database: db,
+                    passport: passport,
+                });
+                app.use('/v1/users', UserService.router);
+
+                MiscService = module.exports({
+                    // io: nsp,
+                    database: db,
+                    adminlogsNsp: adminlogsNsp,
+                    BASE_URL: 'http://localhost:3000/v1/googlefit',
+                    CODERUSS_BASE_URL: 'http://localhost:3000',
+                    winston: mainLogger,
+                    sessionMiddleware: sessionMiddleware,
+                    tcpPort: 3000,
+                    UserService: UserService
+                });
+
+                app.use('/v1/proxy', function (req, res, next) {
+                    winston.info('user', {_id: req.user._id + ''});
+                    next();
+                },MiscService.router );
+
+                let doTests = function() {
+                    let cp = require('child_process');
+                    let spawn = cp.spawn;
+
+                    let child = spawn("mocha", ['./**/*_spec.js'],
+                        {cwd: __dirname, env: process.env});
+                    child.stdout.on('data', function (data) {
+                        process.stdout.write(data);
+                    });
+
+                    child.stderr.on('data', function (data) {
+                        process.stderr.write(data);
+                    });
+                    child.on('exit', function (exitcode) {
+                        if (exitcode !== 0) {
+                            process.exit(0);
+                        }
+                    });
+                };
+
+                doTests();
+
+
+            });
+
+        });
+
+
+    })();
+
+
+} else {
+    console.log('required as a module');
+}

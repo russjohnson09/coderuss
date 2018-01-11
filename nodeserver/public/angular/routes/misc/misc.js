@@ -60,10 +60,10 @@
 
     app.controller('adminlogsCtl', ['_user', '$rootScope', '$cookies', '$scope', '$location',
         '$http', '$routeParams', 'hotkeys','ErrorService',
-        'NotificationService', 'Notification','TravelWarningService',
+        'NotificationService', 'Notification','TravelWarningService','socketAdminlogs',
         function (_user, $rootScope, $cookies, $scope, $location, $http, $routeParams,
                   hotkeys, ErrorService,
-                  NotificationService,Notification,TravelWarningService) {
+                  NotificationService,Notification,TravelWarningService,socket) {
             $scope._user = _user;
 
             // $scope.countries = TravelWarningService.getTravelWarningList();
@@ -91,34 +91,25 @@
             // });
 
 
-            var socketUrl = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
-            var socket = io('/v1/adminlogs');
+           $scope.testMessages = [
+                'test'
+            ]
 
+            $scope.messages = [];
             socket.on('info', function (data) {
-                console.log(JSON.stringify(data));
+                let now = Date.now();
+                let msg = {
+                    rawData: data,
+                    time: Date.now(),
+                    datetime: moment(now).tz(moment.tz.guess())
+                        .format('MMMM Do YYYY, h:mm:ss a z')
+                }
+                // $scope.messages.push()
+                $scope.messages.push(msg);
+                // console.log(data, $scope.messages);
             });
 
 
-            socket.on('zorkoutput', function (data) {
-                console.log(data);
-                // var html = ansi_up.ansi_to_html(data);
-                // console.log(html);
-                $("#zorkoutput").append(data);
-                //http://www.jquerybyexample.net/2010/09/how-to-scroll-to-bottom-of-textarea.html
-                $('#zorkoutput').scrollTop($('#zorkoutput')[0].scrollHeight);
-            });
-
-            $('#zorkform').submit(function (event) {
-                event.preventDefault();
-                var zorkcmd = $('input#zorkcmd').val();
-                $('input#zorkcmd').val('');
-                console.log(zorkcmd);
-
-                socket.emit('zorkcmd', zorkcmd);
-            });
-
-
-            // $scope.transactionList = TransactionService.getTransactionList();
 
         }])
 })();

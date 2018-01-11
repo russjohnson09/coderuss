@@ -9,6 +9,7 @@ const PORT = 3000;
 
 const BASE_URL = "http://localhost:" + PORT;
 
+
 describe(path.basename(__dirname), function () {
 
     let headers = {};
@@ -42,27 +43,33 @@ describe(path.basename(__dirname), function () {
 
     let user_profile = {};
     //GET USER_PROFILE with their amount
-    describe.skip('/v1/proxy/travelwarnings/api GET', function() {
-        it("/v1/proxy/travelwarnings/api GET", function (done) {
+    describe('/v1/proxy/travelwarning/api GET', function() {
+        it("/v1/proxy/travelwarning/api GET", function (done) {
             request({
                 method: "GET",
-                uri: BASE_URL + '/v1/proxy/travelwarnings/api GET',
+                uri: BASE_URL + '/v1/proxy/travelwarning/api',
                 headers: {
                     Cookie: cookie,
                     'content-type': 'application/json'
                 },
             }, function (error, response, body) {
-                console.log(body);
+
                 expect(error).to.be.equal(null);
                 expect(response.statusCode).to.equal(200);
 
-                user_profile = JSON.parse(body);
-                expect(user_profile.amount).not.to.be.undefined;
+                body = JSON.parse(body);
+
+                // console.log(JSON.stringify(body,null,' '));
+
+                expect(body).not.to.be.undefined;
+                expect(body.api_status).not.to.be.undefined;
+                console.log(JSON.stringify(body.api_status,null,' '));
                 done();
             });
         });
 
     });
+
 
 
     //https://www.npmjs.com/package/winston-rsyslog
@@ -132,56 +139,5 @@ describe(path.basename(__dirname), function () {
     // client.on('close', function() {
     //     console.log('Connection closed');
     // });
-
-
-    /**
-
-    this.timeout(5000);
-    const dgram = require('dgram');
-    var udpServer = dgram.createSocket('udp4');
-    udpServer.bind(1223);
-
-    let count = 0;
-
-    udpServer.on('message',
-        function (msg,req) {
-            console.log(msg.toString());
-            console.log(req);
-            count++;
-            console.log(count);
-            if (count >= 1) { //expect 5 calls
-                done();
-            }
-        }
-    );
-
-
-
-    winston.info('start misc_spec');
-
-
-
-    setTimeout(function () {
-        var client = dgram.createSocket('udp4');
-        var data = Buffer.from('siddheshrane');
-
-        var data = JSON.stringify({type: 'event_log','data': {x:1}});
-
-        client.send(data, 1223, '127.0.0.1');
-
-        // client.send('123', 1223, '127.0.0.1/test');
-
-        // client.send(data, 1223, 'localhost', function (error) {
-        //     if (error) {
-        //         client.close();
-        //     } else {
-        //         console.log('Data sent !!!');
-        //     }
-        // });
-
-
-    }, 1000);
-
-     **/
 
 });

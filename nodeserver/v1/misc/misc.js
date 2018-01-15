@@ -82,7 +82,7 @@ module.exports = function (opts) {
         else {
             console.log('not admin');
         }
-    })
+    });
 
     adminlogsNsp.on('connection', function (socket) {
         emitAdminlog(JSON.stringify({user:socket.user,msg:"new user"}))
@@ -191,6 +191,67 @@ module.exports = function (opts) {
             res.json({'status':'success'});
             // next();
         });
+
+
+    let loggedIn = function(req,res,next) {
+        winston.info('checking logged in',req.user);
+        if (req.user) {
+            return next();
+        }
+        else {
+            res.status(401).json({'message':'unauthorized'});
+        }
+    };
+
+    let QueueItem = db.collection('queueitem');
+
+    function getUserQueueItems(req,res,next) {
+        let query = {
+            user_id: req.user._id
+        };
+        let sort = {
+            "created": -1,
+        };
+
+        QueueItem.find(query).sort(sort).toArray(function(err,objs) {
+            req.queueitems = objs;
+            return next();
+        });
+    }
+
+
+    router.get('/queueitem',loggedIn,getUserQueueItems,function(req,res,next) {
+
+        let QueueItem = db.collection('queueitem');
+
+        return res.json({'message':'success','data':req.queueitems});
+    });
+
+
+    router.post('/queueitem',loggedIn,function(req,res,next) {
+        winston.info('request params=' + JSON.stringify(req.params));
+        winston.info('request body=' + JSON.stringify(req.body));
+        let obj = {};
+        Object.assign(obj,req.body);
+
+        obj.created = Date.now();
+        obj.user_id = req.user._id;
+
+        let QueueItem = db.collection('queueitem');
+        QueueItem.insertOne(obj, function(error, result) {
+            if (error) {
+                winston.error(error);
+                return res.status(500).json({
+                    error: error
+                })
+            }
+            winston.info('queueitem created',obj);
+            obj._id = result.insertedId;
+            // res.setHeader('content-type', 'application/json; charset=utf-8');
+            res.json(obj);
+            return;
+        });
+    });
 
     return self;
 };
@@ -352,7 +413,7 @@ if (require.main === module) {
                 });
 
                 app.use('/v1', function (req, res, next) {
-                    winston.info('user', {_id: req.user._id + ''});
+                    // winston.info('user', {_id: req.user._id + ''});
                     next();
                 },MiscService.router );
 

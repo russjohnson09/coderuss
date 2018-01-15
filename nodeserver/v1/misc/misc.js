@@ -82,7 +82,7 @@ module.exports = function (opts) {
         else {
             console.log('not admin');
         }
-    })
+    });
 
     adminlogsNsp.on('connection', function (socket) {
         emitAdminlog(JSON.stringify({user:socket.user,msg:"new user"}))
@@ -191,6 +191,124 @@ module.exports = function (opts) {
             res.json({'status':'success'});
             // next();
         });
+
+
+    let loggedIn = function(req,res,next) {
+        winston.info('checking logged in',req.user);
+        if (req.user) {
+            return next();
+        }
+        else {
+            res.status(401).json({'message':'unauthorized'});
+        }
+    };
+
+    let QueueItem = db.collection('queueitem');
+
+    /**
+     * I was using completed 0 as the status but searching by
+     * an int involves more work than a string.
+     * @param req
+     * @param res
+     * @param next
+     */
+    function getUserQueueItems(req,res,next) {
+        let query = {
+            user_id: req.user._id
+        };
+
+        Object.assign(query,req.query);
+
+        winston.info('search queueItems',JSON.stringify(query));
+        let sort = {
+            "created": -1,
+        };
+
+        QueueItem.find(query).sort(sort).toArray(function(err,objs) {
+            req.queueitems = objs;
+            return next();
+        });
+    }
+
+    function getQueueItem(req,res,next)
+    {
+        var id = ObjectID(req.params.id);
+
+        let query = {
+            _id: id,
+            user_id: req.user._id
+        };
+
+        winston.info('search queueitem',JSON.stringify(query));
+
+        QueueItem.findOne(query, function(error, result) {
+            if (error) {
+                winston.error(error);
+            }
+            winston.info('found queueitem ',result);
+            req.queueitem = result;
+            return next();
+        });
+    }
+
+
+    router.get('/queueitem',loggedIn,getUserQueueItems,function(req,res,next) {
+
+        let QueueItem = db.collection('queueitem');
+
+        return res.json({'message':'success','data':req.queueitems});
+    });
+
+
+    router.get('/queueitem/:id',loggedIn,getQueueItem,function(req,res,next) {
+        return res.json(req.queueitem);
+    });
+
+    router.put('/queueitem/:id',loggedIn,getQueueItem,function(req,res,next) {
+
+        let set = req.body;
+
+        QueueItem.updateOne({_id:req.queueitem._id},
+            {$set:set},
+            function(error, result) {
+                QueueItem.findOne({_id:req.queueitem._id}, function(error, result) {
+                    if (error) {
+                        winston.error(error);
+                    }
+                    return res.json(result);
+
+                });
+        });
+
+    });
+
+
+    router.post('/queueitem',loggedIn,function(req,res,next) {
+        winston.info('request params=' + JSON.stringify(req.params));
+        winston.info('request body=' + JSON.stringify(req.body));
+        let obj = {
+            'status': "in_progress"
+        };
+        Object.assign(obj,req.body);
+
+        obj.created = Date.now();
+        obj.user_id = req.user._id;
+
+        let QueueItem = db.collection('queueitem');
+        QueueItem.insertOne(obj, function(error, result) {
+            if (error) {
+                winston.error(error);
+                return res.status(500).json({
+                    error: error
+                })
+            }
+            winston.info('queueitem created',obj);
+            obj._id = result.insertedId;
+            // res.setHeader('content-type', 'application/json; charset=utf-8');
+            res.json(obj);
+            return;
+        });
+    });
 
     return self;
 };
@@ -352,7 +470,7 @@ if (require.main === module) {
                 });
 
                 app.use('/v1', function (req, res, next) {
-                    winston.info('user', {_id: req.user._id + ''});
+                    // winston.info('user', {_id: req.user._id + ''});
                     next();
                 },MiscService.router );
 

@@ -1910,7 +1910,12 @@
             templateUrl: "routes/travel/travel.html",
             controller: "travelCtl",
             resolve: userResolve,
-        })
+            })
+            .when('/queue', {
+                templateUrl: "routes/misc/queue.html",
+                controller: "queueCtl",
+                resolve: userResolve,
+            })
             .when('/adminlogs', {
                 templateUrl: "routes/misc/adminlogs.html",
                 controller: "adminlogsCtl",

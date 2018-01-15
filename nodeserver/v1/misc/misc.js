@@ -209,12 +209,35 @@ module.exports = function (opts) {
         let query = {
             user_id: req.user._id
         };
+
+        Object.assign(query,req.query);
         let sort = {
             "created": -1,
         };
 
         QueueItem.find(query).sort(sort).toArray(function(err,objs) {
             req.queueitems = objs;
+            return next();
+        });
+    }
+
+    function getQueueItem(req,res,next)
+    {
+        var id = ObjectID(req.params.id);
+
+        let query = {
+            _id: id,
+            user_id: req.user._id
+        };
+
+        winston.info('search queueitem',JSON.stringify(query));
+
+        QueueItem.findOne(query, function(error, result) {
+            if (error) {
+                winston.error(error);
+            }
+            winston.info('found queueitem ',result);
+            req.queueitem = result;
             return next();
         });
     }
@@ -228,10 +251,35 @@ module.exports = function (opts) {
     });
 
 
+    router.get('/queueitem/:id',loggedIn,getQueueItem,function(req,res,next) {
+        return res.json(req.queueitem);
+    });
+
+    router.put('/queueitem/:id',loggedIn,getQueueItem,function(req,res,next) {
+
+        let set = req.body;
+
+        QueueItem.updateOne({_id:req.queueitem._id},
+            {$set:set},
+            function(error, result) {
+                QueueItem.findOne({_id:req.queueitem._id}, function(error, result) {
+                    if (error) {
+                        winston.error(error);
+                    }
+                    return res.json(result);
+
+                });
+        });
+
+    });
+
+
     router.post('/queueitem',loggedIn,function(req,res,next) {
         winston.info('request params=' + JSON.stringify(req.params));
         winston.info('request body=' + JSON.stringify(req.body));
-        let obj = {};
+        let obj = {
+            'completed': 0
+        };
         Object.assign(obj,req.body);
 
         obj.created = Date.now();

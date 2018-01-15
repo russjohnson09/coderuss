@@ -47,6 +47,8 @@ describe(path.basename(__dirname), function () {
     let defaultQueueItem = {
 
     };
+
+    let queueItem1 = {};
     describe('/v1/queueitem POST', function() {
         it("/v1/queueitem POST", function (done) {
             let queueItem = {
@@ -64,6 +66,62 @@ describe(path.basename(__dirname), function () {
                 console.log(body);
                 expect(error).to.be.equal(null);
                 expect(response.statusCode).to.equal(200);
+
+                let data = JSON.parse(body);
+
+                expect(data._id).to.be.a('String');
+
+                queueItem1 = data;
+
+                done();
+            });
+        });
+
+    });
+
+    describe('/v1/queueitem/:id GET', function() {
+        it("/v1/queueitem/:id GET", function (done) {
+            request({
+                method: "GET",
+                uri: BASE_URL + '/v1/queueitem/' + queueItem1._id,
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                let data = JSON.parse(body);
+
+                expect(data._id).to.be.equal(queueItem1._id);
+
+                done();
+            });
+        });
+
+    });
+
+
+    describe('/v1/queueitem/:id PUT', function() {
+        it("/v1/queueitem/:id PUT", function (done) {
+            request({
+                method: "PUT",
+                uri: BASE_URL + '/v1/queueitem/' + queueItem1._id,
+                body: JSON.stringify({"message": 'Message2','completed':0}),
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                let data = JSON.parse(body);
+
+                expect(data._id).to.be.equal(queueItem1._id);
 
                 done();
             });
@@ -91,5 +149,6 @@ describe(path.basename(__dirname), function () {
         });
 
     });
+
 
 });

@@ -1,0 +1,14 @@
+<h1>{{title}}</h1>
+
+
+
+
+<h2>Items in Queue</h2>
+<pre ng-if="1"><json-formatter open="2" json="queueItems"></json-formatter></pre>
+
+
+<div ng-repeat="queue in queueItems.data track by $index">
+
+    {{$index + 1}} - {{queue.message}}
+    <pre>{{queue}}</pre>
+</div>

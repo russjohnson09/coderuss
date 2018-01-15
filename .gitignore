@@ -10,6 +10,7 @@ provision/.vagrant/
 /deploy.sh
 environments/prod/
 node_modules
+!/nodeserver/public/node_modules
 !/nodeserver/public/u/*
 !/nodeserver/public/login/*
 db.json

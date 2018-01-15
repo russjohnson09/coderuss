@@ -116,6 +116,9 @@
 
             $scope.title = "Queue";
 
+            $scope.newQueueItem = {};
+
+            $scope.newQueueItem.due_date = Date.now();
 
             $scope.queueItems = QueueService.getQueueItems();
 

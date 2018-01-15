@@ -77,7 +77,7 @@
                         method: 'GET',
                         url: url,
                         params: {
-                            'completed': 0
+                            'status': 'in_progress'
                         },
                         headers: {
                             'cache-control': 'no-cache'

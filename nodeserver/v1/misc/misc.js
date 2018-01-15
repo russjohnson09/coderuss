@@ -205,12 +205,21 @@ module.exports = function (opts) {
 
     let QueueItem = db.collection('queueitem');
 
+    /**
+     * I was using completed 0 as the status but searching by
+     * an int involves more work than a string.
+     * @param req
+     * @param res
+     * @param next
+     */
     function getUserQueueItems(req,res,next) {
         let query = {
             user_id: req.user._id
         };
 
         Object.assign(query,req.query);
+
+        winston.info('search queueItems',JSON.stringify(query));
         let sort = {
             "created": -1,
         };
@@ -278,7 +287,7 @@ module.exports = function (opts) {
         winston.info('request params=' + JSON.stringify(req.params));
         winston.info('request body=' + JSON.stringify(req.body));
         let obj = {
-            'completed': 0
+            'status': "in_progress"
         };
         Object.assign(obj,req.body);
 

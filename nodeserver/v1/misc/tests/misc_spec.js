@@ -151,4 +151,29 @@ describe(path.basename(__dirname), function () {
     });
 
 
+    describe('/v1/queueitem GET', function() {
+        it("/v1/queueitem GET", function (done) {
+            request({
+                method: "GET",
+                uri: BASE_URL + '/v1/queueitem?status=in_progress',
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                let data = JSON.parse(body);
+
+                expect(data.data.length).to.be.greaterThan(0);
+
+                done();
+            });
+        });
+
+    });
+
+
 });

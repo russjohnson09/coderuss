@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "angular-bootstrap-datetimepicker": "^1.1.4"
+    "angular-bootstrap-datetimepicker": "^1.1.4",
+    "angular-date-time-input": "^1.2.1",
+    "jquery-datetimepicker": "^2.5.16"
   }
 }

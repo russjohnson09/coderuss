@@ -368,18 +368,18 @@ app.factory('ApiTestsuiteService', ['$http','$q','ApiTestsuite', function ($http
     };
     factory.getAll = function () {
         return $q(function (resolve, reject) {
-            $http(
-                {
-                    method: 'GET',
-                    url: '/apitests/testsuites'
-                }).then(function (response) {
-                var testsuites = [];
-                response.data.forEach(function (testsuite) {
-                    testsuite = new ApiTestsuite(testsuite);
-                    testsuites.push(testsuite);
-                });
-                return resolve(testsuites);
-            })
+                $http(
+                    {
+                        method: 'GET',
+                        url: '/apitests/testsuites'
+                    }).then(function (response) {
+                    var testsuites = [];
+                    response.data.forEach(function (testsuite) {
+                        testsuite = new ApiTestsuite(testsuite);
+                        testsuites.push(testsuite);
+                    });
+                    return resolve(testsuites);
+                })
         })
 
     };

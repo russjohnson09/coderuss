@@ -1,4 +1,5 @@
-console.log('loaded misc.js', Date.now());
+console.log('loading misc.js', Date.now());
+require('dotenv').config();
 
 let fs = require('fs');
 let mongodb = require('mongodb');
@@ -13,6 +14,29 @@ const mongoose = require("mongoose"); //http://mongoosejs.com/docs/index.html
 const request = require('request');
 
 const ObjectID = mongodb.ObjectID;
+
+const webpush = require('web-push');
+
+// web-push-codelab.glitch.me
+// $ npm install -g web-push
+// $ web-push generate-vapid-keys
+
+
+const publicKey = process.env.WEBPUSH_PUBLIC_KEY;
+const privateKey = process.env.WEBPUSH_PRIVATE_KEY;
+
+const vapidKeys = {
+    publicKey: publicKey,
+    privateKey: privateKey,
+};
+
+// console.log(vapidKeys);
+
+webpush.setVapidDetails(
+    'mailto:russjohnson09@gmail.com',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+);
 
 /**
  * @param opts
@@ -37,6 +61,103 @@ module.exports = function (opts) {
     var sessionMiddleware = opts.sessionMiddleware;
 
     let winston = opts.winston;
+
+    (function pushNotifications() {
+        winston.info('loading push notifications');
+        let subscriptions = [];
+        function saveSubscriptionToDatabase(body)
+        {
+            subscriptions.push(body);
+
+            winston.info('subscription save',body);
+
+            return new Promise(function(resolve) {
+                resolve(1);
+            })
+        }
+
+        router.post('/pushnotifications/save-subscription', function(req,res,next) {
+            return saveSubscriptionToDatabase(req.body)
+                .then(function(subscriptionId) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: { success: true } }));
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-save-subscription',
+                            message: 'The subscription was received but we were unable to save it to our database.'
+                        }
+                    }));
+                });
+        });
+
+        const deleteSubscriptionFromDatabase = function()
+        {
+            return new Promise(function(resolve) {
+                resolve();
+            })
+        };
+
+        const triggerPushMsg = function(subscription, dataToSend) {
+            winston.info('triggering message on subscription ',JSON.stringify(subscription));
+            return webpush.sendNotification(subscription, dataToSend)
+                .catch((err) => {
+                    if (err.statusCode === 410) {
+                        return deleteSubscriptionFromDatabase(subscription._id);
+                    } else {
+                        winston.warn('Subscription is no longer valid: ', err);
+                        winston.warn(err.message);
+                    }
+                });
+        };
+
+        const getSubscriptionsFromDatabase = function()
+        {
+            return new Promise(function(resolve) {
+                resolve(subscriptions);
+            });
+        };
+
+        router.use('/pushnotifications/test/:msg', function (req, res) {
+            let dataToSend = req.params.msg;
+            return getSubscriptionsFromDatabase()
+                .then(function(subscriptions) {
+                    let promiseChain = Promise.resolve();
+
+                    //This is some good code for handling a list of promises. I will steal.
+                    for (let i = 0; i < subscriptions.length; i++) {
+                        const subscription = subscriptions[i];
+                        // const subscription = 1;
+
+                        promiseChain = promiseChain.then(() => {
+                            return triggerPushMsg(subscription, dataToSend);
+                        });
+                    }
+
+                    return promiseChain;
+                }).then(() => {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: { success: true } }));
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-send-messages',
+                            message: `We were unable to send messages to all subscriptions : ` +
+                            `'${err.message}'`
+                        }
+                    }));
+                });
+        });
+
+        winston.info('loaded push notifications',Date.now());
+
+    })();
 
 
 
@@ -164,7 +285,7 @@ module.exports = function (opts) {
     // let testtcp = 1337;
     let testtcp = 0;
     server.listen(testtcp,function() {
-
+        consol.log('tcp server listening',server)
     });
 
     let logDataParser = function(dataStr)
@@ -434,6 +555,7 @@ if (require.main === module) {
                 throw err;
             }
             server.listen(3000, function () {
+                mainLogger.info('loaded misc.js', Date.now());
 
                 //https://github.com/expressjs/express/issues/3089
                 var net = require('net');
@@ -443,6 +565,11 @@ if (require.main === module) {
                 });
 
                 app.use(express.static(path.join(__dirname, '..', '..', 'public/')));
+
+                var ping = require(__dirname + '/../../v1/ping.js')({
+                    app: app,
+                    winston: mainLogger
+                });
 
                 app.use('/v1', require(__dirname + '/../../v1/login/main.js')({
                     winston: mainLogger,
@@ -475,6 +602,7 @@ if (require.main === module) {
                 },MiscService.router );
 
                 let doTests = function() {
+                    mainLogger.info('starting tests');
                     let cp = require('child_process');
                     let spawn = cp.spawn;
 

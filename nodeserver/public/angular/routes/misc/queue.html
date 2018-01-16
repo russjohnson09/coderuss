@@ -47,8 +47,9 @@
 <div ng-repeat="queue in queueItems.data track by $index">
 
     <!--{{queue.update}}-->
+    <!--TODO partial this form improve on it-->
     <form class="form-inline" ng-submit="queue.update()">
-        <div ng-repeat="(key, value) in queue">
+        <div ng-repeat="key in queue.getUpdateFields()">
             <div ng-if="['_id','user_id'].indexOf(key) == -1">
                 <label for="{{queue._id}}{{key}}">{{key}}</label>
                     <input id="{{queue._id}}{{key}}" ng-if="key === 'due'"

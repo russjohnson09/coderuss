@@ -48,6 +48,72 @@ describe(path.basename(__dirname), function () {
 
     };
 
+
+    describe('/v1/misc/ping POST', function() {
+        it("/v1/misc/ping POST", function (done) {
+            request({
+                method: "POST",
+                uri: BASE_URL + '/v1/misc/ping',
+                body: JSON.stringify({}),
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                done();
+            });
+        });
+
+    });
+
+
+    describe('/v1/misc/ping POST', function() {
+        it("/v1/misc/ping POST", function (done) {
+            request({
+                method: "POST",
+                uri: BASE_URL + '/v1/misc/ping',
+                body: JSON.stringify({}),
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                done();
+            });
+        });
+
+    });
+
+    describe('/v1/pushnotifications/save-subscription POST', function() {
+        it("/v1/pushnotifications/save-subscription POST", function (done) {
+            request({
+                method: "POST",
+                uri: BASE_URL + '/v1/pushnotifications/save-subscription',
+                body: JSON.stringify({}),
+                headers: {
+                    Cookie: cookie,
+                    'content-type': 'application/json'
+                },
+            }, function (error, response, body) {
+                console.log(body);
+                expect(error).to.be.equal(null);
+                expect(response.statusCode).to.equal(200);
+
+                done();
+            });
+        });
+
+    });
+
+
     let queueItem1 = {};
     describe('/v1/queueitem POST', function() {
         it("/v1/queueitem POST", function (done) {

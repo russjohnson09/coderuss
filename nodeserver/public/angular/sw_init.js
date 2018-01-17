@@ -1,9 +1,11 @@
-let publicKey = 'BFgD8K37Qy7KQSGlfin6cVNCL9CN2g2u9SqgJVN6qXFl3PkSR8Qg7uf-mv5bDDpsrZ7xtwbtsrU_rXD55Ep-tvA';
+// let publicKey = 'BFgD8K37Qy7KQSGlfin6cVNCL9CN2g2u9SqgJVN6qXFl3PkSR8Qg7uf-mv5bDDpsrZ7xtwbtsrU_rXD55Ep-tvA';
+
+let publicKey ='BEp4gHGN1a3U_x7aufyR8rIwSDzpF1sxGhJndUmnJe7RtPgytNYFOuzRkcSWqmdWjLyYj9soY4fNFBOfBQgSnY0';
 
 //https://developer.mozilla.org/en-US/docs/Web/API/PushSubscription/endpoint
 //I think the endpoint pointing to googleapis for chrome is fine.
 //endpoint should be kept secret.
-
+``
 //mozilla has there own push services endpoint.
 
 
@@ -25,7 +27,8 @@ if ('serviceWorker' in navigator) {
 
         }, function (err) {
             console.log('ServiceWorker registration failed: ', err);
-        })
+        })//Uncaught (in promise) DOMException: Registration failed - A subscription with a different applicationServerKey (or gcm_sender_id) already exists; to change the applicationServerKey, unsubscribe then resubscribe.
+            //unregister if key changes
             .then(function (pushSubscription) {
                 sendSubscriptionToBackEnd(pushSubscription);
                 console.log('Received PushSubscription: ', JSON.stringify(pushSubscription));
@@ -47,7 +50,9 @@ function urlBase64ToUint8Array(base64String) {
 
 
 function sendSubscriptionToBackEnd(subscription) {
-    return fetch('/v1/pushnotifications/save-subscription/', {
+    //https://github.com/github/fetch#sending-cookies
+    return fetch('/v1/pushnotifications/save-subscription', {
+        credentials: 'same-origin',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -62,9 +67,7 @@ function sendSubscriptionToBackEnd(subscription) {
             return response.json();
         })
         .then(function(responseData) {
-            if (!(responseData.data && responseData.data.success)) {
-                throw new Error('Bad response from server.');
-            }
+            console.log('saved subscription',responseData)
         });
 }
 

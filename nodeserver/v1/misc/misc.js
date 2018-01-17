@@ -17,7 +17,7 @@ const ObjectID = mongodb.ObjectID;
 
 const webpush = require('web-push');
 
-// web-push-codelab.glitch.me
+// https://web-push-codelab.glitch.me/
 // $ npm install -g web-push
 // $ web-push generate-vapid-keys
 
@@ -53,113 +53,14 @@ module.exports = function (opts) {
     let User = db.collection('user');
 
     let UserService = opts.UserService;
+    let Subscription = db.collection('subscription');
+
 
     var net = require('net');
 
     let adminlogsNsp = opts.adminlogsNsp;
 
     var sessionMiddleware = opts.sessionMiddleware;
-
-    let winston = opts.winston;
-
-    (function pushNotifications() {
-        winston.info('loading push notifications');
-        let subscriptions = [];
-        function saveSubscriptionToDatabase(body)
-        {
-            subscriptions.push(body);
-
-            winston.info('subscription save',body);
-
-            return new Promise(function(resolve) {
-                resolve(1);
-            })
-        }
-
-        router.post('/pushnotifications/save-subscription', function(req,res,next) {
-            return saveSubscriptionToDatabase(req.body)
-                .then(function(subscriptionId) {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({ data: { success: true } }));
-                })
-                .catch(function(err) {
-                    res.status(500);
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({
-                        error: {
-                            id: 'unable-to-save-subscription',
-                            message: 'The subscription was received but we were unable to save it to our database.'
-                        }
-                    }));
-                });
-        });
-
-        const deleteSubscriptionFromDatabase = function()
-        {
-            return new Promise(function(resolve) {
-                resolve();
-            })
-        };
-
-        const triggerPushMsg = function(subscription, dataToSend) {
-            winston.info('triggering message on subscription ',JSON.stringify(subscription));
-            return webpush.sendNotification(subscription, dataToSend)
-                .catch((err) => {
-                    if (err.statusCode === 410) {
-                        return deleteSubscriptionFromDatabase(subscription._id);
-                    } else {
-                        winston.warn('Subscription is no longer valid: ', err);
-                        winston.warn(err.message);
-                    }
-                });
-        };
-
-        const getSubscriptionsFromDatabase = function()
-        {
-            return new Promise(function(resolve) {
-                resolve(subscriptions);
-            });
-        };
-
-        router.use('/pushnotifications/test/:msg', function (req, res) {
-            let dataToSend = req.params.msg;
-            return getSubscriptionsFromDatabase()
-                .then(function(subscriptions) {
-                    let promiseChain = Promise.resolve();
-
-                    //This is some good code for handling a list of promises. I will steal.
-                    for (let i = 0; i < subscriptions.length; i++) {
-                        const subscription = subscriptions[i];
-                        // const subscription = 1;
-
-                        promiseChain = promiseChain.then(() => {
-                            return triggerPushMsg(subscription, dataToSend);
-                        });
-                    }
-
-                    return promiseChain;
-                }).then(() => {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({ data: { success: true } }));
-                })
-                .catch(function(err) {
-                    res.status(500);
-                    res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({
-                        error: {
-                            id: 'unable-to-send-messages',
-                            message: `We were unable to send messages to all subscriptions : ` +
-                            `'${err.message}'`
-                        }
-                    }));
-                });
-        });
-
-        winston.info('loaded push notifications',Date.now());
-
-    })();
-
-
 
     adminlogsNsp.use(function (socket, next) {
         sessionMiddleware(socket.request, {}, next);
@@ -246,6 +147,9 @@ module.exports = function (opts) {
         // indexedSockets[socket.user][socket.id] = socket;
     });
 
+    let winston = opts.winston;
+
+
     let emitAdminlog = self.emitAdminlog = function(msg)
     {
         console.log('emit',msg);
@@ -255,6 +159,152 @@ module.exports = function (opts) {
         // adminlogsNsp.emit(msg);
     };
 
+
+    router.get('/misc/ping',UserService.isLoggedInRouter, function(req,res)
+    {
+        res.json({"message":"success",user:req.user});
+    });
+
+    router.post('/misc/ping',UserService.isLoggedInRouter, function(req,res)
+    {
+        res.json({"message":"success",user:req.user});
+    });
+
+
+
+
+    winston.info('loading /pushnotifications/save-subscription POST');
+
+    router.post('/pushnotifications/save-subscription',UserService.isLoggedInRouter, function(req,res) {
+        if (req.user._id) {
+            let data = req.body;
+            data.user_id = req.user._id;
+            return saveSubscriptionToDatabase(data)
+                .then(function(subscription) {
+                    return res.json(subscription);
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-save-subscription',
+                            message: 'The subscription was received but we were unable to save it to our database.'
+                        }
+                    }));
+                });
+        }
+        else {
+            res.status(401).json({'message':'failed to save message no user'});
+        }
+
+    });
+
+    winston.info('loaded /pushnotifications/save-subscription POST');
+
+
+    // (function pushNotifications() {
+        winston.info('loading push notifications');
+        let subscriptions = [];
+        function saveSubscriptionToDatabase(data)
+        {
+            return new Promise(function(resolve,reject) {
+                Subscription.insertOne(data, function(error, result) {
+                    if (error) {
+                        return reject(error);
+                    }
+                    winston.info('subscription created',data);
+                    data._id = result.insertedId;
+                    resolve(data);
+                });
+            })
+        }
+
+
+
+        const deleteSubscriptionFromDatabase = function(id)
+        {
+            return new Promise(function(resolve) {
+                Subscription.deleteOne({_id:ObjectID(id)},function(err, collectionEl) {
+
+                });
+                resolve();
+            })
+        };
+
+        const triggerPushMsg = function(subscription, dataToSend) {
+            let subscriptionData = {
+                "endpoint": subscription.endpoint,
+                "expirationTime": subscription.expirationTime,
+                "keys": subscription.keys,
+            };
+            winston.info('triggering message on subscription ',JSON.stringify(subscriptionData));
+            return webpush.sendNotification(subscriptionData, dataToSend)
+                .catch((err) => {
+                    if (err.statusCode === 410) {
+                        return deleteSubscriptionFromDatabase(subscription._id);
+                    } else {
+                        winston.warn('Subscription is no longer valid: ', err);
+                        winston.warn(err.message);
+                        console.log(err);
+                        deleteSubscriptionFromDatabase(subscription._id);
+                    }
+                });
+        };
+
+        const getSubscriptionsFromDatabase = function(user_id)
+        {
+            return new Promise(function(resolve) {
+                let query = {user_id:user_id};
+                let sort = {};
+                // Subscription.find()
+                Subscription.find(query).sort(sort).toArray(function(err,objs) {
+                    return resolve(objs);
+                });
+            });
+        };
+
+
+    // warn: You must pass in a subscription with at least an endpoint.
+    //     emit {"type":"adminlog","message":"You must pass in a subscription with at least an endpoint.","level":"warn"}
+    // info: triggering message on subscription
+    // {"_id":"5a5f4f39d6cefb15afd204aa","endpoint":"https://fcm.googleapis.com/fcm/send/emvIeRktGwc:APA91bFhluf4ZKKCf8QNUVrFuqgvQonM9LAqe6sbv6MTzJBaHCXpRv6M_mArKDktZs0NCUix-hZjcOzjH1Uel4NWfW_pJEvksXrWbjCW1mTGvoal6hru_Zx7AHC58WmoyP4bLDb_0IA8","expirationTime":null,"keys":{"p256dh":"BJpiH0aZ3LIo-z1OjMEEDjncw-ad6gVRp2gG4GXCaDg5r2auEAjXur7aubXA6NwvuJGfCsYjp9wgAsoBdJy9tkg=","auth":"inosuZ1zxIzrc_2I4ua2yA=="},"user_id":"5a54b3119aa581065cc7847d"}
+        router.use('/pushnotifications/test/:msg',UserService.isLoggedInRouter, function (req, res) {
+            let dataToSend = req.params.msg;
+            return getSubscriptionsFromDatabase(req.user._id)
+                .then(function(subscriptions) {
+                    let promiseChain = Promise.resolve();
+
+                    //This is some good code for handling a list of promises. I will steal.
+                    for (let i = 0; i < subscriptions.length; i++) {
+                        const subscription = subscriptions[i];
+                        // const subscription = 1;
+                        promiseChain = promiseChain.then(() => {
+                            return triggerPushMsg(subscription, dataToSend);
+                        });
+                    }
+
+                    return promiseChain;
+                }).then(() => {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: { success: true } }));
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-send-messages',
+                            message: `We were unable to send messages to all subscriptions : ` +
+                            `'${err.message}'`
+                        }
+                    }));
+                });
+        });
+
+        winston.info('loaded push notifications',Date.now());
+
+    // })();
 
     let pingInterval = 120 * 60;
     setInterval(function() {
@@ -285,7 +335,7 @@ module.exports = function (opts) {
     // let testtcp = 1337;
     let testtcp = 0;
     server.listen(testtcp,function() {
-        consol.log('tcp server listening',server)
+        winston.info('tcp server listening',server)
     });
 
     let logDataParser = function(dataStr)
@@ -314,15 +364,7 @@ module.exports = function (opts) {
         });
 
 
-    let loggedIn = function(req,res,next) {
-        winston.info('checking logged in',req.user);
-        if (req.user) {
-            return next();
-        }
-        else {
-            res.status(401).json({'message':'unauthorized'});
-        }
-    };
+    let loggedIn = UserService.isLoggedInRouter;
 
     let QueueItem = db.collection('queueitem');
 
@@ -462,6 +504,7 @@ if (require.main === module) {
                 url: MONGO_URI
             })
         });
+        //req.logIn on login/main.js
         app.use(sessionMiddleware);
         app.use(passport.initialize());
         app.use(passport.session());
@@ -511,24 +554,27 @@ if (require.main === module) {
                 (function() {
                     let self = {};
                     self.logException = function (errMessage, info, next, err) {
-                        console.log('exceptionHandlers','custom');
-                        // let fullErrMessage = errMessage + "\n" + err;
-                        // console.log(fullErrMessage);
-                        // err = '' + err;
-                        let e = err;
-                        let stack = e.stack || e;
-                        let stack2 = e.stack;
-
                         let fullMessage = err.stack || err.message;
                         if (MiscService.emitAdminlog) {
                             MiscService.emitAdminlog(
                                 JSON.stringify(
                                     {
                                         type: 'uncaughtException',
-                                        'message': errMessage,
+                                        'message': fullMessage,
                                         'level': 'error',
-                                        'err': err
+                                        'err': fullMessage
                                     }));
+                        }
+                        else {
+                            console.log(
+                                JSON.stringify(
+                                    {
+                                        type: 'uncaughtException',
+                                        'message': fullMessage,
+                                        'level': 'error',
+                                        'err': fullMessage
+                                    }));
+                            process.exit(1);
                         }
                     };
                     return self;
@@ -597,7 +643,7 @@ if (require.main === module) {
                 });
 
                 app.use('/v1', function (req, res, next) {
-                    // winston.info('user', {_id: req.user._id + ''});
+                    winston.info('/v1 user', req.user);
                     next();
                 },MiscService.router );
 
@@ -630,10 +676,6 @@ if (require.main === module) {
         });
 
 
-
-        //UNCAUGHT EXCEPTION
-        let x = JSON.parse(undefined);
-        console.log(x,'x');
     })();
 
 

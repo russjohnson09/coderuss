@@ -1777,11 +1777,19 @@ function getMainLoggerTransports() {
             (function() {
                 let self = {};
                 self.logException = function (errMessage, info, next, err) {
-                    console.log('exceptionHandlers','custom');
-
                     let fullMessage = err.stack || err.message;
                     if (MiscService.emitAdminlog) {
                         MiscService.emitAdminlog(
+                            JSON.stringify(
+                                {
+                                    type: 'uncaughtException',
+                                    'message': fullMessage,
+                                    'level': 'error',
+                                    'err': fullMessage
+                                }));
+                    }
+                    else {
+                        console.log(
                             JSON.stringify(
                                 {
                                     type: 'uncaughtException',

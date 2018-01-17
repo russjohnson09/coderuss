@@ -27,6 +27,7 @@ module.exports = function(opts) {
 
 
     let isLoggedInRouter = self.isLoggedInRouter = function (req,res,next) {
+        winston.info('isLoggedInRouter', JSON.stringify(req.user));
         if (req.user === undefined || req.user._id === undefined) {
             return res.status(401).json({message:'Not authorized.',
                 meta: {

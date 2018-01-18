@@ -1,14 +1,75 @@
 <h1>{{title}}</h1>
 
+<!--https://stackoverflow.com/questions/42617078/possible-to-call-alert-or-console-log-from-angular-ng-click-expression-->
+<!--<button ng-click="x = x + 1;">{{x}}</button>-->
 
 
+<h2>Create Item</h2>
+
+<pre ng-if="0">{{defaultDueDate}}
+{{newQueueItem}}
+</pre>
+
+
+<!--https://getbootstrap.com/docs/4.0/components/forms/#inline-forms-->
+<form class="form-inline" ng-submit="createNewQueueItem()">
+    <div class="form-group">
+        <label >Message</label>
+        <input ng-model="newQueueItem.message" class="form-control mx-sm-3">
+
+        <!--<small id="passwordHelpInline" class="text-muted">-->
+            <!--Must be 8-20 characters long.-->
+        <!--</small>-->
+    </div>
+    <div class="form-group">
+        <label>Due Date
+            <input ng-model="newQueueItem.due" type="datetime-local" name="datetime"
+                   id="datetime"
+                   class="form-control mx-sm-3">
+
+            <!--<input id="datepicker" class="form-control mx-sm-3">-->
+        </label>
+        <!--<small id="passwordHelpInline" class="text-muted">-->
+        <!--Must be 8-20 characters long.-->
+        <!--</small>-->
+        <!--<datetimepicker data-ng-model="data.date"></datetimepicker>-->
+        <!--<input ng-model="test" data-date-time-input="YYYY-MMM-DD" />-->
+
+    </div>
+</form>
 
 <h2>Items in Queue</h2>
-<pre ng-if="1"><json-formatter open="2" json="queueItems"></json-formatter></pre>
+<pre ng-if="0"><json-formatter open="2" json="queueItems"></json-formatter></pre>
+<!--<button ng-click="console.log(1)">1</button>-->
 
 
+<!--https://stackoverflow.com/questions/21831557/ng-submit-not-working-in-angularjs-->
 <div ng-repeat="queue in queueItems.data track by $index">
 
+    <!--{{queue.update}}-->
+    <!--TODO partial this form improve on it-->
+    <form class="form-inline" ng-submit="queue.update()">
+        <div ng-repeat="key in queue.getUpdateFields()">
+            <div ng-if="['_id','user_id'].indexOf(key) == -1">
+                <label for="{{queue._id}}{{key}}">{{key}}</label>
+                    <input id="{{queue._id}}{{key}}" ng-if="key === 'due'"
+                           ng-model="queue[key]"
+                           type="datetime-local" class="form-control mx-sm-3">
+
+                    <input ng-if="key !== 'due'"
+                           ng-model="queue[key]" class="form-control mx-sm-3">
+                </label>
+            </div>
+        </div>
+
+        <button class="button submit" type="submit">Update</button>
+    </form>
     {{$index + 1}} - {{queue.message}}
     <pre>{{queue}}</pre>
 </div>
+
+<!--<script>-->
+    <!--$( function() {-->
+        <!--$( "#datepicker" ).datepicker();-->
+    <!--} );-->
+<!--</script>-->

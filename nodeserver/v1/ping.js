@@ -141,7 +141,8 @@ module.exports = function (opts) {
                 commit: app.get('commit'),
                 context: app.get('CONTEXT'),
                 version: process.version,
-                now: Date.now()
+                now: Date.now(),
+                webpush_public_key: process.env.WEBPUSH_PUBLIC_KEY
             },
             'meta': { 'message': 'Success' }
         };

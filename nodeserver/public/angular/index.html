@@ -78,13 +78,20 @@
     <script src="https://use.fontawesome.com/7c2b0d3adf.js"></script>
 
 
-    <!--<script src="/js/ext/jquery-3.2.1.min.js"></script>-->
     <script src="/bower_components/jquery/dist/jquery.js"></script>
+
+    <link rel="stylesheet" href="/jquery-ui-1.12.1/jquery-ui.css">
+    <script src="/jquery-ui-1.12.1/jquery-ui.js"></script>
+
+
 
     <script src="/bower_components/angular/angular.min.js"></script>
     <script src="/bower_components/angular-cookies/angular-cookies.min.js"></script>
 
     <script src="/js/ext/bootstrap-3.3.7.min.js"></script>
+
+
+
     <script src="/js/ext/sinon-2.3.8.js"></script>
 
 
@@ -92,6 +99,30 @@
 
     <script src="/bower_components/moment/moment.js"></script>
     <script src="/bower_components/moment-timezone/builds/moment-timezone-with-data.js"></script>
+
+
+    <!--https://github.com/dalelotts/angular-bootstrap-datetimepicker-->
+    <!--<link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.css">-->
+
+    <!--<link rel="stylesheet" href="/node_modules/angular-bootstrap-datetimepicker/src/css/datetimepicker.css"/>-->
+    <!--Load the script files in your application:-->
+
+    <!--<script type="text/javascript" src="/node_modules/moment/moment.js"></script>-->
+    <!--<script type="text/javascript" src="/node_modules/angular/angular.js"></script>-->
+    <!--<script type="text/javascript" src="/node_modules/angular-bootstrap-datetimepicker/src/js/datetimepicker.js"></script>-->
+    <!--<script type="text/javascript" src="/node_modules/angular-bootstrap-datetimepicker/src/js/datetimepicker.templates.js"></script>-->
+<!--datetimepicker end-->
+
+
+    <!--datetimeinput https://github.com/dalelotts/angular-date-time-input-->
+    <!--<script type="text/javascript" src="node_modules/moment/moment.js"></script>-->
+    <!--<script type="text/javascript" src="node_modules/angular/angular.js"></script>-->
+    <script type="text/javascript" src="/node_modules/angular-date-time-input/src/dateTimeInput.js"></script>
+    <!--datetimeinput end-->
+    <!--http://commitizen.github.io/cz-cli/-->
+    <!--<input data-date-time-input="YYYY-MMM-DD" />-->
+<!---->
+
 
     <script src="/bower_components/angular-hotkeys/build/hotkeys.js"></script>
     <link rel="stylesheet" href="/bower_components/angular-hotkeys/build/hotkeys.css">
@@ -105,6 +136,8 @@
     <link href="/bower_components/json-formatter/dist/json-formatter.css" rel="stylesheet">
     <script src="/bower_components/json-formatter/dist/json-formatter.js"></script>
 
+
+    <script src="sw_init.js"></script>
 
 </head>
 
@@ -207,7 +240,9 @@
 <script>
 
     var app = angular.module('app',
-        ['ngRoute', 'ngCookies', 'cfp.hotkeys', 'ngSanitize', 'jsonFormatter']);
+        ['ngRoute', 'ngCookies', 'cfp.hotkeys', 'ngSanitize', 'jsonFormatter',
+//            'ui.bootstrap.datetimepicker',
+        'ui.dateTimeInput']);
 
     app.factory('ErrorService', ['$http', '$q', function ($http, $q) {
 

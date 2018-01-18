@@ -1,4 +1,5 @@
-console.log('loaded misc.js', Date.now());
+console.log('loading misc.js', Date.now());
+require('dotenv').config();
 
 let fs = require('fs');
 let mongodb = require('mongodb');
@@ -13,6 +14,29 @@ const mongoose = require("mongoose"); //http://mongoosejs.com/docs/index.html
 const request = require('request');
 
 const ObjectID = mongodb.ObjectID;
+
+const webpush = require('web-push');
+
+// https://web-push-codelab.glitch.me/
+// $ npm install -g web-push
+// $ web-push generate-vapid-keys
+
+
+const publicKey = process.env.WEBPUSH_PUBLIC_KEY;
+const privateKey = process.env.WEBPUSH_PRIVATE_KEY;
+
+const vapidKeys = {
+    publicKey: publicKey,
+    privateKey: privateKey,
+};
+
+// console.log(vapidKeys);
+
+webpush.setVapidDetails(
+    'mailto:russjohnson09@gmail.com',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+);
 
 /**
  * @param opts
@@ -29,16 +53,14 @@ module.exports = function (opts) {
     let User = db.collection('user');
 
     let UserService = opts.UserService;
+    let Subscription = db.collection('subscription');
+
 
     var net = require('net');
 
     let adminlogsNsp = opts.adminlogsNsp;
 
     var sessionMiddleware = opts.sessionMiddleware;
-
-    let winston = opts.winston;
-
-
 
     adminlogsNsp.use(function (socket, next) {
         sessionMiddleware(socket.request, {}, next);
@@ -125,6 +147,9 @@ module.exports = function (opts) {
         // indexedSockets[socket.user][socket.id] = socket;
     });
 
+    let winston = opts.winston;
+
+
     let emitAdminlog = self.emitAdminlog = function(msg)
     {
         console.log('emit',msg);
@@ -135,9 +160,246 @@ module.exports = function (opts) {
     };
 
 
-    let pingInterval = 120 * 60;
+    router.get('/misc/ping',UserService.isLoggedInRouter, function(req,res)
+    {
+        res.json({"message":"success",user:req.user});
+    });
+
+    router.post('/misc/ping',UserService.isLoggedInRouter, function(req,res)
+    {
+        res.json({"message":"success",user:req.user});
+    });
+
+
+    var cron = require('node-cron');
+
+    //At minute 0 past every hour from 8 through 16.
+    let reminderSchedule = "0 8-16 * * *";
+    // reminderSchedule = "* * * * * *";
+    cron.schedule(reminderSchedule, function () {
+        logWithTrace('info','cron scheduled');
+        let dataToSend = "Service Reminders?";
+        let id = getGuid();
+        return getAllSubscriptionsFromDatabase()
+            .then(function(subscriptions) {
+                let promiseChain = Promise.resolve();
+                for (let i = 0; i < subscriptions.length; i++) {
+                    const subscription = subscriptions[i];
+                    promiseChain = promiseChain.then(() => {
+                        return triggerPushMsg(subscription, dataToSend,id);
+                    });
+                }
+                return promiseChain;
+            }).then(() => {
+            })
+            .catch(function(err) {
+            });
+    });
+
+
+
+    winston.info('loading /pushnotifications/save-subscription POST');
+
+    router.post('/pushnotifications/save-subscription',UserService.isLoggedInRouter, function(req,res) {
+        if (req.user._id) {
+            let data = req.body;
+            data.user_id = req.user._id;
+            return saveSubscriptionToDatabase(data)
+                .then(function(subscription) {
+                    return res.json(subscription);
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-save-subscription',
+                            message: 'The subscription was received but we were unable to save it to our database.'
+                        }
+                    }));
+                });
+        }
+        else {
+            res.status(401).json({'message':'failed to save message no user'});
+        }
+
+    });
+
+    winston.info('loaded /pushnotifications/save-subscription POST');
+
+
+    // (function pushNotifications() {
+        winston.info('loading push notifications');
+        let subscriptions = [];
+        function saveSubscriptionToDatabase(data)
+        {
+            return new Promise(function(resolve,reject) {
+                Subscription.insertOne(data, function(error, result) {
+                    if (error) {
+                        return reject(error);
+                    }
+                    winston.info('subscription created',data);
+                    data._id = result.insertedId;
+                    resolve(data);
+                });
+            })
+        }
+
+
+
+        const deleteSubscriptionFromDatabase = function(id)
+        {
+            return new Promise(function(resolve) {
+                Subscription.deleteOne({_id:ObjectID(id)},function(err, collectionEl) {
+
+                });
+                resolve();
+            })
+        };
+
+        let getGuid = self.getGuid = function () {
+            return crypto.randomBytes(10).toString('hex');
+        };
+
+        //https://github.com/winstonjs/winston/issues/200
+    // function gLineInfo(prefix='') {
+    //     stack = new Error().stack
+    // # console.log stack.split('\n')[2]
+    //         [file, line] = stack.split('\n')[2].split ':'
+    //         [func, file] = file.split ' ('
+    //         [func, file] = ['??', func] unless file # sometimes the function isn't specified
+    //         [func, file] = [func.split(' ').pop(), path.basename(file)]
+    //         [junk, func] = func.split('.')
+    //     func = junk unless func
+    //     func = if func is '??' or func is '<anonymous>' then ' (' else " (<#{func}> "
+    //     prefix + func + file + ':' + line + ')'
+    // }
+
+
+    //https://stackoverflow.com/questions/33158974/how-to-log-javascript-objects-and-arrays-in-winston-as-console-log-does
+        function logWithTrace(lvl,msg)
+        {
+            let stack = new Error().stack;
+            stack = stack.split('\n');
+// remove one line, starting at the first position
+            stack.splice(0,2);
+// join the array back into a single string
+            stack = stack.join('\n');
+
+            winston.log(lvl,msg + "\n" + stack);
+        }
+
+        function prettyJSON(data)
+        {
+            return JSON.stringify(data,null,'   ')
+        }
+
+
+        const triggerPushMsg = function(subscription, dataToSend,id) {
+            let subscriptionData = {
+                "endpoint": subscription.endpoint,
+                "expirationTime": subscription.expirationTime,
+                "keys": subscription.keys,
+            };
+            let obj = {
+                _id: id || getGuid(),
+                message: dataToSend
+            };
+            let objStr = prettyJSON(obj);
+            logWithTrace('info',
+                [
+                    'triggering message on subscription',
+                    prettyJSON(subscriptionData),
+                    objStr
+                ].join("\n")
+            );
+            return webpush.sendNotification(subscriptionData, objStr)
+                .catch((err) => {
+                    if (err.statusCode === 410) {
+                        return deleteSubscriptionFromDatabase(subscription._id);
+                    } else {
+                        let message = ['Subscription is no longer valid',
+                        err.message,
+                            prettyJSON(subscriptionData),
+                            objStr,
+                        ].join("\n");
+                        logWithTrace('warn',message);
+                        // logWithTrace('warn',err.message);
+                        deleteSubscriptionFromDatabase(subscription._id);
+                    }
+                });
+        };
+
+        const getSubscriptionsFromDatabase = function(user_id)
+        {
+            return new Promise(function(resolve) {
+                let query = {user_id:user_id};
+                let sort = {};
+                // Subscription.find()
+                Subscription.find(query).sort(sort).toArray(function(err,objs) {
+                    return resolve(objs);
+                });
+            });
+        };
+
+    const getAllSubscriptionsFromDatabase = function()
+    {
+        return new Promise(function(resolve) {
+            let query = {};
+            let sort = {};
+            // Subscription.find()
+            Subscription.find(query).sort(sort).toArray(function(err,objs) {
+                return resolve(objs);
+            });
+        });
+    };
+
+
+    // warn: You must pass in a subscription with at least an endpoint.
+    //     emit {"type":"adminlog","message":"You must pass in a subscription with at least an endpoint.","level":"warn"}
+    // info: triggering message on subscription
+    // {"_id":"5a5f4f39d6cefb15afd204aa","endpoint":"https://fcm.googleapis.com/fcm/send/emvIeRktGwc:APA91bFhluf4ZKKCf8QNUVrFuqgvQonM9LAqe6sbv6MTzJBaHCXpRv6M_mArKDktZs0NCUix-hZjcOzjH1Uel4NWfW_pJEvksXrWbjCW1mTGvoal6hru_Zx7AHC58WmoyP4bLDb_0IA8","expirationTime":null,"keys":{"p256dh":"BJpiH0aZ3LIo-z1OjMEEDjncw-ad6gVRp2gG4GXCaDg5r2auEAjXur7aubXA6NwvuJGfCsYjp9wgAsoBdJy9tkg=","auth":"inosuZ1zxIzrc_2I4ua2yA=="},"user_id":"5a54b3119aa581065cc7847d"}
+        router.use('/pushnotifications/test/:msg',UserService.isLoggedInRouter, function (req, res) {
+            let dataToSend = req.params.msg;
+            let id = getGuid();
+            return getSubscriptionsFromDatabase(req.user._id)
+                .then(function(subscriptions) {
+                    let promiseChain = Promise.resolve();
+
+                    //This is some good code for handling a list of promises. I will steal.
+                    for (let i = 0; i < subscriptions.length; i++) {
+                        const subscription = subscriptions[i];
+                        // const subscription = 1;
+                        promiseChain = promiseChain.then(() => {
+                            return triggerPushMsg(subscription, dataToSend,id);
+                        });
+                    }
+
+                    return promiseChain;
+                }).then(() => {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({ data: { success: true } }));
+                })
+                .catch(function(err) {
+                    res.status(500);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        error: {
+                            id: 'unable-to-send-messages',
+                            message: `We were unable to send messages to all subscriptions : ` +
+                            `'${err.message}'`
+                        }
+                    }));
+                });
+        });
+
+        winston.info('loaded push notifications',Date.now());
+
+    // })();
+
+    let pingInterval = (60) * 1000;
     setInterval(function() {
-        winston.info('ping');
+        logWithTrace('info','ping');
     },pingInterval);
 
     var server = net.createServer(function(socket) {
@@ -164,7 +426,7 @@ module.exports = function (opts) {
     // let testtcp = 1337;
     let testtcp = 0;
     server.listen(testtcp,function() {
-
+        winston.info('tcp server listening',server)
     });
 
     let logDataParser = function(dataStr)
@@ -193,15 +455,7 @@ module.exports = function (opts) {
         });
 
 
-    let loggedIn = function(req,res,next) {
-        winston.info('checking logged in',req.user);
-        if (req.user) {
-            return next();
-        }
-        else {
-            res.status(401).json({'message':'unauthorized'});
-        }
-    };
+    let loggedIn = UserService.isLoggedInRouter;
 
     let QueueItem = db.collection('queueitem');
 
@@ -341,6 +595,7 @@ if (require.main === module) {
                 url: MONGO_URI
             })
         });
+        //req.logIn on login/main.js
         app.use(sessionMiddleware);
         app.use(passport.initialize());
         app.use(passport.session());
@@ -372,12 +627,19 @@ if (require.main === module) {
                 }),
                 (function() {
                     let self = {};
+                    //https://stackoverflow.com/questions/9551634/how-to-log-stack-traces-in-node-js
+//                     let stack = new Error().stack;
+//                     stack = stack.split('\n');
+// // remove one line, starting at the first position
+//                     stack.splice(0,1);
+// // join the array back into a single string
+//                     stack = stack.join('\n');
                     self.log = function(lvl,msg) {
                         if (MiscService.emitAdminlog) {
                             MiscService.emitAdminlog(
                                 JSON.stringify(
                                     {type: 'adminlog',
-                                        'message': msg,
+                                        'message': msg, // + "\n" + stack,
                                         'level': lvl,
                                     }));
                         }
@@ -390,24 +652,27 @@ if (require.main === module) {
                 (function() {
                     let self = {};
                     self.logException = function (errMessage, info, next, err) {
-                        console.log('exceptionHandlers','custom');
-                        // let fullErrMessage = errMessage + "\n" + err;
-                        // console.log(fullErrMessage);
-                        // err = '' + err;
-                        let e = err;
-                        let stack = e.stack || e;
-                        let stack2 = e.stack;
-
                         let fullMessage = err.stack || err.message;
                         if (MiscService.emitAdminlog) {
                             MiscService.emitAdminlog(
                                 JSON.stringify(
                                     {
                                         type: 'uncaughtException',
-                                        'message': errMessage,
+                                        'message': fullMessage,
                                         'level': 'error',
-                                        'err': err
+                                        'err': fullMessage
                                     }));
+                        }
+                        else {
+                            console.log(
+                                JSON.stringify(
+                                    {
+                                        type: 'uncaughtException',
+                                        'message': fullMessage,
+                                        'level': 'error',
+                                        'err': fullMessage
+                                    }));
+                            process.exit(1);
                         }
                     };
                     return self;
@@ -434,6 +699,7 @@ if (require.main === module) {
                 throw err;
             }
             server.listen(3000, function () {
+                mainLogger.info('loaded misc.js', Date.now());
 
                 //https://github.com/expressjs/express/issues/3089
                 var net = require('net');
@@ -443,6 +709,11 @@ if (require.main === module) {
                 });
 
                 app.use(express.static(path.join(__dirname, '..', '..', 'public/')));
+
+                var ping = require(__dirname + '/../../v1/ping.js')({
+                    app: app,
+                    winston: mainLogger
+                });
 
                 app.use('/v1', require(__dirname + '/../../v1/login/main.js')({
                     winston: mainLogger,
@@ -470,11 +741,12 @@ if (require.main === module) {
                 });
 
                 app.use('/v1', function (req, res, next) {
-                    // winston.info('user', {_id: req.user._id + ''});
+                    winston.info('/v1 user', req.user);
                     next();
                 },MiscService.router );
 
                 let doTests = function() {
+                    mainLogger.info('starting tests');
                     let cp = require('child_process');
                     let spawn = cp.spawn;
 
@@ -502,10 +774,6 @@ if (require.main === module) {
         });
 
 
-
-        //UNCAUGHT EXCEPTION
-        let x = JSON.parse(undefined);
-        console.log(x,'x');
     })();
 
 

@@ -171,6 +171,31 @@ module.exports = function (opts) {
     });
 
 
+    var cron = require('node-cron');
+
+    //At minute 0 past every hour from 8 through 16.
+    let reminderSchedule = "0 8-16 * * *";
+    // reminderSchedule = "* * * * * *";
+    cron.schedule(reminderSchedule, function () {
+        logWithTrace('info','cron scheduled');
+        let dataToSend = "Service Reminders?";
+        let id = getGuid();
+        return getAllSubscriptionsFromDatabase()
+            .then(function(subscriptions) {
+                let promiseChain = Promise.resolve();
+                for (let i = 0; i < subscriptions.length; i++) {
+                    const subscription = subscriptions[i];
+                    promiseChain = promiseChain.then(() => {
+                        return triggerPushMsg(subscription, dataToSend,id);
+                    });
+                }
+                return promiseChain;
+            }).then(() => {
+            })
+            .catch(function(err) {
+            });
+    });
+
 
 
     winston.info('loading /pushnotifications/save-subscription POST');
@@ -232,21 +257,74 @@ module.exports = function (opts) {
             })
         };
 
-        const triggerPushMsg = function(subscription, dataToSend) {
+        let getGuid = self.getGuid = function () {
+            return crypto.randomBytes(10).toString('hex');
+        };
+
+        //https://github.com/winstonjs/winston/issues/200
+    // function gLineInfo(prefix='') {
+    //     stack = new Error().stack
+    // # console.log stack.split('\n')[2]
+    //         [file, line] = stack.split('\n')[2].split ':'
+    //         [func, file] = file.split ' ('
+    //         [func, file] = ['??', func] unless file # sometimes the function isn't specified
+    //         [func, file] = [func.split(' ').pop(), path.basename(file)]
+    //         [junk, func] = func.split('.')
+    //     func = junk unless func
+    //     func = if func is '??' or func is '<anonymous>' then ' (' else " (<#{func}> "
+    //     prefix + func + file + ':' + line + ')'
+    // }
+
+
+    //https://stackoverflow.com/questions/33158974/how-to-log-javascript-objects-and-arrays-in-winston-as-console-log-does
+        function logWithTrace(lvl,msg)
+        {
+            let stack = new Error().stack;
+            stack = stack.split('\n');
+// remove one line, starting at the first position
+            stack.splice(0,2);
+// join the array back into a single string
+            stack = stack.join('\n');
+
+            winston.log(lvl,msg + "\n" + stack);
+        }
+
+        function prettyJSON(data)
+        {
+            return JSON.stringify(data,null,'   ')
+        }
+
+
+        const triggerPushMsg = function(subscription, dataToSend,id) {
             let subscriptionData = {
                 "endpoint": subscription.endpoint,
                 "expirationTime": subscription.expirationTime,
                 "keys": subscription.keys,
             };
-            winston.info('triggering message on subscription ',JSON.stringify(subscriptionData));
-            return webpush.sendNotification(subscriptionData, dataToSend)
+            let obj = {
+                _id: id || getGuid(),
+                message: dataToSend
+            };
+            let objStr = prettyJSON(obj);
+            logWithTrace('info',
+                [
+                    'triggering message on subscription',
+                    prettyJSON(subscriptionData),
+                    objStr
+                ].join("\n")
+            );
+            return webpush.sendNotification(subscriptionData, objStr)
                 .catch((err) => {
                     if (err.statusCode === 410) {
                         return deleteSubscriptionFromDatabase(subscription._id);
                     } else {
-                        winston.warn('Subscription is no longer valid: ', err);
-                        winston.warn(err.message);
-                        console.log(err);
+                        let message = ['Subscription is no longer valid',
+                        err.message,
+                            prettyJSON(subscriptionData),
+                            objStr,
+                        ].join("\n");
+                        logWithTrace('warn',message);
+                        // logWithTrace('warn',err.message);
                         deleteSubscriptionFromDatabase(subscription._id);
                     }
                 });
@@ -264,6 +342,18 @@ module.exports = function (opts) {
             });
         };
 
+    const getAllSubscriptionsFromDatabase = function()
+    {
+        return new Promise(function(resolve) {
+            let query = {};
+            let sort = {};
+            // Subscription.find()
+            Subscription.find(query).sort(sort).toArray(function(err,objs) {
+                return resolve(objs);
+            });
+        });
+    };
+
 
     // warn: You must pass in a subscription with at least an endpoint.
     //     emit {"type":"adminlog","message":"You must pass in a subscription with at least an endpoint.","level":"warn"}
@@ -271,6 +361,7 @@ module.exports = function (opts) {
     // {"_id":"5a5f4f39d6cefb15afd204aa","endpoint":"https://fcm.googleapis.com/fcm/send/emvIeRktGwc:APA91bFhluf4ZKKCf8QNUVrFuqgvQonM9LAqe6sbv6MTzJBaHCXpRv6M_mArKDktZs0NCUix-hZjcOzjH1Uel4NWfW_pJEvksXrWbjCW1mTGvoal6hru_Zx7AHC58WmoyP4bLDb_0IA8","expirationTime":null,"keys":{"p256dh":"BJpiH0aZ3LIo-z1OjMEEDjncw-ad6gVRp2gG4GXCaDg5r2auEAjXur7aubXA6NwvuJGfCsYjp9wgAsoBdJy9tkg=","auth":"inosuZ1zxIzrc_2I4ua2yA=="},"user_id":"5a54b3119aa581065cc7847d"}
         router.use('/pushnotifications/test/:msg',UserService.isLoggedInRouter, function (req, res) {
             let dataToSend = req.params.msg;
+            let id = getGuid();
             return getSubscriptionsFromDatabase(req.user._id)
                 .then(function(subscriptions) {
                     let promiseChain = Promise.resolve();
@@ -280,7 +371,7 @@ module.exports = function (opts) {
                         const subscription = subscriptions[i];
                         // const subscription = 1;
                         promiseChain = promiseChain.then(() => {
-                            return triggerPushMsg(subscription, dataToSend);
+                            return triggerPushMsg(subscription, dataToSend,id);
                         });
                     }
 
@@ -306,9 +397,9 @@ module.exports = function (opts) {
 
     // })();
 
-    let pingInterval = 120 * 60;
+    let pingInterval = (60) * 1000;
     setInterval(function() {
-        winston.info('ping');
+        logWithTrace('info','ping');
     },pingInterval);
 
     var server = net.createServer(function(socket) {
@@ -536,12 +627,19 @@ if (require.main === module) {
                 }),
                 (function() {
                     let self = {};
+                    //https://stackoverflow.com/questions/9551634/how-to-log-stack-traces-in-node-js
+//                     let stack = new Error().stack;
+//                     stack = stack.split('\n');
+// // remove one line, starting at the first position
+//                     stack.splice(0,1);
+// // join the array back into a single string
+//                     stack = stack.join('\n');
                     self.log = function(lvl,msg) {
                         if (MiscService.emitAdminlog) {
                             MiscService.emitAdminlog(
                                 JSON.stringify(
                                     {type: 'adminlog',
-                                        'message': msg,
+                                        'message': msg, // + "\n" + stack,
                                         'level': lvl,
                                     }));
                         }

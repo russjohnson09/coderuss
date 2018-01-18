@@ -1,90 +1,125 @@
 var CACHE_NAME = 'my-site-cache-v1';
-
-//https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle
-
-
-// let version = Date.now();
-let version = '2018-01-11 1423';
+let version = '2018-01-18 0721';
 var urlsToCache = [
-    // '/',
-    // '/styles/main.css',
-    // '/script/main.js'
 ];
+
+let pushEvents = {};
+function doNotification(jsonObj,event)
+{
+    if (pushEvents[jsonObj._id] !== undefined) {
+        console.log('already received message skipping');
+        return;
+    }
+    jsonObj.opts = jsonObj.opts || {}
+    let opts = {
+        // "image": "/favicon.ico", //large image
+        "icon": "/favicon.ico"
+    };
+    Object.assign(opts,jsonObj.opts);
+
+//     opts = {
+//         json.opts,
+//     // "body": "Have emails been sent?",
+// };
+
+    pushEvents[jsonObj._id] = jsonObj;
+    console.log('This push event has data: ',
+        // event,
+        jsonObj,
+        // text,
+        // pushEvents
+    );
+
+    // "icon": "<URL String>",
+    // "image": "<URL String>",
+    //     console.log('====================== push notification',event)
+
+    const promiseChain = self.registration.showNotification(jsonObj.message,opts);
+
+    if (event) {
+        event.waitUntil(promiseChain);
+    }
+}
+
+// doTestNotifications();
+function doTestNotifications()
+{
+    console.log('doTestNotifications',self.registration.scope,
+        self.registration.scope === 'http://localhost:3000/angular/');
+    if (self.registration.scope === 'http://localhost:3000/angular/') {
+        doNotification({
+            '_id': Date.now(),
+            'message': 'Scope on this service worker is ' + self.registration.scope
+        });
+
+        doNotification({
+            '_id': Date.now(),
+            'message': JSON.stringify(self.registration,null,'   ')
+        });
+
+        doNotification({
+            '_id': Date.now(),
+            'message': 'Hello world'
+        });
+    }
+
+}
+
+
+
+
+self.addEventListener('push', function(event) {
+    if (!event.data) {
+        console.log('This push event has no data.');
+        return;
+    }
+    let json = event.data.json();
+    doNotification(json,event);
+});
+
+
+self.addEventListener('notificationclick', function(event) {
+
+    console.log('notificationclick',event.action,event.notification.data,event);
+
+    var messageId = event.notification.data;
+
+    event.notification.close();
+
+    if (event.action === 'like') {
+        // silentlyLikeItem();
+    }
+    else if (event.action === 'reply') {
+        // clients.openWindow("/messages?reply=" + messageId);
+    }
+    else {
+        // clients.openWindow("/messages?reply=" + messageId);
+    }
+}, false);
+
 
 //http://docs.goroost.com/
 //chrome://gcm-internals/
 self.addEventListener('install', function(event) {
     console.log('sw.js','install',version)
-    // Perform install steps
-    // event.waitUntil(
-    //     caches.open(CACHE_NAME)
-    //         .then(function(cache) {
-    //             console.log('Opened cache');
-    //             return cache.addAll(urlsToCache);
-    //         })
-    // );
 });
-
-
-// self.addEventListener('fetch', function(event) {
-//     event.respondWith(
-//         caches.match(event.request)
-//             .then(function(response) {
-//                 // Cache hit - return response
-//                 if (response) {
-//                     return response;
-//                 }
-//
-//                 // IMPORTANT: Clone the request. A request is a stream and
-//                 // can only be consumed once. Since we are consuming this
-//                 // once by cache and once by the browser for fetch, we need
-//                 // to clone the response.
-//                 var fetchRequest = event.request.clone();
-//
-//                 return fetch(fetchRequest).then(
-//                     function(response) {
-//                         // Check if we received a valid response
-//                         if(!response || response.status !== 200 || response.type !== 'basic') {
-//                             return response;
-//                         }
-//
-//                         // IMPORTANT: Clone the response. A response is a stream
-//                         // and because we want the browser to consume the response
-//                         // as well as the cache consuming the response, we need
-//                         // to clone it so we have two streams.
-//                         var responseToCache = response.clone();
-//
-//                         caches.open(CACHE_NAME)
-//                             .then(function(cache) {
-//                                 cache.put(event.request, responseToCache);
-//                             });
-//
-//                         return response;
-//                     }
-//                 );
-//             })
-//     );
-// });
-
 
 self.addEventListener('activate', function(event) {
 
-    var cacheWhitelist = ['pages-cache-v1', 'blog-posts-cache-v1'];
-
-    event.waitUntil(
-        caches.keys().then(function(cacheNames) {
-            return Promise.all(
-                cacheNames.map(function(cacheName) {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
+    // var cacheWhitelist = ['pages-cache-v1', 'blog-posts-cache-v1'];
+    //
+    // event.waitUntil(
+    //     caches.keys().then(function(cacheNames) {
+    //         return Promise.all(
+    //             cacheNames.map(function(cacheName) {
+    //                 if (cacheWhitelist.indexOf(cacheName) === -1) {
+    //                     return caches.delete(cacheName);
+    //                 }
+    //             })
+    //         );
+    //     })
+    // );
 });
-
-//      sound: '/demos/notification-examples/audio/notification-sound.mp3'
 
 
 /**
@@ -143,55 +178,3 @@ function testNotification ()
         reminderIntervalTime
     );
 }
-
-self.addEventListener('notificationclick', function(event) {
-
-    console.log('notificationclick',event.action,event.notification.data,event);
-
-    var messageId = event.notification.data;
-
-    event.notification.close();
-
-    if (event.action === 'like') {
-        // silentlyLikeItem();
-    }
-    else if (event.action === 'reply') {
-        // clients.openWindow("/messages?reply=" + messageId);
-    }
-    else {
-        // clients.openWindow("/messages?reply=" + messageId);
-    }
-}, false);
-
-console.log('adding push listener',version);
-console.log('adding push listener ===================');
-
-self.addEventListener('push', function(event) {
-    console.log('====================== push notification',event);
-
-    let opts = {
-    };
-
-    const promiseChain = self.registration.showNotification('Hello, World',opts);
-
-    event.waitUntil(promiseChain);
-});
-
-
-
-
-
-// self.addEventListener('push', function(event) {
-//     if (event.data) {
-//         console.log('This push event has data: ', event.data.text());
-//     } else {
-//         console.log('This push event has no data.');
-//     }
-// });
-
-/** include credentials
- fetch(url, {
-    credentials: 'include'
-})
-
- **/

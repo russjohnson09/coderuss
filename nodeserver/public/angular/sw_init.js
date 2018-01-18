@@ -9,6 +9,9 @@ let publicKey ='BEp4gHGN1a3U_x7aufyR8rIwSDzpF1sxGhJndUmnJe7RtPgytNYFOuzRkcSWqmdW
 //mozilla has there own push services endpoint.
 
 
+//I am having multiple subscribers with this method in dev.
+//Maybe on the backend I can filter out duplicates.
+//For messages I am passing in an _id and filtering dups on the frontend.
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
         //?t=Date.now() means a new version of the service worker is assumed. Go to application in dev tools and skip waiting to load

@@ -48,7 +48,9 @@ module.exports = function (opts) {
     self.router = router;
     let tcpPort = opts.tcpPort;
 
+
     let db = opts.database;
+    let QueueItem = db.collection('queueitem');
 
     let User = db.collection('user');
 
@@ -195,6 +197,47 @@ module.exports = function (opts) {
             .catch(function(err) {
             });
     });
+
+    function checkOverdue()
+    {
+        winston.info('checkOverdue');
+        //TODO overdue query update
+        let overDueQuery = {
+            'status': 'in_progress'
+        };
+        QueueItem.find(overDueQuery).sort({}).toArray(function(err,objs) {
+            sendOverDueNotifications(objs);
+        });
+    }
+
+    function sendOverDueNotifications(objs)
+    {
+        if (objs.length > 0) {
+            winston.info('sending overdue');
+            let dataToSend = "You have overdue items.";
+            let id = getGuid();
+            return getAllSubscriptionsFromDatabase()
+                .then(function(subscriptions) {
+                    let promiseChain = Promise.resolve();
+                    for (let i = 0; i < subscriptions.length; i++) {
+                        const subscription = subscriptions[i];
+                        promiseChain = promiseChain.then(() => {
+                            return triggerPushMsg(subscription, dataToSend,id);
+                        });
+                    }
+                    return promiseChain;
+                }).then(() => {
+                })
+                .catch(function(err) {
+                });
+        }
+    }
+
+    let checkOverdueInterval = process.env.OVERDUE_CHECK_INTERVAL || (5 * (60 * 1000))
+    setInterval(
+        checkOverdue,
+        checkOverdueInterval
+    );
 
 
 
@@ -456,8 +499,6 @@ module.exports = function (opts) {
 
 
     let loggedIn = UserService.isLoggedInRouter;
-
-    let QueueItem = db.collection('queueitem');
 
     /**
      * I was using completed 0 as the status but searching by

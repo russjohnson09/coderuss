@@ -14,11 +14,11 @@
 <!--https://getbootstrap.com/docs/4.0/components/forms/#inline-forms-->
 <form class="form-inline" ng-submit="createNewQueueItem()">
     <div class="form-group">
-        <label >Message</label>
+        <label>Message</label>
         <input ng-model="newQueueItem.message" class="form-control mx-sm-3">
 
         <!--<small id="passwordHelpInline" class="text-muted">-->
-            <!--Must be 8-20 characters long.-->
+        <!--Must be 8-20 characters long.-->
         <!--</small>-->
     </div>
     <div class="form-group">
@@ -42,34 +42,71 @@
 <pre ng-if="0"><json-formatter open="2" json="queueItems"></json-formatter></pre>
 <!--<button ng-click="console.log(1)">1</button>-->
 
-
-<!--https://stackoverflow.com/questions/21831557/ng-submit-not-working-in-angularjs-->
-<div ng-repeat="queue in queueItems.data track by $index">
-
-    <!--{{queue.update}}-->
-    <!--TODO partial this form improve on it-->
-    <form class="form-inline" ng-submit="queue.update()">
-        <div ng-repeat="key in queue.getUpdateFields()">
-            <div ng-if="['_id','user_id'].indexOf(key) == -1">
-                <label for="{{queue._id}}{{key}}">{{key}}</label>
-                    <input id="{{queue._id}}{{key}}" ng-if="key === 'due'"
-                           ng-model="queue[key]"
-                           type="datetime-local" class="form-control mx-sm-3">
-
-                    <input ng-if="key !== 'due'"
-                           ng-model="queue[key]" class="form-control mx-sm-3">
-                </label>
-            </div>
-        </div>
-
-        <button class="button submit" type="submit">Update</button>
-    </form>
-    {{$index + 1}} - {{queue.message}}
-    <pre>{{queue}}</pre>
+<div>
+    <button ng-click="markAllComplete()" class="btn-danger">Mark all complete</button>
 </div>
 
-<!--<script>-->
-    <!--$( function() {-->
-        <!--$( "#datepicker" ).datepicker();-->
-    <!--} );-->
-<!--</script>-->
+<div class="col-md-12">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div ng-repeat="queue in queueItems.data track by $index">
+
+            <div ng-if="queue.status === 'in_progress'">
+
+
+                <div
+                        ng-class="[queue.getPanelClass()]"
+                        class="panel">
+
+                    <div ng-if="queue.status !== 'in_progress'">
+                        {{queue.status}}
+                        {{queue.status}} {{"queue.status === 'in_progress'"}}
+                    </div>
+                    <div
+                            class="panel-heading" role="tab"
+                    >
+                        <div class="row" ng-click="toggleShow($index)">
+                            <div class="col-sm-1">
+                                {{queue.message}}
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="status">
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                            </div>
+                            <div class="col-sm-2">
+                                <button
+                                        ng-click="
+                              $event.stopPropagation();
+                            queue.complete();"
+                                        class="btn btn-primary">Complete
+                                </button>
+                            </div>
+                            <div class="col-sm-2">
+                                <button
+                                        ng-click="
+                              $event.stopPropagation();
+                            queue.archive();"
+                                        class="btn btn-danger">Archive
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                     role="tabpanel"
+                     aria-labelledby="headingOne">
+                    <div ng-if="getShow($index)" class="panel-body">
+                        <pre><json-formatter open="2" json="queue"></json-formatter></pre>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

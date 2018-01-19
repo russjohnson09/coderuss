@@ -69,6 +69,9 @@
             let queueItemPostUrl = baseurl + '/v1/queueitem';
 
 
+
+
+
             function QueueItem(data) {
                 if (data) {
                     this.setData(data);
@@ -91,6 +94,17 @@
                         //ADD more here
                     }
                 },
+                getPanelClass: function()
+                {
+                    // if (Model.PanelClassesByStatus[this.Status]) {
+                    //     return Model.PanelClassesByStatus[this.Status];
+                    // }
+                    // 'DELETED': 'panel-danger',
+                    // 'SUBMITTED': 'panel-primary',
+                    // 'APPROVED': 'panel-success',
+                    // 'INPROGRESS': 'panel-warning'
+                    return 'panel-success';
+                },
                 getUpdateFields: function()
                 {
                     return ['message','due','status']
@@ -98,6 +112,14 @@
                 moveStatus: function(status) {
                     this.status = status;
                     return this.update();
+                },
+                complete: function()
+                {
+                    this.moveStatus('complete');
+                },
+                archive: function()
+                {
+                    this.moveStatus('archive');
                 },
                 update: function()
                 {
@@ -228,7 +250,7 @@
 
             $scope.test = function() {
                 console.log('test');
-            }
+            };
 
 
             $scope.createNewQueueItem = function()
@@ -236,6 +258,32 @@
                 QueueService.createQueueItem($scope.newQueueItem).then(function() {
                     $scope.queueItems = QueueService.getQueueItems();
                 });
+            };
+
+
+            $scope.showIdx = {};
+
+            $scope.toggleShow = function(idx)
+            {
+                let isShown = $scope.getShow(idx);
+                console.log('showIdx',$scope.showIdx,isShown,!isShown);
+
+                $scope.showIdx[idx] = !isShown;
+            };
+
+            $scope.getShow = function(idx)
+            {
+                return $scope.showIdx[idx] == true;
+            };
+
+            $scope.markAllComplete = function()
+            {
+                console.log('markAllComplete',$scope.queueItems.data);
+                for (let i in $scope.queueItems.data)
+                {
+                    // console.log(queue);
+                    $scope.queueItems.data[i].complete();
+                }
             }
 
 

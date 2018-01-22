@@ -200,10 +200,13 @@ module.exports = function (opts) {
 
     function checkOverdue()
     {
-        winston.info('checkOverdue');
-        //TODO overdue query update
+        let dateNow = Date.now();
+
+        winston.info('checkOverdue',dateNow);
+
         let overDueQuery = {
-            'status': 'in_progress'
+            'status': 'in_progress',
+            'due': {$lt: dateNow}
         };
         QueueItem.find(overDueQuery).sort({}).toArray(function(err,objs) {
             sendOverDueNotifications(objs);
@@ -212,24 +215,42 @@ module.exports = function (opts) {
 
     function sendOverDueNotifications(objs)
     {
+
+
+        let userIds = {};
         if (objs.length > 0) {
-            winston.info('sending overdue');
-            let dataToSend = "You have overdue items.";
-            let id = getGuid();
-            return getAllSubscriptionsFromDatabase()
-                .then(function(subscriptions) {
-                    let promiseChain = Promise.resolve();
-                    for (let i = 0; i < subscriptions.length; i++) {
-                        const subscription = subscriptions[i];
-                        promiseChain = promiseChain.then(() => {
-                            return triggerPushMsg(subscription, dataToSend,id);
-                        });
-                    }
-                    return promiseChain;
-                }).then(() => {
-                })
-                .catch(function(err) {
-                });
+            winston.info(JSON.stringify(objs));
+            for(let i in objs) {
+                let queueItem = objs[i];
+                winston.info(JSON.stringify(queueItem));
+                userIds[queueItem.user_id] = queueItem;
+            }
+            winston.info('found queue items ' + JSON.stringify(userIds));
+
+            for(let user_id in userIds)
+            {
+                winston.info('sending overdue');
+                let dataToSend = "You have overdue items.";
+                let id = getGuid();
+                user_id = ObjectID(user_id);
+                return getSubscriptionsFromDatabase(user_id)
+                    .then(function(subscriptions) {
+                        winston.info('found subscriptions '
+                            + JSON.stringify(subscriptions));
+
+                        let promiseChain = Promise.resolve();
+                        for (let i = 0; i < subscriptions.length; i++) {
+                            const subscription = subscriptions[i];
+                            promiseChain = promiseChain.then(() => {
+                                return triggerPushMsg(subscription, dataToSend,id);
+                            });
+                        }
+                        return promiseChain;
+                    }).then(() => {
+                    })
+                    .catch(function(err) {
+                    });
+            }
         }
     }
 
@@ -563,6 +584,13 @@ module.exports = function (opts) {
 
         let set = req.body;
 
+        // if (req.body.due !== undefined) {
+        //     req.body.due = new Date(req.body.due);
+        // }
+        // else {
+        //
+        // }
+
         QueueItem.updateOne({_id:req.queueitem._id},
             {$set:set},
             function(error, result) {
@@ -588,6 +616,7 @@ module.exports = function (opts) {
 
         obj.created = Date.now();
         obj.user_id = req.user._id;
+        // obj.due = new Date(req.due);
 
         let QueueItem = db.collection('queueitem');
         QueueItem.insertOne(obj, function(error, result) {

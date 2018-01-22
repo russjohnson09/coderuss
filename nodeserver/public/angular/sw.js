@@ -13,9 +13,34 @@ function doNotification(jsonObj,event)
     jsonObj.opts = jsonObj.opts || {}
     let opts = {
         // "image": "/favicon.ico", //large image
-        "icon": "/favicon.ico"
+        "icon": "/favicon.ico",
+        // "//": "Visual Options",
+        // "icon": "<URL String>",
+        // "image": "<URL String>",
+        // "badge": "<URL String>",
+        // "vibrate": "<Array of Integers>",
+        "sound": "/sounds/brute-force.mp3",
+        // "dir": "<String of 'auto' | 'ltr' | 'rtl'>",
+
+        // "//": "Behavioural Options",
+        // "tag": "<String>",
+        // "data": "<Anything>",
+        // "requireInteraction": true,
+
+        // "renotify": "<Boolean>", //https://developer.mozilla.org/en-US/docs/Web/API/notification/renotify not supported by mozilla
+        // "silent": "<Boolean>",
+
+        // "//": "Both Visual & Behavioural Options",
+        // actions: [
+        //     {action: 'like', title: '👍Like'},
+        //     {action: 'reply', title: '⤻ Reply'}]
+
+        // "//": "Information Option. No visual affect.",
+        // "timestamp": "<Long>"
     };
     Object.assign(opts,jsonObj.opts);
+
+
 
 //     opts = {
 //         json.opts,
@@ -34,12 +59,30 @@ function doNotification(jsonObj,event)
     // "image": "<URL String>",
     //     console.log('====================== push notification',event)
 
+    // jsonObj.message = "<a href='google.com'>hello</a>";
+
+    // jsonObj.body = "<a href='google.com'>Body</a>";
+
+    // jsonObj.message("<a href='google.com'>hello</a>");
+
+
+
     const promiseChain = self.registration.showNotification(jsonObj.message,opts);
 
     if (event) {
         event.waitUntil(promiseChain);
     }
 }
+
+self.addEventListener('notificationclick', function(event) {
+    console.log('[Service Worker] Notification click Received.',event);
+
+    event.notification.close();
+
+    event.waitUntil(
+        clients.openWindow('/angular/#!/queue')
+    );
+});
 
 // doTestNotifications();
 function doTestNotifications()
@@ -74,6 +117,7 @@ self.addEventListener('push', function(event) {
         return;
     }
     let json = event.data.json();
+
     doNotification(json,event);
 });
 

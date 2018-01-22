@@ -51,6 +51,7 @@
 
 (function QueueCtl() {
 
+    let defaultDateFormat = 'MMMM Do YYYY, h:mm:ss a z';
 
     // app.service('Queue', ['$http', '$q', '$timeout',
     //     function ($http, $q,
@@ -76,7 +77,7 @@
                 if (data) {
                     this.setData(data);
                 }
-            };
+            }
 
             QueueItem.prototype = {
                 setData: function (data) {
@@ -85,6 +86,10 @@
                 },
                 getJSON: function () {
                     return JSON.stringify(this.getJSONObject());
+                },
+                getDue: function()
+                {
+                    return moment(this.due).format(defaultDateFormat);
                 },
                 getJSONObject: function () {
                     return {
@@ -148,6 +153,9 @@
 
 
             service.createQueueItem = function (queueItemObj) {
+                let obj = Object.assign({},queueItemObj);
+                obj.due = moment(obj.due).format('x');
+                obj.due = parseInt(obj.due);
                 return $q(function (resolve, reject) {
                     $http(
                         {
@@ -157,7 +165,7 @@
                                 'cache-control': 'no-cache',
                                 'content-type': 'application/json'
                             },
-                            data: JSON.stringify(queueItemObj)
+                            data: JSON.stringify(obj)
                         }).then(function (response) {
                         return resolve(response);
                     })

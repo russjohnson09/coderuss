@@ -91,14 +91,22 @@ describe(path.basename(__dirname), function () {
 
     describe('/v1/notificationhook/:id/notify POST', function () {
         it("/v1/notificationhook/:id/notify POST", function (done) {
+            //depending on the number of push notifications this can take awhile.
+            //TODO improve performance of sending out lots of notifications.
+            this.timeout(10500);
             request({
                 method: "POST",
                 uri: BASE_URL + '/v1/notificationhook/' + notificationHookId + '/notify',
                 body: JSON.stringify({
-                    'message': 'hello'
+                    'message': 'test notify post'.toLowerCase(),
+                    'opts': {
+                        actions: [
+                            {action: 'like', title: '👍Like'},
+                            {action: 'reply', title: '⤻ Reply'}]
+                    }
                 }),
                 headers: {
-                    Cookie: cookie,
+                    // Cookie: cookie,
                     'content-type': 'application/json'
                 },
             }, function (error, response, body) {

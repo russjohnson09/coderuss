@@ -61,6 +61,9 @@ socket io for the time being.
 * added external_resources fixes #47
 
 # TODOS
+##Add notification hook
+add the ability to send notifications to a user 
+via /v1/notifications/:hookId/notify ```{"message":"ping""}``` POST
 * Checkout with unique id for postcards to prevent duplication.
 
 ##Fix /v1/postcards/send/test TIMEOUT

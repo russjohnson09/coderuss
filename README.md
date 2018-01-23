@@ -61,6 +61,10 @@ socket io for the time being.
 * added external_resources fixes #47
 
 # TODOS
+##Add github review commits 0123_github_review
+Add the ability to take notes on github branches.
+Require these notes to be reviewed and confirmed before
+merging into master.
 ##Add notification hook
 add the ability to send notifications to a user 
 via /v1/notifications/:hookId/notify ```{"message":"ping""}``` POST

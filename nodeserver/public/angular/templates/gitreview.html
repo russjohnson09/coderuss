@@ -3,15 +3,123 @@
     <button ng-click="gitcommit.updateCommitStatusPending()">Pending</button>
     <button ng-click="gitcommit.updateCommitStatusSuccess()">Success</button>
 
-    <pre>
-        {{gitcommit | json}}
-    </pre>
+    <h2>Pulls</h2>
+    <pre><json-formatter json="pulls" open="0"></json-formatter></pre>
+    <div ng-if="pulls.data" class="col-md-12">
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div ng-repeat="item in pulls.data track by $index">
 
-    <div ng-show="gitcommit.getStats()">
+
+                <div
+                        ng-class="statusPanelColor(item.state)"
+                        class="panel panel-primary">
+
+                    <div
+                            class="panel-heading" role="tab"
+                    >
+                        <div class="row" ng-click="toggleShow('pulls'+$index)">
+                            <div class="col-sm-1">
+                                {{item.state}}
+                            </div>
+                            <div class="col-sm-2">
+                                {{item.title}}
+                            </div>
+                            <div class="col-sm-4">
+                                {{item.head.ref}}
+                            </div>
+                            <div class="col-sm-4">
+                                {{item.base.ref}}
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                     role="tabpanel"
+                     aria-labelledby="headingOne">
+                    <div ng-if="getShow('pulls'+$index)" class="panel-body">
+                        <div>
+                            <h3>Notes for merging {{item.head.ref}}</h3>
+                            <!--TODO get notes based on branch name-->
+                        </div>
+                        <div>
+                            <pre><json-formatter open="0" json="item"></json-formatter></pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <h2>Status</h2>
+
+    <div ng-if="gitcommit.getStatus().data" class="col-md-12">
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div ng-repeat="item in gitcommit.getStatus().data.statuses track by $index">
+
+
+                <div
+                        ng-class="statusPanelColor(item.state)"
+                        class="panel panel-primary">
+
+                    <div
+                            class="panel-heading" role="tab"
+                    >
+                        <div class="row" ng-click="toggleShow($index)">
+                            <div class="col-sm-1">
+                                {{item.state}}
+                            </div>
+                            <div class="col-sm-4">
+                                {{item.description}}
+                            </div>
+                            <div class="col-sm-2">
+                                {{item.context}}
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                     role="tabpanel"
+                     aria-labelledby="headingOne">
+                    <div ng-if="getShow($index)" class="panel-body">
+                        <pre><json-formatter open="2" json="item"></json-formatter></pre>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <pre><json-formatter json="gitcommit.getStatus().data" open="0"></json-formatter></pre>
+
+
+    <h2>Commit</h2>
+    <pre><json-formatter json="gitcommit" open="0"></json-formatter></pre>
+
+
+    <div ng-if="false && gitcommit.getStats()">
 
         <h1>Stats</h1>
         <pre>
             {{gitcommit.getStats() | json}}
         </pre>
     </div>
+
 </div>

@@ -1,0 +1,47 @@
+<h1>Notification Hook</h1>
+<pre><json-formatter json="notificationHooks"></json-formatter></pre>
+<div class="col-md-12">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div ng-repeat="item in notificationHooks.data track by $index">
+
+
+                <div
+                        ng-class="[item.getPanelClass()]"
+                        class="panel">
+
+                    <div
+                            class="panel-heading" role="tab"
+                    >
+                        <div class="row" ng-click="toggleShow($index)">
+                            <div class="col-sm-1">
+                                {{item._id}}
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="due">
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                            <div class="col-sm-2">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                     role="tabpanel"
+                     aria-labelledby="headingOne">
+                    <div ng-if="getShow($index)" class="panel-body">
+                        <pre><json-formatter open="2" json="item"></json-formatter></pre>
+                    </div>
+                </div>
+
+            </div>
+
+
+    </div>
+</div>

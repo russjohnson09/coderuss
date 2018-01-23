@@ -51,6 +51,7 @@ module.exports = function (opts) {
 
     let db = opts.database;
     let QueueItem = db.collection('queueitem');
+    let NotificationHook = db.collection('notification-hook');
 
     let User = db.collection('user');
 
@@ -170,6 +171,86 @@ module.exports = function (opts) {
     router.post('/misc/ping',UserService.isLoggedInRouter, function(req,res)
     {
         res.json({"message":"success",user:req.user});
+    });
+
+    router.post('/notificationhook',UserService.isLoggedInRouter, function(req,res)
+    {
+        let data = {
+            user_id: req.user._id
+        };
+        NotificationHook.insertOne(data, function(error, result) {
+            if (error) {
+                return reject(error);
+            }
+            winston.info('NotificationHook created',data);
+            data._id = result.insertedId;
+            res.json(data);
+        });
+    });
+
+    router.get('/notificationhook',UserService.isLoggedInRouter, function(req,res)
+    {
+        let query = {
+            user_id: req.user._id
+        };
+        let sort = {
+
+        };
+        NotificationHook.find(query).sort(sort).toArray(function(err,objs) {
+            res.json(objs);
+        });
+    });
+
+    function getNotificationHook(req,res,next)
+    {
+        let query = {
+            _id : ObjectID(req.params.id)
+        };
+
+        NotificationHook.findOne(query,function(err,obj) {
+            res.notificationHook = obj;
+            next();
+        });
+    }
+
+    //TODO better security on this endpoint.
+    router.post('/notificationhook/:id/notify', getNotificationHook, function (req, res) {
+        let notificationHook = res.notificationHook;
+        if (!notificationHook) {
+            return res.status(404).json({})
+        }
+        let dataToSend = req.body;
+        let id = getGuid();
+
+        return getSubscriptionsFromDatabase(notificationHook.user_id)
+            .then(function (subscriptions) {
+                let promiseChain = Promise.resolve();
+
+                //This is some good code for handling a list of promises. I will steal.
+                for (let i = 0; i < subscriptions.length; i++) {
+                    const subscription = subscriptions[i];
+                    // const subscription = 1;
+                    promiseChain = promiseChain.then(() => {
+                        return triggerPushMsg(subscription, dataToSend, id);
+                    });
+                }
+
+                return promiseChain;
+            }).then(() => {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({data: {success: true}}));
+            })
+            .catch(function (err) {
+                res.status(500);
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({
+                    error: {
+                        id: 'unable-to-send-messages',
+                        message: `We were unable to send messages to all subscriptions : ` +
+                        `'${err.message}'`
+                    }
+                }));
+            });
     });
 
 
@@ -365,10 +446,18 @@ module.exports = function (opts) {
                 "expirationTime": subscription.expirationTime,
                 "keys": subscription.keys,
             };
-            let obj = {
-                _id: id || getGuid(),
-                message: dataToSend
-            };
+            let obj = {};
+            if (typeof dataToSend != 'object') {
+                let obj = {
+                    message: dataToSend
+                };
+
+            }
+            else {
+                obj = dataToSend;
+            }
+            obj._id = obj._id || getGuid();
+
             let objStr = prettyJSON(obj);
             logWithTrace('info',
                 [
@@ -649,6 +738,7 @@ if (require.main === module) {
         require('dotenv').config();
 
         const MONGO_URI = process.env.MONGO_URI;
+        console.log('MONGO_URI',MONGO_URI);
 
 
         var bodyParser = require('body-parser');

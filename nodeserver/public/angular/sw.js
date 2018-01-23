@@ -77,11 +77,11 @@ function doNotification(jsonObj,event)
 self.addEventListener('notificationclick', function(event) {
     console.log('[Service Worker] Notification click Received.',event);
 
-    event.notification.close();
-
-    event.waitUntil(
-        clients.openWindow('/angular/#!/queue')
-    );
+    // event.notification.close();
+    //
+    // event.waitUntil(
+    //     clients.openWindow('/angular/#!/queue')
+    // );
 });
 
 // doTestNotifications();

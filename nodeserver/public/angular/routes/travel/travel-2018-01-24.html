@@ -1,0 +1,47 @@
+<h1>Travel</h1>
+
+<div ng-show="false" class="docs">
+    https://www.reisewarnung.net/en/about-the-api
+</div>
+
+<pre><json-formatter json="countries"></json-formatter></pre>
+
+<div>
+    Is it safe to travel?
+</div>
+
+<div ng-if="'loading' === countries._status">
+    <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+    <span class="sr-only">Loading...</span>
+</div>
+
+<div ng-if="countries._status === 'loaded'">
+    <div ng-repeat="country in countries.data track by $index">
+
+        <pre ng-if="false"><json-formatter json="country"></json-formatter></pre>
+
+        <div ng-if="country.situation.sources < 1">
+            <div>
+                <span ng-if="false">{{country.lang.en.continent_info}} : </span>
+                {{country.lang.en.country}} - No travel info found on {{country.lang.en.country}}
+            </div>
+        </div>
+
+        <div ng-if="country.situation.sources > 0">
+            <div>
+                <span ng-if="false">{{country.lang.en.continent_info}} : </span>
+                {{country.lang.en.country}} - {{country.lang.en.advice}} -
+                {{country.situation.rating}} - source count : {{country.situation.sources}}
+            </div>
+        </div>
+
+
+
+        <pre ng-if="false"><json-formatter open="1" json="country.situation">
+
+        </json-formatter></pre>
+
+
+    </div>
+
+</div>

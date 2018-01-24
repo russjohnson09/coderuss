@@ -16,32 +16,43 @@
 </div>
 
 <div ng-if="countries._status === 'loaded'">
-    <div ng-repeat="country in countries.data track by $index">
+        <div class="col-md-12">
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div ng-repeat="item in countries.data track by $index">
 
-        <pre ng-if="false"><json-formatter json="country"></json-formatter></pre>
 
-        <div ng-if="country.situation.sources < 1">
-            <div>
-                <span ng-if="false">{{country.lang.en.continent_info}} : </span>
-                {{country.lang.en.country}} - No travel info found on {{country.lang.en.country}}
+
+                        <div
+                                ng-class="[getCountryPanelClass(item)]"
+                                class="panel">
+
+                            <div
+                                    class="panel-heading" role="tab"
+                            >
+                                <div class="row" ng-click="toggleShow('county-' + $index)">
+                                    <div class="col-sm-12">
+                                        <div>
+                                            <span ng-if="false">{{item.lang.en.continent_info}} : </span>
+                                            {{item.lang.en.country}} - {{item.lang.en.advice}} -
+                                            {{item.situation.rating}} - source count : {{item.situation.sources}}
+                                        </div>                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                             role="tabpanel"
+                             aria-labelledby="headingOne">
+                            <div ng-if="getShow('county-' + $index)" class="panel-body">
+                                <pre><json-formatter open="2" json="item"></json-formatter></pre>
+                            </div>
+                        </div>
+                </div>
+
             </div>
         </div>
 
-        <div ng-if="country.situation.sources > 0">
-            <div>
-                <span ng-if="false">{{country.lang.en.continent_info}} : </span>
-                {{country.lang.en.country}} - {{country.lang.en.advice}} -
-                {{country.situation.rating}} - source count : {{country.situation.sources}}
-            </div>
-        </div>
-
-
-
-        <pre ng-if="false"><json-formatter open="1" json="country.situation">
-
-        </json-formatter></pre>
-
-
-    </div>
 
 </div>

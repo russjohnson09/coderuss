@@ -14,9 +14,16 @@ let publicKey ='BEp4gHGN1a3U_x7aufyR8rIwSDzpF1sxGhJndUmnJe7RtPgytNYFOuzRkcSWqmdW
 //For messages I am passing in an _id and filtering dups on the frontend.
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        //?t=Date.now() means a new version of the service worker is assumed. Go to application in dev tools and skip waiting to load
-        //the new service worker immediately.
-        navigator.serviceWorker.register('sw.js?t=' + Date.now()).then(function (registration) {
+        //https://developer.mozilla.org/en-US/docs/Web/API/PushManager/getSubscription
+        navigator.serviceWorker.register('sw.js').then(function (registration) {
+            //https://developer.mozilla.org/en-US/docs/Web/API/PushSubscription/unsubscribe
+            let reg = registration;
+            reg.pushManager.getSubscription().then(function(subscription) {
+                console.log('getSubscription',subscription);
+            });
+
+            console.log(registration.pushManager);
+
             // Registration was successful
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
 

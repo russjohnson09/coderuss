@@ -6,8 +6,20 @@ var urlsToCache = [
 let pushEvents = {};
 function doNotification(jsonObj,event)
 {
+    if (!jsonObj) {
+        console.log('invalid jsonObj',jsonObj);
+        return;
+    }
+    else if (!jsonObj._id) {
+        console.log('invalid jsonObj',jsonObj);
+        return;
+    }
+    else if (!jsonObj.message) {
+        console.log('invalid jsonObj no message provided',jsonObj);
+        return;
+    }
     if (pushEvents[jsonObj._id] !== undefined) {
-        console.log('already received message skipping');
+        console.log('already received message skipping',jsonObj);
         return;
     }
     jsonObj.opts = jsonObj.opts || {}

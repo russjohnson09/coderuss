@@ -354,6 +354,9 @@ module.exports = function (opts) {
                     return res.json(subscription);
                 })
                 .catch(function(err) {
+                    console.log(err);
+                    let fullMessage = err.stack || err.message;
+                    winston.error(fullMessage);
                     res.status(500);
                     res.setHeader('Content-Type', 'application/json');
                     res.send(JSON.stringify({
@@ -376,17 +379,35 @@ module.exports = function (opts) {
     // (function pushNotifications() {
         winston.info('loading push notifications');
         let subscriptions = [];
+
+    /**
+     * Don't allow duplicate notifications in database.
+     * {
+     *  keys: {
+     *    p256dh: '',
+     *    auth: ''
+     *  }
+     *  user_id: ''
+     * }
+     * @param data
+     * @returns {Promise}
+     */
         function saveSubscriptionToDatabase(data)
         {
             return new Promise(function(resolve,reject) {
-                Subscription.insertOne(data, function(error, result) {
-                    if (error) {
-                        return reject(error);
-                    }
-                    winston.info('subscription created',data);
-                    data._id = result.insertedId;
-                    resolve(data);
+                Subscription.deleteMany(data, function(err, obj) {
+                    if (err) throw err;
+                    winston.info(obj.result.n + " subscription(s) deleted");
+                    Subscription.insertOne(data, function(error, result) {
+                        if (error) {
+                            return reject(error);
+                        }
+                        winston.info('subscription created',data);
+                        data._id = result.insertedId;
+                        resolve(data);
+                    });
                 });
+
             })
         }
 
@@ -441,14 +462,15 @@ module.exports = function (opts) {
 
 
         const triggerPushMsg = function(subscription, dataToSend,id) {
+            winston.info('triggerPushMsg ' + dataToSend)
             let subscriptionData = {
                 "endpoint": subscription.endpoint,
                 "expirationTime": subscription.expirationTime,
                 "keys": subscription.keys,
             };
-            let obj = {};
+            let obj;
             if (typeof dataToSend != 'object') {
-                let obj = {
+                obj = {
                     message: dataToSend
                 };
 
@@ -926,7 +948,9 @@ if (require.main === module) {
                     });
                 };
 
-                doTests();
+                if (process.env.RUN_TESTS) {
+                    doTests();
+                }
 
 
             });

@@ -68,6 +68,44 @@
 
             $scope.countries = TravelWarningService.getTravelWarningList();
 
+
+            $scope.showIdx = {};
+
+            $scope.toggleShow = function(idx)
+            {
+                let isShown = $scope.getShow(idx);
+                console.log('showIdx',$scope.showIdx,isShown,!isShown);
+
+                $scope.showIdx[idx] = !isShown;
+            };
+
+            $scope.getShow = function(idx)
+            {
+                return $scope.showIdx[idx] == true;
+            };
+
+
+
+            $scope.getCountryPanelClass = function(item)
+            {
+                if (item.situation.sources > 0) {
+
+                    //danger level
+                    if (item.situation.rating < 2.1)
+                    {
+                        return 'panel-success';
+                    }
+                    if (item.situation.rating < 3)
+                    {
+                        return 'panel-warning';
+                    }
+                }
+
+
+                return 'panel-danger';
+
+            }
+
             // $scope.transactionList = TransactionService.getTransactionList();
 
         }])

@@ -197,6 +197,7 @@
                         <li><a href="#!/profile">Profile</a></li>
                         <!--<li><a href="#!/habits">Habits</a></li>-->
                         <li><a href="#!/queue">Queue</a></li>
+                        <li><a href="#!/currency">Currency</a></li>
                         <li><a href="#!/notificationhook">Notification Hooks</a></li>
                         <li><a href="#!/fitbit">Fitbit</a></li>
                         <li ng-show="true"><a href="#!/tvshows/showstatus">TV</a></li>
@@ -1760,6 +1761,10 @@
             templateUrl: "routes/travel/travel.html",
             controller: "travelCtl",
             resolve: userResolve,
+            })
+            .when('/currency', {
+                templateUrl: 'routes/misc/currency.html',
+                controller: "currencyCtl"
             })
             .when('/notificationhook', {
                 templateUrl: "routes/misc/notificationhook.html",

@@ -1,0 +1,57 @@
+<h1>Currency Exchange</h1>
+
+<div ng-if="rates.data">
+    <div class="col-md-12">
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div ng-repeat="(key,item) in rates.data.rates track by $index">
+
+                <!--<pre><json-formatter json="item" open="2"></json-formatter></pre>-->
+
+                <div
+                        ng-class="[getPanelClass(item)]"
+                        class="panel">
+
+                    <div
+                            class="panel-heading" role="tab"
+                    >
+                        <div class="row" ng-click="toggleShow('rates-' + $index)">
+                            <div class="col-sm-4">
+                                <!--<div>-->
+                                    <span ng-if="currencyData">
+                                        {{currencyData.data[key].name}}
+                                        </span> ({{key}})
+                                <!--</div>-->
+                            </div>
+                            <div class="col-sm-2">
+                                <div>
+                                    {{item}}
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div id="collapse{{$index}}" class="panel-collapse collapse in"
+                     role="tabpanel"
+                     aria-labelledby="headingOne">
+                    <div ng-if="getShow('rates-' + $index)" class="panel-body">
+                        <pre><json-formatter open="2" json="item"></json-formatter></pre>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+
+<pre><json-formatter json="rates" open="2"></json-formatter></pre>
+<pre><json-formatter json="currencies" open="2"></json-formatter></pre>

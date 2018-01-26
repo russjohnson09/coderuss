@@ -1714,6 +1714,12 @@
 <script src="routes/funds/funds.js"></script>
 <script src="routes/travel/travel.js"></script>
 <script src="routes/misc/misc.js"></script>
+<script src="routes/utah/utah.js"></script>
+
+<script src="routes/queue/queue.js"></script>
+<script src="routes/notificationhook/notificationhook.js"></script>
+<script src="routes/adminlogs/adminlogs.js"></script>
+<script src="routes/github/github.js"></script>
 
 
 <script>
@@ -1769,6 +1775,11 @@
             .when('/notificationhook', {
                 templateUrl: "routes/misc/notificationhook.html",
                 controller: "notificationhookCtl",
+                resolve: userResolve,
+            })
+            .when('/utah', {
+                templateUrl: "routes/utah/utah.html",
+                controller: "utahCtl",
                 resolve: userResolve,
             })
             .when('/queue', {

@@ -1,7 +1,7 @@
-let GITHUB_API = '/v1/proxy/github';
+console.log('utah.js','loaded');
 
 (function currencyExchange() {
-    app.factory('CurrencyService', ['$http', function ($http) {
+    app.factory('UtahService', ['$http', function ($http) {
 
         //https://api.fixer.io/latest?base=USD
         //get currency exchanges off of the us dollar.
@@ -12,6 +12,10 @@ let GITHUB_API = '/v1/proxy/github';
         let service = {};
 
         let currencyData = {};
+
+
+        let obesityDataId = 'hrjf-yz8j';
+        let obesityUrl = '/v1/proxy/utah/resource/' + obesityDataId + '.json';
 
 
         // service.getCurrencyDataByCode = function(code)
@@ -27,10 +31,11 @@ let GITHUB_API = '/v1/proxy/github';
         // };
 
         let rates;
-        service.getRates = function(isPromise)
+        service.getObesityData = function(isPromise)
         {
             // let url = 'https://api.fixer.io/latest?base=USD';
-            let url = '/v1/proxy/fixer/latest?base=USD';
+            // let url = '/v1/proxy/fixer/latest?base=USD';
+            let url = obesityUrl;
             let items = {
                 // _status: 'loading',
                 data: null
@@ -100,11 +105,16 @@ let GITHUB_API = '/v1/proxy/github';
     }]);
 
 
-    app.controller('currencyCtl', ['$rootScope', '$cookies', '$scope', '$location',
-        '$http', '$routeParams', 'CurrencyService',
+    app.controller('utahCtl', ['$rootScope', '$cookies', '$scope', '$location',
+        '$http', '$routeParams', 'UtahService',
         function ($rootScope, $cookies, $scope, $location, $http, $routeParams,
-                  CurrencyService,
+                  UtahService,
         ) {
+
+        let obesityDataId = 'hrjf-yz8j';
+        let obesityUrl = '/v1/opendata/utah/' + obesityDataId + '.json';
+
+        let obesityData = UtahService.getObesityData();
 
             console.log('currencyCtl');
 
@@ -144,16 +154,6 @@ let GITHUB_API = '/v1/proxy/github';
                 }
                 return 'panel-primary';
             };
-
-            $scope.currencyData = CurrencyService.getCurrencyData();
-
-            $scope.rates = CurrencyService.getRates();
-
-            $scope.getCurrencyDataByCode = function(code)
-            {
-                return CurrencyService.getCurrencyDataByCode(code);
-                return code + 'test name';
-            }
 
         }]);
 

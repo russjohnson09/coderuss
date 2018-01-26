@@ -1,5 +1,13 @@
 <h1>Utah</h1>
 
+
+
+
+<pre><json-formatter json="obesityData"></json-formatter></pre>
+
+
+
+<!--unused below-->
 <div ng-if="rates.data">
     <div class="col-md-12">
         <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
@@ -17,7 +25,7 @@
                         <div class="row" ng-click="toggleShow('rates-' + $index)">
                             <div class="col-sm-4">
                                 <!--<div>-->
-                                    <span ng-if="currencyData">
+                                <span ng-if="currencyData">
                                         {{currencyData.data[key].name}}
                                         </span> ({{key}})
                                 <!--</div>-->

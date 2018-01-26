@@ -344,6 +344,10 @@ module.exports = function(opts) {
         else if ('fixer' === proxy) {
             url = 'https://api.fixer.io';
         }
+        else if ('utah' === proxy) {
+            url = 'https://opendata.utah.gov';
+        }
+        console.log(proxy);
         url += req.params.path;
         r({
             method: 'GET',
@@ -362,7 +366,7 @@ module.exports = function(opts) {
         });
     };
 
-    router.get('/:proxy(github|tvmaze|travelwarning|fixer):path(*)', doStub,getProxy);
+    router.get('/:proxy(github|tvmaze|travelwarning|fixer|utah):path(*)', doStub,getProxy);
 
     router.post('/github:path(*)', function(req, res) {
         delete req.headers['referer'];
@@ -546,7 +550,7 @@ if (require.main === module) {
                     });
                 };
 
-                doTests();
+                // doTests();
 
 
             });

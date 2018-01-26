@@ -61,6 +61,25 @@ socket io for the time being.
 * added external_resources fixes #47
 
 # TODOS
+##Add Utah obesity Rates API
+###Docs
+https://dev.socrata.com/foundry/opendata.utah.gov/hrjf-yz8j
+
+###Example
+https://opendata.utah.gov/resource/hrjf-yz8j.json
+
+
+##Add US census data api
+###Api Example
+api.census.gov/data/2016/acs/acs1?get=NAME,B01001_001E&for=state:*&key={{API_KEY}}
+https://api.census.gov/data/2016/acs/acs1?get=B01001_001E&for=state:*&key={{API_KEY}}
+
+Difficult to decipher.
+###Api Docs
+https://www.census.gov/data/developers/data-sets/acs-1year.html
+###Get list of variables
+https://api.census.gov/data/2016/acs/acs1/variables.json
+
 ##Add github review commits 0123_github_review
 Add the ability to take notes on github branches.
 Require these notes to be reviewed and confirmed before
